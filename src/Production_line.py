@@ -13,7 +13,7 @@ all_machine = ["broyeur_b1" , "broyeur_b2", "tamiseur_b2" , "melangeur_b1" ,
 max_jobs = 2
 nbr_operations = 14
 nbr_machine = 14
-
+nbr_operateur = 12 #changer pour avoir un nombre dynamique
 
 class Production_line:
         
@@ -24,7 +24,7 @@ class Production_line:
             self.planning = []
             self.plateau_operation = np.ndarray((max_jobs,nbr_operations),dtype = object)#to store the state
             self.plateau_machine = np.ndarray((nbr_machine),dtype = object)#to store the state
-            
+            self.operateur_available = nbr_operateur
             self.action_space = self.create_action_space()
             self.create_machine()
             
@@ -57,6 +57,9 @@ class Production_line:
             operation_to_schedule = action[1]
             machine_to_schedule = action[2]
             
+            current_state = self.get_rl_formated_state()
+            reward = 0#the reward the agent get
+            
             if action != "forward":
                 self.plateau_operation[job_to_schedule-1,operation_to_schedule-1].set_status(1) #status = en cours
                 #set the start time of the operation and the machine on wich it's scheduled
@@ -65,10 +68,15 @@ class Production_line:
                 
                 #assign the operation on the machine
                 self.plateau_machine[machine_to_schedule-1].assign_operation((job_to_schedule,operation_to_schedule))
+                
+                #decrease the number of operator remaining
+                operateur_needed = self.plateau_operation[job_to_schedule-1,operation_to_schedule-1].get_operator()
+                self.operateur_available -= operateur_needed
             else:
                 #stock the planning à time t
                 self.build_planning()
                 self.time +=1
+                reward = -1
                 
                 #update operation and machine
                 planned_operation = self.get_planned_operation()
@@ -77,8 +85,12 @@ class Production_line:
                     coord_op = state[1]
                     self.plateau_operation[coord_op[0]-1,coord_op[1]-1].forward()
                     if self.plateau_operation[coord_op[0]-1,coord_op[1]-1].get_status() == 2:
+                        #si on est arrivé à la fin, on met le end-time, on enlève l'opération de la machine
                         self.plateau_operation[coord_op[0]-1,coord_op[1]-1].set_end_time(self.time)
                         self.plateau_machine[state[0]-1].remove_operation()
+                        #on libère les opérateurs
+                        operateur_needed = self.plateau_operation[coord_op[0]-1,coord_op[1]-1].get_operator()
+                        self.operateur_available += operateur_needed
                         
                 #increment lead_time for all job
                 for job in self.jobs:
@@ -88,9 +100,10 @@ class Production_line:
                 self.check_update_expiration_time()
                 self.check_update_executable()
                 
-                    
-                
+            next_state = self.get_rl_formated_state()
             
+            return current_state,action,reward,next_state
+                
 
         def check_free_rows(self):
             free_rows = []
@@ -114,6 +127,12 @@ class Production_line:
                         actions.append((i+1,int(x),machine))   
             return actions
             
+        def get_operateur_available(self):
+            return self.operateur_available
+        
+        def set_operateur_available(self,nbr_operateur):
+            self.operateur_available = nbr_operateur
+        
         def get_action_space(self):
             return self.action_space
         
@@ -130,11 +149,18 @@ class Production_line:
                 for operation in range(nbr_operations):
                     the_operation = self.plateau_operation[job,operation]
                     if the_operation != None:
-                        state.append(the_operation.get_state())
+                        operation_state = the_operation.get_state()
+                        operation_state["job_op"]  = str(job+1)+"_"+str(operation+1)
+                        state.append(operation_state)
                     else:
-                        state.append(Operation.get_default_state())
+                        operation_state = Operation.get_default_state()
+                        operation_state["job_op"]  = str(job+1)+"_"+str(operation+1)
+                        state.append(operation_state)
+                        
             for machine in self.plateau_machine:
                 state.append(machine.get_state())
+                
+            state.append({"operateur_dispo" : self.operateur_available})
             return state
     
         def build_planning(self):

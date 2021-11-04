@@ -39,6 +39,7 @@ class Machine:
                 
         def get_state(self):
             return {
+                "machine" : self.number,
                 "status" : self.status,
                 "operation" : self.operation
                 }

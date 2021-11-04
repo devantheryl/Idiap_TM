@@ -9,13 +9,14 @@ class Agent:
         def __init__(self,prod_line):
             
             self.time = 0
-            self.planning = []
             self.prod_line = prod_line
+            self.reward = 0
             
     
             
         def get_available_operation(self):
             
+            operateur_available = self.prod_line.get_operateur_available()
             plateau_operation = self.prod_line.get_plateau_operation()
             operation_available = []
             nbr_job = plateau_operation.shape[0]
@@ -27,7 +28,8 @@ class Agent:
                     
                     if  the_operation != None:
                         #executable et pas assigné
-                        if the_operation.get_executable() and the_operation.get_status() == 0 :
+                        operateur_needed = the_operation.get_operator()
+                        if the_operation.get_executable() and the_operation.get_status() == 0 and operateur_needed <= operateur_available:
                             operation_available.append((job+1,operation+1))
                             
             return operation_available
@@ -50,15 +52,17 @@ class Agent:
         
             actions = self.get_available_actions()
             decision = random.choice(actions)
-            self.prod_line.execute_action(decision)
-            return decision
+            current_state,action,reward,next_state = self.prod_line.execute_action(decision)
             
-        def get_planning(self):
-            
-            return self.planning
+            self.add_to_db(current_state,action,reward,next_state)
+            return current_state,action,reward,next_state
+
         
         def get_prod_line(self):
             return self.prod_line
             
+        def add_to_db(self,current_state,action,reward,next_state):
+            #print(current_status,action,reward,next_state)
+            pass
         
         
