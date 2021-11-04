@@ -1,0 +1,36 @@
+@startuml
+
+
+== INIT ==
+
+actor actor
+main --> Agent : create()
+main --> Production_line : create()
+Production_line --> Machine : create()
+
+== AD BATCH ==
+
+actor --> Job : new Batch(name,formu,...)
+Job --> actor : the_batch
+actor --> Production_line :add_batch(the_batch)
+
+
+== PROCESS ==
+
+Agent --> Job : get_all_jobs(the_batch)
+Job --> Agent : all_jobs
+Agent --> Production_line : get_state()
+Production_line --> Machine : get_state()
+Machine --> Production_line : State
+Production_line --> Agent : State
+Agent --> Agent : get_avaiable_actions(State, Jobs[])
+Agent --> Agent : take_decision(Actions[])
+Agent --> Machine : assign_job(job)
+Agent --> Machine : change_state(State)
+Agent --> Agent : forward()
+
+== PLANIFICATION DONE ==
+
+actor --> Agent : get_planning()
+Agent --> actor : the_planning
+@enduml

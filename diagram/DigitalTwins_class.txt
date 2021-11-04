@@ -1,0 +1,74 @@
+@startuml
+
+class Agent{
+	Production_line the_line
+	Actions[] get_available_actions(State,Operations[])
+	take_decision(Actions[])
+	void forward()
+	timestamp calendrier
+}
+		
+class Production_line{
+
+	Machine[] machine_list
+	State current_state
+	timestamp calendrier
+	tuple(Operations,Machine)[] all_job_graphs
+	State get_state()
+
+		
+}
+
+class Job{
+
+	String job_name
+	int formulation
+	int job_size
+	int priority
+	int melange_number
+	Operations[] all_operations
+	tuple(Operation,Machine) graph
+
+	Operation[] get_all_operations()
+	void set_priority(priority)
+	String get_job_name()
+	
+	
+}
+
+class Operation{
+
+	int operation_number
+	String job_name
+	String state
+	int remaining_time
+	bool executable
+
+	void set_state(State)
+	String get_state()
+	String get_job_name()
+		
+}
+class Machine{
+
+	String state
+	Operation operation
+
+	void change_state(state)
+	String get_state()
+	void assign_operation(operation)
+	Job get_operation()
+	void remove_operation()
+}
+
+
+
+
+Agent "1" *-- "1" Production_line
+Agent "1" *-- "many" Job
+Production_line "1" *-- "many" Machine
+Production_line --> Operation
+Job "1" *-- "many" Operation
+
+
+@enduml

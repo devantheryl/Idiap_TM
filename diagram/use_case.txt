@@ -1,0 +1,22 @@
+@startuml
+
+:the planning guy: as someone 
+:agent: as agent 
+
+package Production_line{
+	usecase "add job" as uc1
+	usecase "remove job" as uc2
+	usecase "forward" as uc3
+	usecase "get state of job/machine" as uc4
+	usecase "do action" as uc5
+
+}
+someone -->uc1
+someone -->uc2
+agent --> uc3
+agent --> uc4
+agent --> uc5
+
+
+
+@enduml
