@@ -41,7 +41,15 @@ class Machine:
             return {
                 "machine" : self.number,
                 "status" : self.status,
-                "operation" : self.operation
+                "operation"  : self.operation
                 }
+        
+        def get_rl_formatted_state(self, prefix):
+            machine_number = self.number
+            return {
+                prefix + "_" + "status" + "_" + str(machine_number) : self.status,
+                prefix + "_" + "job" + "_" + str(machine_number) : self.operation [0],
+                prefix + "_" + "operation" + "_" + str(machine_number) : self.operation[1]
                 
+                }
         

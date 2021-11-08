@@ -4,13 +4,14 @@ from src.Operation import Operation
 from src.Job import Job
 import networkx as nx 
 import numpy as np
+import pandas as pd
 import json
 
 all_machine = ["broyeur_b1" , "broyeur_b2", "tamiseur_b2" , "melangeur_b1" , 
                "melangeur_b2", "extrudeur_b2" , "combinaison_b",
                "millieu_b1" , "perry_b2", "sortie_lyo_b2" , "capsulage_b1",
                "IV_b" , "envoi_irr_g" , "retour_irr_g"]
-max_jobs = 2
+max_jobs = 14
 nbr_operations = 14
 nbr_machine = 14
 nbr_operateur = 12 #changer pour avoir un nombre dynamique
@@ -28,12 +29,15 @@ class Production_line:
             self.action_space = self.create_action_space()
             self.create_machine()
             
+            
+            
         def create_machine(self):
             
             for i, name in enumerate(all_machine):
                 the_machine = Machine(i+1,name)
                 self.plateau_machine[i] = the_machine
                 
+               
         
         def add_job(self,job):
             
@@ -57,7 +61,7 @@ class Production_line:
             operation_to_schedule = action[1]
             machine_to_schedule = action[2]
             
-            current_state = self.get_rl_formated_state()
+            current_state = self.get_rl_formated_state("current")
             reward = 0#the reward the agent get
             
             if action != "forward":
@@ -100,7 +104,7 @@ class Production_line:
                 self.check_update_expiration_time()
                 self.check_update_executable()
                 
-            next_state = self.get_rl_formated_state()
+            next_state = self.get_rl_formated_state("next")
             
             return current_state,action,reward,next_state
                 
@@ -142,25 +146,31 @@ class Production_line:
         def get_plateau_machine(self):
             return self.plateau_machine
             
-        def get_rl_formated_state(self):
+        def get_rl_formated_state(self, prefix):
             
-            state = []
+            state = {}
             for job in range(max_jobs):
                 for operation in range(nbr_operations):
+                    job_number = job+1
+                    operation_number = operation+1
+                    
                     the_operation = self.plateau_operation[job,operation]
                     if the_operation != None:
-                        operation_state = the_operation.get_state()
-                        operation_state["job_op"]  = str(job+1)+"_"+str(operation+1)
-                        state.append(operation_state)
+                        operation_state = the_operation.get_state(job_number, prefix)
+                        state.update(operation_state)
                     else:
-                        operation_state = Operation.get_default_state()
-                        operation_state["job_op"]  = str(job+1)+"_"+str(operation+1)
-                        state.append(operation_state)
+                        operation_state = Operation.get_default_state(job_number,operation_number, prefix)
+                        state.update(operation_state)
+                        
+                    
                         
             for machine in self.plateau_machine:
-                state.append(machine.get_state())
+                state.update(machine.get_rl_formatted_state(prefix))
                 
-            state.append({"operateur_dispo" : self.operateur_available})
+            state.update({prefix + "_" + "operateur_dispo" : self.operateur_available})
+            
+            
+            
             return state
     
         def build_planning(self):

@@ -85,23 +85,24 @@ class Operation:
                 "operator" : self.operator,
                 "used_by" : self.used_by}
                 
-    def get_state(self):
+    def get_state(self,job_number, prefix):
+        operation_number = self.get_operation_number()
         return {
-                "status" : self.status,
-                "processing_time" : self.processing_time,
-                "nbr_of_sucessor" : self.nbr_of_sucessor,
-                "expiration_time" : self.expiration_time,
-                "remaining_time" : self.remaining_time,
-                "executable" : self.executable
+                prefix + "_" + "status" + "_" + str(job_number) + "_" + str(operation_number) : self.status,
+                prefix + "_" + "processing_time" + "_" + str(job_number) + "_" + str(operation_number) : self.processing_time,
+                prefix + "_" + "nbr_of_sucessor" + "_" + str(job_number) + "_" + str(operation_number) : self.nbr_of_sucessor,
+                prefix + "_" + "expiration_time" + "_" + str(job_number) + "_" + str(operation_number) : self.expiration_time,
+                prefix + "_" + "remaining_time" + "_" + str(job_number) + "_" + str(operation_number) : self.remaining_time,
+                prefix + "_" + "executable" + "_" + str(job_number) + "_" + str(operation_number) : self.executable
                 }
-    def get_default_state():
+    def get_default_state(job_number,operation_number, prefix):
         return {
-                "status" : 4,
-                "processing_time" : 0,
-                "nbr_of_sucessor" : 0,
-                "expiration_time" : 0,
-                "remaining_time" : 0,
-                "executable" : False
+                prefix + "_" + "status" + "_" + str(job_number) + "_" + str(operation_number) : 4,
+                prefix + "_" + "processing_time" + "_" + str(job_number) + "_" + str(operation_number) : 0,
+                prefix + "_" + "nbr_of_sucessor" + "_" + str(job_number) + "_" + str(operation_number) : 0,
+                prefix + "_" + "expiration_time" + "_" + str(job_number) + "_" + str(operation_number) : 0,
+                prefix + "_" + "remaining_time" + "_" + str(job_number) + "_" + str(operation_number) : 0,
+                prefix + "_" + "executable" + "_" + str(job_number) + "_" + str(operation_number) : False
                 }
     def forward(self):
         self.processing_time = self.processing_time -1
