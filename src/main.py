@@ -5,6 +5,8 @@ from src.Operation import Operation
 from src.Agent import Agent
 import numpy as np
 import random
+from datetime import datetime
+
 
 prod_line = Production_line()
 agent = Agent(prod_line)

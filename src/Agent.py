@@ -4,8 +4,9 @@ from src.Machine import Machine
 import numpy as np
 import random 
 import pandas as pd
+from datetime import datetime
 
-max_jobs = 14
+max_jobs = 4
 nbr_operations = 14
 nbr_machine = 14
 nbr_operateur = 12 #changer pour avoir un nombre dynamique
@@ -89,7 +90,8 @@ class Agent:
                             
             return operation_available
                             
-        def get_available_actions(self): 
+        def get_available_actions(self):
+            
             operation_available = self.get_available_operation()    
             available_actions = []
             action_space = self.prod_line.get_action_space()
@@ -98,9 +100,10 @@ class Agent:
                 for operation in operation_available:
                     if action[0] == operation[0] and action[1] == operation[1] and plateau_machine[action[2]-1].get_status() ==0:
                         available_actions.append(action)
-            available_actions.append("forward")    
+            available_actions.append("forward")
+            
             return available_actions
-                
+        
         
         
         def take_decision(self):
@@ -126,6 +129,3 @@ class Agent:
             
         def get_db(self):
             return self.database
-            
-        
-        

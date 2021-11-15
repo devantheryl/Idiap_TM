@@ -11,7 +11,7 @@ all_machine = ["broyeur_b1" , "broyeur_b2", "tamiseur_b2" , "melangeur_b1" ,
                "melangeur_b2", "extrudeur_b2" , "combinaison_b",
                "millieu_b1" , "perry_b2", "sortie_lyo_b2" , "capsulage_b1",
                "IV_b" , "envoi_irr_g" , "retour_irr_g"]
-max_jobs = 14
+max_jobs = 4
 nbr_operations = 14
 nbr_machine = 14
 nbr_operateur = 12 #changer pour avoir un nombre dynamique
@@ -26,7 +26,7 @@ class Production_line:
             self.plateau_operation = np.ndarray((max_jobs,nbr_operations),dtype = object)#to store the state
             self.plateau_machine = np.ndarray((nbr_machine),dtype = object)#to store the state
             self.operateur_available = nbr_operateur
-            self.action_space = self.create_action_space()
+            self.action_space = self.create_action_space(max_jobs)
             self.create_machine()
             
             
@@ -121,12 +121,12 @@ class Production_line:
                     
             return free_rows
                     
-        def create_action_space(nbr_job_max):
+        def create_action_space(self,nbr_job_max):
             with open("src/batch_description.json") as json_file:
                 batch_description = json.load(json_file)
             actions = []
             for x,y in batch_description["action_space"].items():
-                for i in range(max_jobs):
+                for i in range(nbr_job_max):
                     for machine in y:
                         actions.append((i+1,int(x),machine))   
             return actions
