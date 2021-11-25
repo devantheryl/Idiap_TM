@@ -11,7 +11,7 @@ all_machine = ["broyeur_b1" , "broyeur_b2", "tamiseur_b2" , "melangeur_b1" ,
                "melangeur_b2", "extrudeur_b2" , "combinaison_b",
                "millieu_b1" , "perry_b2", "sortie_lyo_b2" , "capsulage_b1",
                "IV_b" , "envoi_irr_g" , "retour_irr_g"]
-max_jobs = 4
+max_jobs = 14
 nbr_operations = 14
 nbr_machine = 14
 nbr_operateur = 12 #changer pour avoir un nombre dynamique
@@ -105,6 +105,8 @@ class Production_line:
                 self.check_update_executable()
                 
             next_state = self.get_rl_formated_state("next")
+            
+            
             
             return current_state,action,reward,next_state
                 

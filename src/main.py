@@ -6,10 +6,11 @@ from src.Agent import Agent
 import numpy as np
 import random
 from datetime import datetime
-
+from tensorflow.keras.optimizers import Adam
 
 prod_line = Production_line()
-agent = Agent(prod_line)
+optimizer = Adam(learning_rate=0.01)
+agent = Agent(prod_line, optimizer)
 job1 = Job("TEST1", 1,20000)
 job2 = Job("TEST2", 1,20000)
 
@@ -24,8 +25,8 @@ for i in range(20):
     print("decision prise : ",agent.take_decision())
     
     
-    state = prod_line.get_rl_formated_state()
-    for s in state:
+    state = prod_line.get_rl_formated_state("")
+    for s in state.items():
         print(s)
     print("=========================================")
     

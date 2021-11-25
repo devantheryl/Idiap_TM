@@ -90,18 +90,14 @@ class Operation:
         return {
                 prefix + "_" + "status" + "_" + str(job_number) + "_" + str(operation_number) : self.status,
                 prefix + "_" + "processing_time" + "_" + str(job_number) + "_" + str(operation_number) : self.processing_time,
-                prefix + "_" + "nbr_of_sucessor" + "_" + str(job_number) + "_" + str(operation_number) : self.nbr_of_sucessor,
                 prefix + "_" + "expiration_time" + "_" + str(job_number) + "_" + str(operation_number) : self.expiration_time,
-                prefix + "_" + "remaining_time" + "_" + str(job_number) + "_" + str(operation_number) : self.remaining_time,
                 prefix + "_" + "executable" + "_" + str(job_number) + "_" + str(operation_number) : self.executable
                 }
     def get_default_state(job_number,operation_number, prefix):
         return {
                 prefix + "_" + "status" + "_" + str(job_number) + "_" + str(operation_number) : 4,
                 prefix + "_" + "processing_time" + "_" + str(job_number) + "_" + str(operation_number) : 0,
-                prefix + "_" + "nbr_of_sucessor" + "_" + str(job_number) + "_" + str(operation_number) : 0,
                 prefix + "_" + "expiration_time" + "_" + str(job_number) + "_" + str(operation_number) : 0,
-                prefix + "_" + "remaining_time" + "_" + str(job_number) + "_" + str(operation_number) : 0,
                 prefix + "_" + "executable" + "_" + str(job_number) + "_" + str(operation_number) : False
                 }
     def forward(self):
