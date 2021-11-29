@@ -137,6 +137,22 @@
         "12" : [12],
         "13" : [13],
         "14" : [14]        
-    }
+    }, 
+    "machines" : [
+        "broyeur_b1", 
+        "broyeur_b2", 
+        "tamiseur_b2" , 
+        "melangeur_b1", 
+        "melangeur_b2", 
+        "extrudeur_b2", 
+        "combinaison_b",
+        "millieu_b1" , 
+        "perry_b2", 
+        "sortie_lyo_b2", 
+        "capsulage_b1",
+        "IV_b", 
+        "envoi_irr_g", 
+        "retour_irr_g"
+    ]
 
 }

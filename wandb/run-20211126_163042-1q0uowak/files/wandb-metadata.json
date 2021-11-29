@@ -1,0 +1,19 @@
+{
+    "os": "Windows-10-10.0.19041-SP0",
+    "python": "3.8.5",
+    "heartbeatAt": "2021-11-26T15:30:50.958851",
+    "startedAt": "2021-11-26T15:30:42.222195",
+    "docker": null,
+    "cpu_count": 8,
+    "cuda": null,
+    "args": [
+        "-f",
+        "C:\\Users\\LDE\\AppData\\Roaming\\jupyter\\runtime\\kernel-ded7579e-9ef9-4f30-b2ee-5abd8c5ddec2.json"
+    ],
+    "state": "running",
+    "program": "Prog/projet_master/digital_twins/Agent2.0.ipynb",
+    "root": "C:\\Users\\LDE",
+    "host": "POR10IPLDE",
+    "username": "LDE",
+    "executable": "C:\\ProgramData\\Anaconda3\\python.exe"
+}
