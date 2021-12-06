@@ -2,6 +2,7 @@
     "Batch_3.75_20000" : {
         
         "operation1" : {
+            "number" : 1,
             "OF" : "POLBR",
             "processable_on" : [1,2],
             "processing_time" : 2,
@@ -13,6 +14,7 @@
             
         },
         "operation2" : {
+            "number" : 2,
             "processable_on" : [3],
             "processing_time" : 1,
             "nbr_of_sucessor" : 12,
@@ -22,6 +24,7 @@
             "used_by" : 3
         },
         "operation3" : {
+            "number" : 3,
             "processable_on" : [4,5],
             "processing_time" : 1,
             "nbr_of_sucessor" : 11,
@@ -31,6 +34,7 @@
             "used_by" : 4
         },
         "operation4" : {
+            "number" : 4,
             "processable_on" : [6],
             "processing_time" : 2,
             "nbr_of_sucessor" : 10,
@@ -40,6 +44,7 @@
             "used_by" : 5
         },
         "operation5" : {
+            "number" : 5,
             "processable_on" : [1,2],
             "processing_time" : 4,
             "nbr_of_sucessor" : 9,
@@ -49,6 +54,7 @@
             "used_by" : 6
         },
         "operation6" : {
+            "number" : 6,
             "processable_on" : [3],
             "processing_time" : 2,
             "nbr_of_sucessor" : 8,
@@ -58,6 +64,7 @@
             "used_by" : 9
         },
         "operation7" : {
+            "number" : 7,
             "processable_on" : [8],
             "processing_time" : 3,
             "nbr_of_sucessor" : 7,
@@ -67,6 +74,7 @@
             "used_by" : 9
         },
         "operation9" : {
+            "number" : 9,
             "processable_on" : [9],
             "processing_time" : 4,
             "nbr_of_sucessor" : 6,
@@ -76,6 +84,7 @@
             "used_by" : 10
         },
         "operation10" : {
+            "number" : 10,
             "processable_on" : [10],
             "processing_time" : 1,
             "nbr_of_sucessor" : 5,
@@ -85,6 +94,7 @@
             "used_by" : 11
         },
         "operation11" : {
+            "number" : 11,
             "processable_on" : [11],
             "processing_time" : 2,
             "nbr_of_sucessor" : 4,
@@ -94,6 +104,7 @@
             "used_by" : 12
         },
         "operation12" : {
+            "number" : 12,
             "processable_on" : [12],
             "processing_time" : 4,
             "nbr_of_sucessor" : 3,
@@ -103,6 +114,7 @@
             "used_by" : 13
         },
         "operation13" : {
+            "number" : 13,
             "processable_on" : [13],
             "processing_time" : 1,
             "nbr_of_sucessor" : 2,
@@ -112,6 +124,7 @@
             "used_by" : 14
         },
         "operation14" : {
+            "number" : 14,
             "processable_on" : [12],
             "processing_time" : 1,
             "nbr_of_sucessor" : 1,
