@@ -5,6 +5,9 @@ Created on Fri Nov 26 10:29:00 2021
 @author: LDE
 """
 
+from src.Job2 import Job
+from src.Machine2 import Machine
+
 import numpy as np
 import json
 import os
@@ -62,6 +65,7 @@ class Production_line():
             for i in range(self.nbr_job_max):
                 for machine in value:
                     actions.append((i+1,int(key),machine))
+        actions.append("forward")
         return actions
     
     def add_job(self, job):
@@ -85,7 +89,7 @@ class Production_line():
             
     
     
-    def step(action):
+    def step(self, action_index):
         """
         execute an action et go 1 step-time further
         the action is a set of operation schedule on several machine
@@ -102,9 +106,44 @@ class Production_line():
         """
         
         #TODO
-        return None
+        action = self.actions[action_index]
+        
+        #si l'action est légal, normalement elle l'est du au mask
+        if self.check_legality(action):
+            job_to_schedule = action[0]
+            operation_to_schedule = action[1]
+            machine_to_schedule = action[2]
+            
+            #to implement : state params and default state
+            current_state = self.state
+            reward = 0
+            
+            if action = "forward":
+                self.time += 1
+                reward = -1
+                
+                #updtate status, .... of all operations and machine
+                for job in self.jobs:
+                    for operation in job.operations:
+                        
+                #for op in all_op:
+                    #check si l'opératon est terminée --> libérer la machine
+                #increment the leadtime of all job
+                #check and update the expiration time of all operation
+            
+            else:
+                #assign l'opération, set the start time, set processed on, assign operation on the machine
+                #decrease the number of operator
+                
+        next_state = self.state
+            
+            
+                
+        return state,action,reward,next_state
     
-    
+    def check_legality(self,actions):
+        pass
+        #todo
        
    
         

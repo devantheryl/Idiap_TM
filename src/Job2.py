@@ -4,7 +4,7 @@ Created on Mon Dec  6 12:50:34 2021
 
 @author: LDE
 """
-
+from src.Operation2 import Operation
 import numpy as np
 import json
 
@@ -60,15 +60,74 @@ class Job:
                 if number == 1 or number == 7:
                     executable = True
                     
-                #to change
-                operation = Operation(self.job_name,operation_number,processable_on,processing_time,nbr_of_sucessor,expiration_time,dependencies,operator,used_by,executable)
+                #create the operation
+                operation = Operation(self.job_name,number,processable_on,
+                                      processing_time,expiration_time,
+                                      dependencies,operator,used_by,executable)
+                
+                #store it in the jobs array
                 self.operations[number-1] = operation
                 
-    def increment_lead_time(self, increment):
+    def increment_lead_time(self, increment=1):
         self.lead_time += increment
-    def get_lead_time(self):
+        
+    def build_gant_formated(self):
+        
+        planning = []
+        for operation in self.operations:
+            operation_number = operation.operation_number
+            machine = operation.processed_on
+            start = operation.start_time
+            end = operation.end_time
+            duration = end-start
+            planning.append((self.job_name,machine,operation_number,start,duration,end))
+        return planning
+        
+    @property
+    def job_name(self):
+        return self.job_name
+    @job_name.setter
+    def job_name(self, value):
+        self.job_name = value  
+    
+    @property
+    def formulation(self):
+        return self.formulation
+    @formulation.setter
+    def formulation(self, value):
+        self.formulation = value  
+    
+    @property
+    def job_size(self):
+        return self.job_size
+    @job_size.setter
+    def job_size(self, value):
+        self.job_size = value      
+        
+    @property
+    def max_operation(self):
+        return self.max_operation
+    @max_operation.setter
+    def max_operation(self, value):
+        self.max_operation = value  
+        
+    @property
+    def melange_number(self):
+        return self.melange_number
+    @melange_number.setter
+    def melange_number(self, value):
+        self.melange_number = value  
+        
+    @property
+    def lead_time(self):
         return self.lead_time
-    
-    
+    @lead_time.setter
+    def lead_time(self, value):
+        self.lead_time = value  
         
-        
+    @property
+    def operations(self):
+        return self.operations
+    @operations.setter
+    def operations(self, value):
+        self.operations = value  
