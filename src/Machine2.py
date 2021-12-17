@@ -19,11 +19,12 @@ class Machine:
         self.job = 0 #0 = pas de job
         
         
-    def assign_operation(self,operation):
+    def assign_operation(self,job, operation):
         
+        self.job = job
         self.operation = operation
         if self.status == 0:
-            self.change_status(1)
+            self.status = 1
             return True
         return False
     
@@ -38,43 +39,43 @@ class Machine:
         return False
     
     def get_state(self):
-        return self.status, self.job, self.operation
+        return self.status/2, (self.job-1)/(13), (self.operation-1)/13
     
     
     
     @property
     def number(self):
-        return self.number
+        return self.__number
     @number.setter
     def number(self, value):
-        self.number = value      
+        self.__number = value      
         
     @property
     def name(self):
-        return self.name
+        return self.__name
     @name.setter
     def name(self, value):
-        self.name = value     
+        self.__name = value     
         
     @property
     def status(self):
-        return self.status
+        return self.__status
     @status.setter
     def status(self, value):
-        self.status = value     
+        self.__status = value     
         
     @property
     def operation(self):
-        return self.operation
+        return self.__operation
     @operation.setter
     def operation(self, value):
-        self.operation = value     
+        self.__operation = value     
         
     @property
     def job(self):
-        return self.job
+        return self.__job
     @job.setter
     def job(self, value):
-        self.job = value     
+        self.__job = value     
         
             

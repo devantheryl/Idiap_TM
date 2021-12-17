@@ -18,7 +18,7 @@ os.chdir("C:/Users/LDE/Prog/projet_master/digital_twins")
 
 class Production_line():
     
-    def __init__(self,nbr_job_max, nbr_operations,nbr_machines,nbr_operator, time):
+    def __init__(self,nbr_job_max, nbr_operations,nbr_machines,nbr_operator, time = 0):
         
         
         self.nbr_job_max = nbr_job_max
@@ -35,6 +35,10 @@ class Production_line():
         
         #all the actions we can take
         self.actions_space = self.create_actions_space()
+        
+        #state size
+        self.state_size = self.get_state_size()
+        
         
     
     def create_machines(self):
@@ -106,7 +110,8 @@ class Production_line():
         """
         
         #TODO
-        action = self.actions[action_index]
+        action = self.actions_space[action_index]
+        reward = -1
         
         #si l'action est légal, normalement elle l'est du au mask
         if self.check_legality(action):
@@ -114,38 +119,242 @@ class Production_line():
             operation_to_schedule = action[1]
             machine_to_schedule = action[2]
             
-            #to implement : state params and default state
-            current_state = self.state
-            reward = 0
             
-            if action = "forward":
+            if action == "forward":
                 self.time += 1
-                reward = -1
                 
-                #updtate status, .... of all operations and machine
+                
+                #update the processing time of all operation and remove the op from
+                #machine if the op has ended
+                #on libère aussi les opérateurs
+                self.update_processing_time()
+                
+                #incremente lead_time for all job
                 for job in self.jobs:
-                    for operation in job.operations:
-                        
-                #for op in all_op:
-                    #check si l'opératon est terminée --> libérer la machine
-                #increment the leadtime of all job
-                #check and update the expiration time of all operation
+                    if job != None:
+                        job.increment_lead_time()
+                    
+                #update and check expiration time of all operations
+                self.update_check_expiration_time()
+                
+                #update and check newly executable operations
+                self.update_check_executable()
             
             else:
-                #assign l'opération, set the start time, set processed on, assign operation on the machine
-                #decrease the number of operator
                 
-        next_state = self.state
-            
+                #on set l'opération à "en cours", set the start time and the machine
+                self.jobs[job_to_schedule-1].operations[operation_to_schedule-1].status = 1
+                self.jobs[job_to_schedule-1].operations[operation_to_schedule-1].start_time = self.time
+                self.jobs[job_to_schedule-1].operations[operation_to_schedule-1].processed_on = machine_to_schedule
+                
+                #update the machine status
+                self.machines[machine_to_schedule-1].assign_operation(job_to_schedule,operation_to_schedule)
+                
+                #decrease the number of operator remaining
+                self.nbr_operator -= self.jobs[job_to_schedule-1].operations[operation_to_schedule-1].operator
+                
+                
+        next_state = self.get_state()
+        
+        #to do, implemtner check done
+        done = self.check_done()
             
                 
-        return state,action,reward,next_state
+        return next_state,reward, done 
     
-    def check_legality(self,actions):
-        pass
-        #todo
+    def update_processing_time(self):
+        
+        for job in self.jobs:
+            if job != None:
+                for operation in job.operations:
+                    if operation != None:
+                        #on vérifie que l'opération soit plannifiée
+                        if operation.status == 1:
+                            #si l'opration est terminée
+                            if operation.forward() == 2:
+                                operation.end_time = self.time
+                                machine = operation.processed_on
+                                self.machines[machine-1].remove_operation()
+                                
+                                self.nbr_operator += operation.operator
+                                
+    def update_check_executable(self):
+        for job in self.jobs:
+            if job != None:
+                for operation in job.operations:
+                    if operation != None:
+                        if operation.status == 0 and operation.executable == False:
+                            executable = True
+                            for dependencie in operation.dependencies:
+                                #si l'opération précédente est terminée
+                                if job.operations[dependencie-1].status != 2:
+                                    executable = False
+                            if executable:
+                                operation.executable = executable
+                        
+                        
+    def update_check_expiration_time(self):
+        
+        for job in self.jobs:
+            if job != None:  
+                for operation in job.operations:
+                    if operation != None:    
+                        #si l'opération est terminée
+                        if operation.status == 2:
+                            #si l'opération suivante n'a pas encore commencé
+                            if job.operations[operation.used_by-1].status == 0:
+                            
+                                #si l'opération est écheue
+                                if operation.decrease_get_expiration_time() == 0:
+                                    #l'opération suivante n'est plus executable
+                                    job.operations[operation.used_by-1].executable == False
+                                    #on recréer une operation
+                                    job.create_operation(operation.operation_number)
+                                
+    def check_done(self):
+        
+        done = True
+        for job in self.jobs:
+            if job != None:  
+                for operation in job.operations:
+                    if operation != None:    
+                        if not (operation.status == 2 or operation.status == 3):
+                            done = False
+        return done
+                                
+        
+    
+    def check_legality(self,action):
+        
+        if action == "forward":
+            return 1
+        job_to_schedule = int(action[0])
+        operation_to_schedule = int(action[1])
+        machine_to_schedule = int(action[2])
+        
+        job = self.jobs[job_to_schedule-1]
+        if job != None:
+            operation = job.operations[operation_to_schedule-1]
+            if operation != None:
+                if operation.status == 0 and operation.executable and operation.operator <= self.nbr_operator and self.machines[machine_to_schedule-1].status == 0:
+                    return 1
+                
+        return 0
+    
+    def get_mask(self):
+        
+        mask = []
+        for action in self.actions_space:
+            mask.append(self.check_legality(action))    
+
+        return mask
+    
+    def get_state_size(self):
+        
+        params_op = 4
+        params_machine = 3
+        state_size = self.nbr_job_max * self.nbr_operations * params_op + self.nbr_machines * params_machine + 1#  +1 for the operator number
+        
+        return state_size
+    
+    def get_state(self):
+        state = np.ndarray((1,self.state_size))
+        sum_state = ()
+        for job in self.jobs:
+            if job != None:
+                for operation in job.operations:
+                    if operation != None:
+                        sum_state += operation.get_state()
+                    else:
+                        #default state
+                        sum_state += (4,0,0,0)
+            else:
+                for i in range (self.nbr_job_max):
+                    sum_state += (4,0,0,0)
+                    
+        for machine in self.machines:
+            sum_state += machine.get_state()
+            
+        sum_state += (self.nbr_operator/12,)
+        state[0,:] = sum_state 
+        return state
+    
+    def get_gant_formated(self):
+        planning = []
+        for job in self.jobs:
+            if job != None:
+                planning.append(job.build_gant_formated())
+            
+        return planning
+        
+        
+    
        
    
         
+    @property
+    def nbr_job_max(self):
+        return self.__nbr_job_max
+    @nbr_job_max.setter
+    def nbr_job_max(self, value):
+        self.__nbr_job_max = value  
         
+    @property
+    def nbr_operations(self):
+        return self.__nbr_operations
+    @nbr_operations.setter
+    def nbr_operations(self, value):
+        self.__nbr_operations = value 
+        
+    @property
+    def nbr_machines(self):
+        return self.__nbr_machines
+    @nbr_machines.setter
+    def nbr_machines(self, value):
+        self.__nbr_machines = value 
+        
+    @property
+    def nbr_operator(self):
+        return self.__nbr_operator
+    @nbr_operator.setter
+    def nbr_operator(self, value):
+        self.__nbr_operator = value 
+        
+    @property
+    def time(self):
+        return self.__time
+    @time.setter
+    def time(self, value):
+        self.__time = value 
+        
+    @property
+    def jobs(self):
+        return self.__jobs
+    @jobs.setter
+    def jobs(self, value):
+        self.__jobs = value 
+        
+    @property
+    def machines(self):
+        return self.__machines
+    @machines.setter
+    def machines(self, value):
+        self.__machines = value 
+        
+    @property
+    def actions_space(self):
+        return self.__actions_space
+    @actions_space.setter
+    def actions_space(self, value):
+        self.__actions_space = value 
+        
+    @property
+    def state_size(self):
+        return self.__state_size
+    @state_size.setter
+    def state_size(self, value):
+        self.__state_size = value 
+        
+    
+                        
         

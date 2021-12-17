@@ -33,9 +33,14 @@ class Job:
         #stats params
         self.lead_time = 0
         
+        
+        self.operation_planning = []
+        
         #game plate 
         self.operations = np.full(max_operation,None)
+        
         self.create_all_operations()
+        
         
         
         
@@ -67,6 +72,33 @@ class Job:
                 
                 #store it in the jobs array
                 self.operations[number-1] = operation
+                self.operation_planning.append(operation)
+                
+    def create_operation(self, operation_number):
+        with open("src/batch_description.json") as json_file:
+            batch_description = json.load(json_file)
+        
+        if self.formulation == 1 and self.job_size == 20000:
+            
+            batch_info = batch_description["Batch_3.75_20000"]
+            batch_info = batch_info["operation"+str(operation_number)]
+            processable_on = batch_info["processable_on"]
+            processing_time = batch_info["processing_time"]
+            expiration_time = batch_info["expiration_time"]
+            dependencies = batch_info["dependencies"]
+            executable = False
+            operator = batch_info["operator"]
+            used_by = batch_info["used_by"]
+            if operation_number == 1 or operation_number ==7:
+                executable = True
+            #create the operation
+            operation = Operation(self.job_name,operation_number,processable_on,
+                                  processing_time,expiration_time,
+                                  dependencies,operator,used_by,executable)
+            #store it in the jobs array
+            self.operations[operation_number-1] = operation
+            self.operation_planning.append(operation)
+        
                 
     def increment_lead_time(self, increment=1):
         self.lead_time += increment
@@ -74,60 +106,61 @@ class Job:
     def build_gant_formated(self):
         
         planning = []
-        for operation in self.operations:
-            operation_number = operation.operation_number
-            machine = operation.processed_on
-            start = operation.start_time
-            end = operation.end_time
-            duration = end-start
-            planning.append((self.job_name,machine,operation_number,start,duration,end))
+        for operation in self.operation_planning:
+            if operation != None:
+                operation_number = operation.operation_number
+                machine = operation.processed_on
+                start = operation.start_time
+                end = operation.end_time
+                duration = end-start
+                planning.append((self.job_name,machine,operation_number,start,duration,end))
         return planning
         
     @property
     def job_name(self):
-        return self.job_name
+        return self.__job_name
     @job_name.setter
     def job_name(self, value):
-        self.job_name = value  
+        self.__job_name = value  
     
     @property
     def formulation(self):
-        return self.formulation
+        return self.__formulation
     @formulation.setter
     def formulation(self, value):
-        self.formulation = value  
+        self.__formulation = value  
     
     @property
     def job_size(self):
-        return self.job_size
+        return self.__job_size
     @job_size.setter
     def job_size(self, value):
-        self.job_size = value      
+        self.__job_size = value      
         
     @property
     def max_operation(self):
-        return self.max_operation
+        return self.__max_operation
     @max_operation.setter
     def max_operation(self, value):
-        self.max_operation = value  
+        self.__max_operation = value  
         
     @property
     def melange_number(self):
-        return self.melange_number
+        return self.__melange_number
     @melange_number.setter
     def melange_number(self, value):
-        self.melange_number = value  
+        self.__melange_number = value  
         
     @property
     def lead_time(self):
-        return self.lead_time
+        return self.__lead_time
     @lead_time.setter
     def lead_time(self, value):
-        self.lead_time = value  
+        self.__lead_time = value  
         
     @property
     def operations(self):
-        return self.operations
+        return self.__operations
     @operations.setter
     def operations(self, value):
-        self.operations = value  
+        self.__operations = value  

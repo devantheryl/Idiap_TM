@@ -30,110 +30,110 @@ class Operation:
         self.end_time = 0.0
         self.processed_on = 0
         
-        def forward(self):
-            self.processing_time-=1
-            if self.processing_time == 0:
-                self.status = 2
-                
-            return self.status
+    def forward(self):
+        self.processing_time-=1
+        if self.processing_time == 0:
+            self.status = 2
             
-        def decrease_get_expiration_time(self):
-            self.expiration_time -= 1
-            return self.expiration_time
+        return self.status
         
-        def get_state(self):
-            return self.status, self. processing_time, self.expiration_time, self.executable
-        
-        
-        @property
-        def job_name(self):
-            return self.job_name
-        @job_name.setter
-        def job_name(self, value):
-            self.job_name = value            
+    def decrease_get_expiration_time(self):
+        self.expiration_time -= 1
+        return self.expiration_time
     
-        @property
-        def operation_number(self):
-            return self.operation_number
-        @operation_number.setter
-        def operation_number(self, value):
-            self.operation_number = value            
-            
-        @property
-        def processable_on(self):
-            return self.processable_on
-        @processable_on.setter
-        def processable_on(self, value):
-            self.processable_on = value
+    def get_state(self):
+        return self.status/4, self. processing_time/4, self.expiration_time/60, self.executable
+    
+    
+    @property
+    def job_name(self):
+        return self.__job_name
+    @job_name.setter
+    def job_name(self, value):
+        self.__job_name = value            
+
+    @property
+    def operation_number(self):
+        return self.__operation_number
+    @operation_number.setter
+    def operation_number(self, value):
+        self.__operation_number = value            
         
-        @property
-        def processing_time(self):
-            return self.processing_time
-        @processing_time.setter
-        def processing_time(self, value):
-            self.processing_time = value          
+    @property
+    def processable_on(self):
+        return self.__processable_on
+    @processable_on.setter
+    def processable_on(self, value):
+        self.__processable_on = value
+    
+    @property
+    def processing_time(self):
+        return self.__processing_time
+    @processing_time.setter
+    def processing_time(self, value):
+        self.__processing_time = value          
+    
+    @property
+    def expiration_time(self):
+        return self.__expiration_time
+    @expiration_time.setter
+    def expiration_time(self, value):
+        self.__expiration_time = value        
         
-        @property
-        def expiration_time(self):
-            return self.expiration_time
-        @expiration_time.setter
-        def expiration_time(self, value):
-            self.expiration_time = value        
-            
-        @property
-        def dependencies(self):
-            return self.dependencies
-        @dependencies.setter
-        def dependencies(self, value):
-            self.dependencies = value      
-            
-        @property
-        def operator(self):
-            return self.operator
-        @operator.setter
-        def operator(self, value):
-            self.operator = value       
-            
-        @property
-        def used_by(self):
-            return self.used_by
-        @used_by.setter
-        def used_by(self, value):
-            self.used_by = value      
-            
-        @property
-        def executable(self):
-            return self.executable
-        @executable.setter
-        def executable(self, value):
-            self.executable = value     
-            
-        @property
-        def status(self):
-            return self.status
-        @status.setter
-        def status(self, value):
-            self.status = value   
-            
-        @property
-        def start_time(self):
-            return self.start_time
-        @start_time.setter
-        def start_time(self, value):
-            self.start_time = value
-                 
-        @property
-        def end_time(self):
-            return self.end_time
-        @end_time.setter
-        def end_time(self, value):
-            self.end_time = value
-            
-        @property
-        def processed_on(self):
-            return self.processed_on
-        @processed_on.setter
-        def processed_on(self, value):
-            self.processed_on = value
-            
+    @property
+    def dependencies(self):
+        return self.__dependencies
+    @dependencies.setter
+    def dependencies(self, value):
+        self.__dependencies = value      
+        
+    @property
+    def operator(self):
+        return self.__operator
+    @operator.setter
+    def operator(self, value):
+        self.__operator = value       
+        
+    @property
+    def used_by(self):
+        return self.__used_by
+    @used_by.setter
+    def used_by(self, value):
+        self.__used_by = value      
+        
+    @property
+    def executable(self):
+        return self.__executable
+    @executable.setter
+    def executable(self, value):
+        self.__executable = value     
+        
+    @property
+    def status(self):
+        return self.__status
+    @status.setter
+    def status(self, value):
+        self.__status = value   
+        
+    @property
+    def start_time(self):
+        return self.__start_time
+    @start_time.setter
+    def start_time(self, value):
+        self.__start_time = value
+             
+    @property
+    def end_time(self):
+        return self.__end_time
+    @end_time.setter
+    def end_time(self, value):
+        self.__end_time = value
+        
+    @property
+    def processed_on(self):
+        return self.__processed_on
+    @processed_on.setter
+    def processed_on(self, value):
+        self.__processed_on = value
+        
         
