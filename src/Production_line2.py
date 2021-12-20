@@ -9,6 +9,7 @@ from src.Job2 import Job
 from src.Machine2 import Machine
 
 import numpy as np
+import pandas as pd
 import json
 import os
 
@@ -207,7 +208,7 @@ class Production_line():
                                 #si l'opération est écheue
                                 if operation.decrease_get_expiration_time() == 0:
                                     #l'opération suivante n'est plus executable
-                                    job.operations[operation.used_by-1].executable == False
+                                    job.operations[operation.used_by-1].executable = False
                                     #on recréer une operation
                                     job.create_operation(operation.operation_number)
                                 
@@ -284,8 +285,19 @@ class Production_line():
         for job in self.jobs:
             if job != None:
                 planning.append(job.build_gant_formated())
+                
+        plan_df = pd.DataFrame()
+        for plan in planning:
+            print(plan,"\n")
+            df = pd.DataFrame(plan, columns =['Job','Machine', 'Operation', 'Start','Duration','Finish'])
+            plan_df = pd.concat([plan_df, df], axis=0)
+        
+        plan_df.reset_index(drop = True,inplace=True)
+        
+        plan_df['Machine']= plan_df['Machine'].astype(str)
+        plan_df['Duration']= plan_df['Duration'].astype(int)
             
-        return planning
+        return plan_df
         
         
     

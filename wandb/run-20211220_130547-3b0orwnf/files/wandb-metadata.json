@@ -1,0 +1,16 @@
+{
+    "os": "Windows-10-10.0.19041-SP0",
+    "python": "3.8.5",
+    "heartbeatAt": "2021-12-20T12:05:54.958441",
+    "startedAt": "2021-12-20T12:05:47.851748",
+    "docker": null,
+    "cpu_count": 8,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "C:\\Users\\LDE\\Prog\\projet_master\\digital_twins\\src\\main.py",
+    "codePath": "src\\main.py",
+    "host": "POR10IPLDE",
+    "username": "LDE",
+    "executable": "C:\\ProgramData\\Anaconda3\\python.exe"
+}

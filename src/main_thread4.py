@@ -30,10 +30,10 @@ config = {
     "nbr_machines" : 14,
     "nbr_operator" : 12,
     
-    "batch_size" : 32,
+    "batch_size" : 64,
     "n_episode" : 2000,
     "n_epsiode_test" : 10,
-    "UPDATE_FREQ" : 16,
+    "UPDATE_FREQ" : 32,
     "NETW_UPDATE_FREQ" : 100,
     
     "params_agent" : {
@@ -43,13 +43,13 @@ config = {
         "epsilon_decay" : 0.9992,
         "epsilon_min" : 0.1,
         
-        "learning_rate" : 0.005,
+        "learning_rate" : 0.0001,
         
         
         "model" : {
-            "nbr_neurone_first_layer" : 75,
+            "nbr_neurone_first_layer" : 10,
             "activation_first_layer" : "relu",
-            "nbr_neurone_second_layer" : 25,
+            "nbr_neurone_second_layer" : 200,
             "activation_second_layer" : "relu",
             "output_layer_activation" : "linear", 
             "loss" : "huber_loss",
@@ -162,7 +162,6 @@ print('It took', (time.time()-start)/n_episode, 'seconds.')
 agent.set_test_mode(True)
 
 sum_rewards = 0.0
-max_episode = 100
 
 n_episode_test = config["n_epsiode_test"]
 for _ in range(n_episode_test):
@@ -172,17 +171,16 @@ for _ in range(n_episode_test):
     
     state = prod_line.get_state()
     done = False
-    nbr_passage = 0
-    while not done and max_episode > nbr_passage:
+    while not done:
         mask = prod_line.get_mask()
         action = agent.act(state,mask)
         next_state, reward, done = prod_line.step(action)
         
+        agent.remember(state, action, reward, next_state, done)
+        
         state = next_state
             
         sum_rewards += reward
-        nbr_passage += 1
-        
         
     print(sum_rewards)
 print('Mean evaluation return:', sum_rewards / n_episode_test)
