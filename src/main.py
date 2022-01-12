@@ -17,6 +17,8 @@ import src.utils as utils
 
 import matplotlib.pyplot as plt
 
+import os
+
 
 from tensorflow.keras import Model, Sequential
 from tensorflow.keras.layers import Dense, Embedding, Reshape
@@ -25,16 +27,16 @@ from tensorflow.keras.optimizers import Adam
 import wandb
 
 config = {
-    "nbr_job_max" : 1,
+    "nbr_job_max" : 2,
     "nbr_operation_max" : 14,
     "nbr_machines" : 14,
     "nbr_operator" : 12,
     
-    "batch_size" : 32,
-    "n_episode" : 2000,
-    "n_epsiode_test" : 10,
+    "batch_size" : 128,
+    "n_episode" : 4000,
+    "n_epsiode_test" : 3,
     "UPDATE_FREQ" : 16,
-    "NETW_UPDATE_FREQ" : 100,
+    "NETW_UPDATE_FREQ" : 1000,
     
     "params_agent" : {
         "memory" : 20000,
@@ -47,9 +49,9 @@ config = {
         
         
         "model" : {
-            "nbr_neurone_first_layer" : 75,
+            "nbr_neurone_first_layer" : 125,
             "activation_first_layer" : "relu",
-            "nbr_neurone_second_layer" : 25,
+            "nbr_neurone_second_layer" : 50,
             "activation_second_layer" : "relu",
             "output_layer_activation" : "linear", 
             "loss" : "huber_loss",
@@ -76,12 +78,18 @@ NETW_UPDATE_FREQ = config["NETW_UPDATE_FREQ"]
 
 wandb_activate = True
 if wandb_activate:
-    wandb.init(
-      project="auto_scheduler",
+    run = wandb.init(
+      project="auto_scheduler_2jobs",
       entity="devantheryl",
       notes="tuning hyperparamters",
       config=config,
     )
+    os.makedirs("model/" + run.project, exist_ok=True)
+    os.makedirs("model/" + run.project + "/" + run.name, exist_ok=True)
+    print(run.name)
+    print(run.project)
+
+
 
 
 loop_number = 0
@@ -99,6 +107,7 @@ prod_line.add_job(job3)
 
 agent = Agent(prod_line.state_size, len(prod_line.actions_space), config["params_agent"])
 score_mean = deque(maxlen = 100)
+score_min = -10000
 to_plot = []
 
 start = time.time()
@@ -108,7 +117,10 @@ actions_space = prod_line.actions_space
 for e in range(n_episode):
     prod_line = Production_line(nbr_job_max, nbr_operation_max, nbr_machines, nbr_operator)
     job1 = Job("TEST1", 1,20000, nbr_operation_max)
+    job2 = Job("TEST2", 1,20000, nbr_operation_max)
     prod_line.add_job(job1)
+    prod_line.add_job(job2)
+    
     
     state = prod_line.get_state()
     done = False
@@ -140,9 +152,12 @@ for e in range(n_episode):
             agent.alighn_target_model()
             
         loop_number += 1
+        
         if done:
             print("episode : {}/{}, score : {}, e : {:.2}".format(e, n_episode, score, agent.epsilon))
             score_mean.append(score)
+            if score_min < score:
+                score_min = score
             
             break
         
@@ -152,28 +167,34 @@ for e in range(n_episode):
     agent.update_epsilon(e,n_episode)
     if wandb_activate:
         wandb.log({"score_mean" : np.mean(score_mean),"epsilon" : agent.epsilon},step =e)
-    
+        
+    if e%500 == 0 and e > 0:
+        
+        agent.save("model/" + run.project + "/" +  run.name +"/"+ '{:010d}'.format(e) + ".hdf5")
+        pass
 
-print('It took', (time.time()-start)/n_episode, 'seconds.')
-
+agent.save("model/" + run.project + "/" +  run.name +"/"+ "final" + ".hdf5")
 
 
 
 agent.set_test_mode(True)
 
 sum_rewards = 0.0
-max_episode = 100
+max_episode = 1000
 
 n_episode_test = config["n_epsiode_test"]
 for _ in range(n_episode_test):
     prod_line = Production_line(nbr_job_max, nbr_operation_max, nbr_machines, nbr_operator)
     job1 = Job("TEST1", 1,20000, nbr_operation_max)
+    job2 = Job("TEST2", 1,20000, nbr_operation_max)
     prod_line.add_job(job1)
+    prod_line.add_job(job2)
+    
     
     state = prod_line.get_state()
     done = False
     nbr_passage = 0
-    while not done and max_episode > nbr_passage:
+    while not done :
         mask = prod_line.get_mask()
         action = agent.act(state,mask)
         next_state, reward, done = prod_line.step(action)
@@ -182,14 +203,18 @@ for _ in range(n_episode_test):
             
         sum_rewards += reward
         nbr_passage += 1
+        if nbr_passage > max_episode:
+            break
         
         
     print(sum_rewards)
 print('Mean evaluation return:', sum_rewards / n_episode_test)
-wandb.run.summary['Mean evaluation return:'] = sum_rewards / n_episode_test
+if wandb_activate:
+    wandb.run.summary['Mean evaluation return:'] = sum_rewards / n_episode_test
+    wandb.run.summary["score_minimum"] = score_min
 
 
 planning = prod_line.get_gant_formated()
-
-#utils.visualize(planning)
+print(planning)
+utils.visualize(planning)
 

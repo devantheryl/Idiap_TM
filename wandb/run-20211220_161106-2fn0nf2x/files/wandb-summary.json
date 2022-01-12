@@ -1,1 +1,1 @@
-{"score_mean": -60.45, "epsilon": 0.8218, "_runtime": 682, "_timestamp": 1640013748, "_step": 396, "loss_fit": 0.002947972621768713}
+{"score_mean": -43.52, "epsilon": 0.10045000000000004, "_runtime": 8874, "_timestamp": 1640021940, "_step": 1999, "loss_fit": 0.000349793815985322, "Mean evaluation return:": -38.0}

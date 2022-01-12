@@ -13,7 +13,9 @@ import time
 
 def visualize(results):
     
-    operation_machine = {(1,1) : "broyage_poly_1",
+    operation_machine = {
+                     (0)   : "No Op",
+                     (1,1) : "broyage_poly_1",
                      (1,2) : "broyage_poly_2",
                      (2,3) : "tamisage_poly_3",
                      (3,4) : "mélange_4",
@@ -32,13 +34,15 @@ def visualize(results):
                      (14,14) : "retour IRR_14"}
     
     schedule = results.copy()
-    
     op_machine = []
     for row in schedule.iterrows():
         
         op = row[1]["Operation"]
         machine = row[1]["Machine"]
-        op_machine.append(operation_machine[int(op),int(machine)])
+        if machine != '0':
+            op_machine.append(operation_machine[int(op),int(machine)])
+        else:
+            op_machine.append(operation_machine[int(machine)])
     
     schedule["op_machine"] = op_machine
     
