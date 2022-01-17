@@ -19,17 +19,18 @@ os.chdir("C:/Users/LDE/Prog/projet_master/digital_twins")
 
 class Production_line():
     
-    def __init__(self,nbr_job_max, nbr_operations,nbr_machines,nbr_operator, time = 0):
+    def __init__(self,time = 0):
         
-        
-        self.nbr_job_max = nbr_job_max
-        self.nbr_operations = nbr_operations
-        self.nbr_machines = nbr_machines
-        self.nbr_operator = nbr_operator
+        with open("src/config.json") as json_file:
+            config = json.load(json_file)
+        self.nbr_job_max = config["nbr_job_max"]
+        self.nbr_operations = config["nbr_operation_max"]
+        self.nbr_machines = config["nbr_machines"]
+        self.nbr_operator = config["nbr_operator"]
         self.time = time
         
         #list to keep the jobs objects
-        self.jobs = np.full(nbr_job_max,None)
+        self.jobs = np.full(self.nbr_job_max,None)
         
         #list to keep the machines objects
         self.machines = self.create_machines()
@@ -40,8 +41,14 @@ class Production_line():
         #state size
         self.state_size = self.get_state_size()
         
+        self.reset()
         
-    
+        
+    def reset(self):
+        for i in range(self.nbr_job_max):
+            job = Job("TEST" + str(i), 1,20000, self.nbr_operations)
+            self.add_job(job)
+            
     def create_machines(self):
         """
         create all the Machine objects
@@ -238,9 +245,9 @@ class Production_line():
             operation = job.operations[operation_to_schedule-1]
             if operation != None:
                 if operation.status == 0 and operation.executable and operation.operator <= self.nbr_operator and self.machines[machine_to_schedule-1].status == 0:
-                    return 1
+                    return True
                 
-        return 0
+        return False
     
     def get_mask(self):
         
@@ -259,7 +266,7 @@ class Production_line():
         return state_size
     
     def get_state(self):
-        state = np.ndarray((1,self.state_size))
+        state = np.ndarray((self.state_size))
         sum_state = ()
         for job in self.jobs:
             if job != None:
@@ -277,7 +284,8 @@ class Production_line():
             sum_state += machine.get_state()
             
         sum_state += (self.nbr_operator/12,)
-        state[0,:] = sum_state 
+        state[:] = sum_state 
+        
         return state
     
     def get_gant_formated(self):

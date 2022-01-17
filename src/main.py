@@ -26,47 +26,10 @@ from tensorflow.keras.optimizers import Adam
 
 import wandb
 
-config = {
-    "nbr_job_max" : 2,
-    "nbr_operation_max" : 14,
-    "nbr_machines" : 14,
-    "nbr_operator" : 12,
-    
-    "batch_size" : 128,
-    "n_episode" : 4000,
-    "n_epsiode_test" : 3,
-    "UPDATE_FREQ" : 16,
-    "NETW_UPDATE_FREQ" : 1000,
-    
-    "params_agent" : {
-        "memory" : 20000,
-        "gamma" : 0.99,
-        "epsilon" : 1.0,
-        "epsilon_decay" : 0.9992,
-        "epsilon_min" : 0.1,
-        
-        "learning_rate" : 0.005,
-        
-        
-        "model" : {
-            "nbr_neurone_first_layer" : 125,
-            "activation_first_layer" : "relu",
-            "nbr_neurone_second_layer" : 50,
-            "activation_second_layer" : "relu",
-            "output_layer_activation" : "linear", 
-            "loss" : "huber_loss",
-            "optimizer" : "Adam"
-        }
-    }
-  
-}
+with open("src/config") as json_file:
+    config = json.load(json_file)
 
 
-#prod line parameters
-nbr_job_max = config["nbr_job_max"]
-nbr_operation_max = config["nbr_operation_max"]
-nbr_machines = config["nbr_machines"]
-nbr_operator = config["nbr_operator"]
 
 
 #agent parameters
@@ -79,7 +42,7 @@ NETW_UPDATE_FREQ = config["NETW_UPDATE_FREQ"]
 wandb_activate = True
 if wandb_activate:
     run = wandb.init(
-      project="auto_scheduler_2jobs",
+      project="auto_scheduler_4jobs",
       entity="devantheryl",
       notes="tuning hyperparamters",
       config=config,
@@ -95,16 +58,7 @@ if wandb_activate:
 loop_number = 0
 action_taken_number = 0
 
-
-prod_line = Production_line(nbr_job_max, nbr_operation_max, nbr_machines, nbr_operator)
-job1 = Job("TEST1", 1,20000, nbr_operation_max)
-job2 = Job("TEST2", 1,20000, nbr_operation_max)
-job3 = Job("TEST3", 1,20000, nbr_operation_max)
-
-prod_line.add_job(job1)
-prod_line.add_job(job2)
-prod_line.add_job(job3)
-
+prod_line = Production_line()
 agent = Agent(prod_line.state_size, len(prod_line.actions_space), config["params_agent"])
 score_mean = deque(maxlen = 100)
 score_min = -10000
@@ -115,11 +69,37 @@ start = time.time()
 
 actions_space = prod_line.actions_space
 for e in range(n_episode):
-    prod_line = Production_line(nbr_job_max, nbr_operation_max, nbr_machines, nbr_operator)
-    job1 = Job("TEST1", 1,20000, nbr_operation_max)
-    job2 = Job("TEST2", 1,20000, nbr_operation_max)
-    prod_line.add_job(job1)
-    prod_line.add_job(job2)
+    prod_line = Production_line()
+    #job1 = Job("TEST1", 1,20000, nbr_operation_max)
+    #job2 = Job("TEST2", 1,20000, nbr_operation_max)
+    #job3 = Job("TEST3", 1,20000, nbr_operation_max)
+    #job4 = Job("TEST4", 1,20000, nbr_operation_max)
+    #job5 = Job("TEST5", 1,20000, nbr_operation_max)
+    #job6 = Job("TEST6", 1,20000, nbr_operation_max)
+    #job7 = Job("TEST7", 1,20000, nbr_operation_max)
+    #job8 = Job("TEST8", 1,20000, nbr_operation_max)
+    #job9 = Job("TEST9", 1,20000, nbr_operation_max)
+    #job10 = Job("TEST10", 1,20000, nbr_operation_max)
+    #job11 = Job("TEST11", 1,20000, nbr_operation_max)
+    #job12 = Job("TEST12", 1,20000, nbr_operation_max)
+    #job13 = Job("TEST13", 1,20000, nbr_operation_max)
+    #job14 = Job("TEST14", 1,20000, nbr_operation_max)
+    
+    #prod_line.add_job(job1)
+    #prod_line.add_job(job2)
+    #prod_line.add_job(job3)
+    #prod_line.add_job(job4)
+    #prod_line.add_job(job5)
+    #prod_line.add_job(job6)
+    #prod_line.add_job(job7)
+    #prod_line.add_job(job8)
+    #prod_line.add_job(job9)
+    #prod_line.add_job(job10)
+    #prod_line.add_job(job11)
+    #prod_line.add_job(job12)
+    #prod_line.add_job(job13)
+    #prod_line.add_job(job14)
+
     
     
     state = prod_line.get_state()
@@ -184,12 +164,36 @@ max_episode = 1000
 
 n_episode_test = config["n_epsiode_test"]
 for _ in range(n_episode_test):
-    prod_line = Production_line(nbr_job_max, nbr_operation_max, nbr_machines, nbr_operator)
-    job1 = Job("TEST1", 1,20000, nbr_operation_max)
-    job2 = Job("TEST2", 1,20000, nbr_operation_max)
-    prod_line.add_job(job1)
-    prod_line.add_job(job2)
+    prod_line = Production_line()
+    #job1 = Job("TEST1", 1,20000, nbr_operation_max)
+    #job2 = Job("TEST2", 1,20000, nbr_operation_max)
+    #job3 = Job("TEST3", 1,20000, nbr_operation_max)
+    #job4 = Job("TEST4", 1,20000, nbr_operation_max)
+    #job5 = Job("TEST5", 1,20000, nbr_operation_max)
+    #job6 = Job("TEST6", 1,20000, nbr_operation_max)
+    #job7 = Job("TEST7", 1,20000, nbr_operation_max)
+    #job8 = Job("TEST8", 1,20000, nbr_operation_max)
+    #job9 = Job("TEST9", 1,20000, nbr_operation_max)
+    #job10 = Job("TEST10", 1,20000, nbr_operation_max)
+    #job11 = Job("TEST11", 1,20000, nbr_operation_max)
+    #job12 = Job("TEST12", 1,20000, nbr_operation_max)
+    #job13 = Job("TEST13", 1,20000, nbr_operation_max)
+    #job14 = Job("TEST14", 1,20000, nbr_operation_max)
     
+    #prod_line.add_job(job1)
+    #prod_line.add_job(job2)
+    #prod_line.add_job(job3)
+    #prod_line.add_job(job4)
+    #prod_line.add_job(job5)
+    #prod_line.add_job(job6)
+    #prod_line.add_job(job7)
+    #prod_line.add_job(job8)
+    #prod_line.add_job(job9)
+    #prod_line.add_job(job10)
+    #prod_line.add_job(job11)
+    #prod_line.add_job(job12)
+    #prod_line.add_job(job13)
+    #prod_line.add_job(job14)
     
     state = prod_line.get_state()
     done = False
