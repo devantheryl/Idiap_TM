@@ -1,5 +1,5 @@
 {
-    "nbr_job_max" : 3,
+    "nbr_job_max" : 4,
     "nbr_operation_max" : 14,
     "nbr_machines" : 14,
     "nbr_operator" : 12,
@@ -9,10 +9,10 @@
     "params_agent" : {
         "batch_size" : 128,
         "n_episode" : 10000,
-        "n_epsiode_test" : 3,
-        "UPDATE_FREQ" : 4,
+        "n_epsiode_test" : 1,
+        "UPDATE_FREQ" : 16,
         "NETW_UPDATE_FREQ" : 200,
-        "memory" : 20000,
+        "memory" : 200000,
         "gamma" : 0.99,
         "epsilon" : 1.0,
         "epsilon_decay" : 0.9992,
@@ -24,9 +24,9 @@
         
         "nbr_neurone_first_layer" : 500,
         "activation_first_layer" : "relu",
-        "nbr_neurone_second_layer" : 250,
+        "nbr_neurone_second_layer" : 500,
         "activation_second_layer" : "relu",
-        "output_layer_activation" : "linear", 
+        "output_layer_activation" : "linear",
         "loss" : "huber_loss",
         "optimizer" : "Adam"
         
