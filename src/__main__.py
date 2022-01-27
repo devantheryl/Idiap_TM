@@ -23,7 +23,7 @@ import src.utils as utils
 
 REQUIRED_PYTHON = "3.8.5"
 
-def train_model(wandb_activate,sweep):
+def train_model(wandb_activate = True,sweep = True):
     with open("src/config.json") as json_file:
             configs = json.load(json_file)
         
@@ -38,10 +38,10 @@ def train_model(wandb_activate,sweep):
               config=configs,
             )
         config = wandb.config
-    os.makedirs("model/" + run.project, exist_ok=True)
-    os.makedirs("model/" + run.project + "/" + run.name, exist_ok=True)
-    print(run.name)
-    print(run.project)
+        os.makedirs("model/" + run.project, exist_ok=True)
+        os.makedirs("model/" + run.project + "/" + run.name, exist_ok=True)
+        print(run.name)
+        print(run.project)
     
     score_mean = deque(maxlen = 100)
     score_min = -10000
@@ -110,6 +110,9 @@ def train_model(wandb_activate,sweep):
                     "reward" : reward_tot,
                 }
             )
+        if i %500 == 0:
+            planning = environment.get_env().get_gant_formated()
+            utils.visualize(planning)
         
     states = environment.reset()
     terminal = False
@@ -130,12 +133,14 @@ def train_model(wandb_activate,sweep):
                 "evaluation_return" : reward_tot     
             }
         )
+        run.finish()
     
     tracked = agent.tracked_tensors()
     planning = environment.get_env().get_gant_formated()
     utils.visualize(planning)
     agent.close()
     environment.close()
+    
 
 if __name__ == '__main__':
     
@@ -156,50 +161,53 @@ if __name__ == '__main__':
         
     if args.sweep:
         sweep_configs = {
+            "name" : "my_sweep",
+            "project" : "sweep_4_job",
+            "entity" : "devantheryl",
             "method": "bayes",
             "metric": {
                 "name": "evaluation_return",
-                "goal": "maximize"
+                "goal": "maximize",
             },
             "parameters": {
                 "batch_size": {
-                    "values": [16,32,64,128,256,512,1024]
+                    "values": [128,256,512]
                 },
                 "n_episode": {
-                    "values": [100,500,1000]
+                    "values": [4000,8000]
                 },
                 "UPDATE_FREQ": {
-                    "values": [2,4,8,16,32,64,128,256]
+                    "values": [2,4,8,16]
                 },
                 "NETW_UPDATE_FREQ": {
-                    "values": [10,50,200]
+                    "values": [10,50]
                 },
                 "epsilon": {
                     "values": [1,0.5]
                 },
                 "epsilon_min": {
-                    "values": [0,0.05,0.3]
+                    "values": [0.05]
                 },
                 "learning_rate": {
-                    "values": [0.001,0.0001,0.00001]
+                    "values": [0.0005]
                 },
                 "huber_loss": {
-                    "values": [0.5,0.9,1.5]
+                    "values": [0.9]
                 },
                 "horizon": {
-                    "values": [1,4, 10]
+                    "values": [1,4,10]
                 },
                 "discount": {
-                    "values": [0.5,0.99]
+                    "values": [0.999]
                 },
                 "nbr_neurone_first_layer": {
-                    "values": [50,200,500]
+                    "values": [500]
                 },
                 "nbr_neurone_second_layer": {
-                    "values": [50,200,500]
+                    "values": [500]
                 },
             }
         }
-        sweep_id = wandb.sweep(sweep=sweep_configs, project="sweeps_1_job")
-        wandb.agent(sweep_id=sweep_id, function=train_model(True,True), count=30)
+        sweep_id = wandb.sweep(sweep=sweep_configs, project="sweeps_4_job")
+        wandb.agent(sweep_id=sweep_id, function=train_model, count=12)
         
