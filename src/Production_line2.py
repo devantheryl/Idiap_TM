@@ -12,14 +12,14 @@ import numpy as np
 import pandas as pd
 import json
 import os
-
+from datetime import datetime, timedelta, date
 
 #to set the current working directory
 os.chdir("C:/Users/LDE/Prog/projet_master/digital_twins")
 
 class Production_line():
     
-    def __init__(self,time = 0):
+    def __init__(self,time = datetime.fromisoformat('2022-01-01 08:00:00')):
         
         with open("src/config.json") as json_file:
             config = json.load(json_file)
@@ -129,7 +129,12 @@ class Production_line():
             
             
             if action == "forward":
-                self.time += 1
+                if self.time.time().hour == 8:
+                    self.time.timedelta(hours = 5)
+                else:
+                    self.time.timedelta(days=1)
+                    self.time = self.time.replace(hours = 8)
+                
                 
                 
                 #update the processing time of all operation and remove the op from

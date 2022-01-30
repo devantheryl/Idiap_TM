@@ -110,9 +110,11 @@ def train_model(wandb_activate = True,sweep = True):
                     "reward" : reward_tot,
                 }
             )
-        if i %500 == 0:
+        if i %100 == 0:
             planning = environment.get_env().get_gant_formated()
-            utils.visualize(planning)
+            path_img = "model/" + run.project + "/" +  run.name +"/" + '{:010d}'.format(i) + ".png"
+            utils.visualize(planning,path_img)
+            agent.save("model/" + run.project + "/" +  run.name +"/", '{:010d}'.format(i), format = "hdf5")
         
     states = environment.reset()
     terminal = False
