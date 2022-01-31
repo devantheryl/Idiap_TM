@@ -1,5 +1,5 @@
 {
-    "nbr_job_max" : 4,
+    "nbr_job_max" : 1,
     "nbr_operation_max" : 14,
     "nbr_machines" : 14,
     "nbr_operator" : 12,
@@ -8,12 +8,12 @@
     
     
     "batch_size" : 128,
-    "n_episode" : 200,
+    "n_episode" : 500,
     "n_epsiode_test" : 1,
     "UPDATE_FREQ" : 32,
     "NETW_UPDATE_FREQ" : 200,
     "memory" : 200000,
-    "epsilon" : 1.0,
+    "epsilon" : 0.5,
     "epsilon_decay" : 0.9992,
     "epsilon_min" : 0.05,
     

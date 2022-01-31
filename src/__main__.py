@@ -38,10 +38,44 @@ def train_model(wandb_activate = True,sweep = True):
               config=configs,
             )
         config = wandb.config
+        
         os.makedirs("model/" + run.project, exist_ok=True)
         os.makedirs("model/" + run.project + "/" + run.name, exist_ok=True)
         print(run.name)
         print(run.project)
+        
+        num_episode = config.n_episode
+        memory = config.memory
+        batch_size = config.batch_size
+        nbr_neurone_first_layer = config.nbr_neurone_first_layer
+        activation_first_layer = config.activation_first_layer
+        nbr_neurone_second_layer = config.nbr_neurone_second_layer
+        activation_second_layer = config.activation_second_layer
+        update_frequency = config.UPDATE_FREQ
+        learning_rate = config.learning_rate
+        huber_loss = config.huber_loss
+        horizon = config.horizon
+        discount = config.discount
+        target_sync_frequency  = config.NETW_UPDATE_FREQ
+        epsilon = config.epsilon
+        epsilon_min = config.epsilon_min
+        
+    else:
+        num_episode = configs["n_episode"]
+        memory = configs["memory"]
+        batch_size = configs["batch_size"]
+        nbr_neurone_first_layer = configs["nbr_neurone_first_layer"]
+        activation_first_layer = configs["activation_first_layer"]
+        nbr_neurone_second_layer = configs["nbr_neurone_second_layer"]
+        activation_second_layer = configs["activation_second_layer"]
+        update_frequency = configs["UPDATE_FREQ"]
+        learning_rate = configs["learning_rate"]
+        huber_loss = configs["huber_loss"]
+        horizon = configs["horizon"]
+        discount = configs["discount"]
+        target_sync_frequency  = configs["NETW_UPDATE_FREQ"]
+        epsilon = configs["epsilon"]
+        epsilon_min = configs["epsilon_min"]
     
     score_mean = deque(maxlen = 100)
     score_min = -10000
@@ -49,25 +83,23 @@ def train_model(wandb_activate = True,sweep = True):
     
     environment = Environment.create(environment=TF_environment)
     
-    num_episode = config.n_episode
-    
     agent = Agent.create(
         agent='ddqn',
         states = environment.states(),
         actions = environment.actions(),
-        memory=config.memory,
-        batch_size = config.batch_size,
+        memory=memory,
+        batch_size = batch_size,
         network = [
-            dict(type = 'dense', size = config.nbr_neurone_first_layer, activation = config.activation_first_layer),
-            dict(type = 'dense', size = config.nbr_neurone_second_layer, activation = config.activation_second_layer),
+            dict(type = 'dense', size = nbr_neurone_first_layer, activation = activation_first_layer),
+            dict(type = 'dense', size = nbr_neurone_second_layer, activation = activation_second_layer),
             ],
-        update_frequency = config.UPDATE_FREQ,
-        learning_rate = config.learning_rate,
-        huber_loss = config.huber_loss,
-        horizon = config.horizon,
-        discount = config.discount,
-        target_sync_frequency  = config.NETW_UPDATE_FREQ,
-        exploration = dict(type = 'linear', unit = 'episodes', num_steps = int(num_episode*0.9), initial_value = config.epsilon, final_value = config.epsilon_min),
+        update_frequency = update_frequency,
+        learning_rate = learning_rate,
+        huber_loss = huber_loss,
+        horizon = horizon,
+        discount = discount,
+        target_sync_frequency  = target_sync_frequency,
+        exploration = dict(type = 'linear', unit = 'episodes', num_steps = int(num_episode*0.9), initial_value = epsilon, final_value = epsilon_min),
         config = dict(seed = 0),
         tracking = 'all'
     )
@@ -112,9 +144,10 @@ def train_model(wandb_activate = True,sweep = True):
             )
         if i %100 == 0:
             planning = environment.get_env().get_gant_formated()
-            path_img = "model/" + run.project + "/" +  run.name +"/" + '{:010d}'.format(i) + ".png"
-            utils.visualize(planning,path_img)
-            agent.save("model/" + run.project + "/" +  run.name +"/", '{:010d}'.format(i), format = "hdf5")
+            #path_img = "model/" + run.project + "/" +  run.name +"/" + '{:010d}'.format(i) + ".png"
+            
+            utils.visualize(planning)
+            #agent.save("model/" + run.project + "/" +  run.name +"/", '{:010d}'.format(i), format = "hdf5")
         
     states = environment.reset()
     terminal = False
