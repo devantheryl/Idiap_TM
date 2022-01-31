@@ -32,7 +32,7 @@ def train_model(wandb_activate = True,sweep = True):
             run = wandb.init(config = configs)    
         else:
             run = wandb.init(
-              project="auto_scheduler_4jobs_TensorForce",
+              project="auto_scheduler_2jobs_TensorForce",
               entity="devantheryl",
               notes="tuning hyperparamters",
               config=configs,
@@ -110,9 +110,11 @@ def train_model(wandb_activate = True,sweep = True):
                     "reward" : reward_tot,
                 }
             )
-        if i %500 == 0:
+        if i %100 == 0:
             planning = environment.get_env().get_gant_formated()
-            utils.visualize(planning)
+            path_img = "model/" + run.project + "/" +  run.name +"/" + '{:010d}'.format(i) + ".png"
+            utils.visualize(planning,path_img)
+            agent.save("model/" + run.project + "/" +  run.name +"/", '{:010d}'.format(i), format = "hdf5")
         
     states = environment.reset()
     terminal = False
@@ -157,9 +159,11 @@ if __name__ == '__main__':
     print("Begin of the training phase")
     
     if args.train:
-        train_model(args.wandb_activate,0)
+        print("train model")
+        train_model(args.wandb_activate,False)
         
     if args.sweep:
+        print("sweep model")
         sweep_configs = {
             "name" : "my_sweep",
             "project" : "sweep_4_job",

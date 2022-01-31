@@ -11,7 +11,7 @@ import random
 import time
 
 
-def visualize(results):
+def visualize(results, path = ""):
     
     operation_machine = {
                      (0)   : "No Op",
@@ -88,3 +88,7 @@ def visualize(results):
         ax[idx].grid(True)
         
     fig.tight_layout()
+    fig.show()
+    
+    if len(path):
+        fig.savefig(path)
