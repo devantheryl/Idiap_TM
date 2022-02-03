@@ -129,9 +129,9 @@ dmypy.json
 .pyre/
 wandb
 model
-wandb
-docs/~$estions.docx
-*.tmp
-*.docx
-
-
+digital_twins_learner.egg-info
+docs
+board
+data
+Deep-Q-Learning-master
+diagram

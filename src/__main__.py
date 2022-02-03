@@ -33,7 +33,6 @@ def train_model(wandb_activate = True,sweep = True):
         else:
             run = wandb.init(
 
-              project="auto_scheduler_2jobs_TensorForce",
               project="auto_scheduler_1jobs_TensorForce",
 
               entity="devantheryl",
