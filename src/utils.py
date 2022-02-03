@@ -11,7 +11,7 @@ import random
 import time
 
 
-def visualize(results, path = ""):
+def visualize(results ,path = ""):
     
     operation_machine = {
                      (0)   : "No Op",
@@ -35,10 +35,10 @@ def visualize(results, path = ""):
     
     schedule = results.copy()
     op_machine = []
-    for row in schedule.iterrows():
+    for index, row in schedule.iterrows():
         
-        op = row[1]["Operation"]
-        machine = row[1]["Machine"]
+        op = row["Operation"]
+        machine = row["Machine"]
         if machine != '0':
             op_machine.append(operation_machine[int(op),int(machine)])
         else:
@@ -46,10 +46,12 @@ def visualize(results, path = ""):
     
     schedule["op_machine"] = op_machine
     
-    JOBS = sorted(list(schedule['Job'].unique()))
+    jobs = sorted(list(schedule['Job'].unique()))
     operation_machine_sorted = [value for key,value in operation_machine.items()][::-1]
-    MACHINES = operation_machine_sorted
-    makespan = schedule['Finish'].max()
+    machines = operation_machine_sorted
+    makespan = (schedule['Finish'].max() - schedule['Finish'].min()).days
+    end_date = schedule['Finish'].max()
+    
     
     bar_style = {'alpha':1.0, 'lw':25, 'solid_capstyle':'butt'}
     text_style = {'color':'white', 'weight':'bold', 'ha':'center', 'va':'center'}
@@ -58,10 +60,10 @@ def visualize(results, path = ""):
     schedule.sort_values(by=['Job', 'Start'])
     schedule.set_index(['Job', 'op_machine'], inplace=True,append = True)
     
-    fig, ax = plt.subplots(2,1, figsize=(12, 5+(len(JOBS)+len(MACHINES))/4))
+    fig, ax = plt.subplots(2,1, figsize=(12, 5+(len(jobs)+len(machines))/4))
 
-    for jdx, j in enumerate(JOBS, 1):
-        for mdx, m in enumerate(MACHINES, 1):
+    for jdx, j in enumerate(jobs, 1):
+        for mdx, m in enumerate(machines, 1):
             for index,_,_ in schedule.index:
                 if (index,j,m) in schedule.index:
                     
@@ -69,21 +71,21 @@ def visualize(results, path = ""):
                     xs = schedule.loc[(index,j,m), 'Start']
                     xf = schedule.loc[(index,j,m), 'Finish']
                     ax[0].plot([xs, xf], [jdx]*2, c=colors[mdx%7], **bar_style)
-                    ax[0].text((xs + xf)/2, jdx, m, **text_style)
+                    #ax[0].text((xs + xf)/2, jdx, m, **text_style)
                     ax[1].plot([xs, xf], [mdx]*2, c=colors[jdx%7], **bar_style)
-                    ax[1].text((xs + xf)/2, mdx, j, **text_style)
+                    #ax[1].text((xs + xf)/2, mdx, j, **text_style)
                 
     ax[0].set_title('Job Schedule')
     ax[0].set_ylabel('Job')
     ax[1].set_title('Machine Schedule')
     ax[1].set_ylabel('Machine')
     
-    for idx, s in enumerate([JOBS, MACHINES]):
+    for idx, s in enumerate([jobs, machines]):
         ax[idx].set_ylim(0.5, len(s) + 0.5)
         ax[idx].set_yticks(range(1, 1 + len(s)))
         ax[idx].set_yticklabels(s)
-        ax[idx].text(makespan, ax[idx].get_ylim()[0]-0.2, "{0:0.1f}".format(makespan), ha='center', va='top')
-        ax[idx].plot([makespan]*2, ax[idx].get_ylim(), 'r--')
+        ax[idx].text(end_date, ax[idx].get_ylim()[0], "{0:0.1f}".format(makespan), ha='center', va='bottom')
+        ax[idx].plot([end_date]*2, ax[idx].get_ylim(), 'r--')
         ax[idx].set_xlabel('Time')
         ax[idx].grid(True)
         
@@ -92,3 +94,6 @@ def visualize(results, path = ""):
     
     if len(path):
         fig.savefig(path)
+    if len(path):
+        fig.savefig(path)
+    fig.savefig("test.png")
