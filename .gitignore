@@ -130,3 +130,5 @@ dmypy.json
 wandb
 model
 wandb
+docs/~$estions.docx
+*.tmp

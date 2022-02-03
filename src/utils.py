@@ -49,7 +49,9 @@ def visualize(results ,path = ""):
     jobs = sorted(list(schedule['Job'].unique()))
     operation_machine_sorted = [value for key,value in operation_machine.items()][::-1]
     machines = operation_machine_sorted
-    makespan = schedule['Finish'].max()
+    makespan = (schedule['Finish'].max() - schedule['Finish'].min()).days
+    end_date = schedule['Finish'].max()
+    
     
     bar_style = {'alpha':1.0, 'lw':25, 'solid_capstyle':'butt'}
     text_style = {'color':'white', 'weight':'bold', 'ha':'center', 'va':'center'}
@@ -82,8 +84,8 @@ def visualize(results ,path = ""):
         ax[idx].set_ylim(0.5, len(s) + 0.5)
         ax[idx].set_yticks(range(1, 1 + len(s)))
         ax[idx].set_yticklabels(s)
-        ax[idx].text(makespan, ax[idx].get_ylim()[0]-0.2, "{0:0.1f}".format(makespan), ha='center', va='top')
-        ax[idx].plot([makespan]*2, ax[idx].get_ylim(), 'r--')
+        ax[idx].text(end_date, ax[idx].get_ylim()[0], "{0:0.1f}".format(makespan), ha='center', va='bottom')
+        ax[idx].plot([end_date]*2, ax[idx].get_ylim(), 'r--')
         ax[idx].set_xlabel('Time')
         ax[idx].grid(True)
         
