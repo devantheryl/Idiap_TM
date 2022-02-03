@@ -32,7 +32,7 @@ def train_model(wandb_activate = True,sweep = True):
             run = wandb.init(config = configs)    
         else:
             run = wandb.init(
-              project="auto_scheduler_4jobs_TensorForce",
+              project="auto_scheduler_1jobs_TensorForce",
               entity="devantheryl",
               notes="tuning hyperparamters",
               config=configs,
@@ -145,8 +145,10 @@ def train_model(wandb_activate = True,sweep = True):
         if i %100 == 0:
             planning = environment.get_env().get_gant_formated()
             #path_img = "model/" + run.project + "/" +  run.name +"/" + '{:010d}'.format(i) + ".png"
-            
-            utils.visualize(planning)
+            try: 
+                utils.visualize(planning)
+            except:
+                print("impossible to viusalize")
             #agent.save("model/" + run.project + "/" +  run.name +"/", '{:010d}'.format(i), format = "hdf5")
         
     states = environment.reset()
@@ -172,7 +174,10 @@ def train_model(wandb_activate = True,sweep = True):
     
     tracked = agent.tracked_tensors()
     planning = environment.get_env().get_gant_formated()
-    utils.visualize(planning)
+    try :
+        utils.visualize(planning)
+    except:
+        print("impossible to viusalize")
     agent.close()
     environment.close()
     

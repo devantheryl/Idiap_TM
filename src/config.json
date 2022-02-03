@@ -1,5 +1,5 @@
 {
-    "nbr_job_max" : 4,
+    "nbr_job_max" : 1,
     "nbr_operation_max" : 14,
     "nbr_machines" : 14,
     "nbr_operator" : 12,
@@ -8,7 +8,7 @@
     
     
     "batch_size" : 128,
-    "n_episode" : 2400,
+    "n_episode" : 500,
     "n_epsiode_test" : 1,
     "UPDATE_FREQ" : 32,
     "NETW_UPDATE_FREQ" : 200,
