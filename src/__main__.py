@@ -146,10 +146,12 @@ def train_model(wandb_activate = True,sweep = True):
             )
         if i %100 == 0:
             planning = environment.get_env().get_gant_formated()
-
-            path_img = "model/" + run.project + "/" +  run.name +"/" + '{:010d}'.format(i) + ".png"
-            utils.visualize(planning,path_img)
-            agent.save("model/" + run.project + "/" +  run.name +"/", '{:010d}'.format(i), format = "hdf5")
+            if wandb_activate:
+                path_img = "model/" + run.project + "/" +  run.name +"/" + '{:010d}'.format(i) + ".png"
+                utils.visualize(planning,path_img)
+                agent.save("model/" + run.project + "/" +  run.name +"/", '{:010d}'.format(i), format = "hdf5")
+            else:
+                utils.visualize(planning)
 
             #path_img = "model/" + run.project + "/" +  run.name +"/" + '{:010d}'.format(i) + ".png"
             try: 

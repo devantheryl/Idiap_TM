@@ -5,6 +5,7 @@ Created on Fri Dec 17 16:45:59 2021
 @author: LDE
 """
 import matplotlib.pyplot as plt
+from matplotlib.dates import DayLocator
 import matplotlib as mpl
 import json
 import random 
@@ -61,7 +62,7 @@ def visualize(results ,path = ""):
     schedule.set_index(['Job', 'op_machine'], inplace=True,append = True)
     
     fig, ax = plt.subplots(2,1, figsize=(12, 5+(len(jobs)+len(machines))/4))
-
+    
     for jdx, j in enumerate(jobs, 1):
         for mdx, m in enumerate(machines, 1):
             for index,_,_ in schedule.index:
@@ -70,6 +71,8 @@ def visualize(results ,path = ""):
 
                     xs = schedule.loc[(index,j,m), 'Start']
                     xf = schedule.loc[(index,j,m), 'Finish']
+                    
+
                     ax[0].plot([xs, xf], [jdx]*2, c=colors[mdx%7], **bar_style)
                     #ax[0].text((xs + xf)/2, jdx, m, **text_style)
                     ax[1].plot([xs, xf], [mdx]*2, c=colors[jdx%7], **bar_style)
@@ -88,12 +91,12 @@ def visualize(results ,path = ""):
         ax[idx].plot([end_date]*2, ax[idx].get_ylim(), 'r--')
         ax[idx].set_xlabel('Time')
         ax[idx].grid(True)
+        ax[idx].xaxis.set_major_locator(DayLocator())
         
     fig.tight_layout()
-    fig.show()
+    fig.autofmt_xdate()
+    plt.show()
     
-    if len(path):
-        fig.savefig(path)
     if len(path):
         fig.savefig(path)
     fig.savefig("test.png")
