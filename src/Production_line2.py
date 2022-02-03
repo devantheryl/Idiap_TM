@@ -177,6 +177,7 @@ class Production_line():
                     self.wip -=1
                     if self.wip == 0:
                         self.job_launched = False
+                        self.init_time = self.time
                 
                 #on set l'opération à "en cours", set the start time and the machine
                 self.jobs[job_to_schedule-1].operations[operation_to_schedule-1].status = 1
@@ -193,8 +194,9 @@ class Production_line():
                 if operation_to_schedule == 9:
                     #si on planifie pas le bon jour
                     if self.jobs[job_to_schedule-1].target_date != self.time:
-                        reward-=1
+                        reward-=10
                 
+            
         if (self.time-self.init_time).days > 14 and self.job_launched == False:
             reward-=1000#aussi à tester
         
