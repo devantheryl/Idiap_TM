@@ -7,11 +7,12 @@ Created on Mon Dec  6 12:50:34 2021
 from src.Operation2 import Operation
 import numpy as np
 import json
+from datetime import datetime, timedelta, date
 
 
 class Job:
     
-    def __init__(self,job_name, formulation, job_size, max_operation, melange_number =0):
+    def __init__(self,job_name, formulation, job_size, max_operation,target_date, melange_number =0):
         """
         init a new Job and create all corresponding operations
 
@@ -29,9 +30,13 @@ class Job:
         self.job_size = job_size
         self.max_operation = max_operation
         self.melange_number = melange_number
+        self.target_date = target_date
+        
         
         #stats params
         self.lead_time = 0
+        self.started = False
+        self.ended = False
         
         
         self.operation_planning = []
@@ -152,11 +157,25 @@ class Job:
         self.__melange_number = value  
         
     @property
+    def target_date(self):
+        return self.__target_date
+    @target_date.setter
+    def target_date(self, value):
+        self.__target_date = value 
+        
+    @property
     def lead_time(self):
         return self.__lead_time
     @lead_time.setter
     def lead_time(self, value):
         self.__lead_time = value  
+        
+    @property
+    def started(self):
+        return self.__started
+    @started.setter
+    def started(self, value):
+        self.__started = value 
         
     @property
     def operations(self):

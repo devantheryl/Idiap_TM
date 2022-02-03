@@ -1,5 +1,4 @@
 {
-    "nbr_job_max" : 2,
     "nbr_job_max" : 1,
     "nbr_operation_max" : 14,
     "nbr_machines" : 14,
@@ -9,12 +8,9 @@
     
     
     "batch_size" : 128,
-    "n_episode" : 4000,
+    "n_episode" : 400,
     "n_epsiode_test" : 1,
     "UPDATE_FREQ" : 4,
-    "n_episode" : 500,
-    "n_epsiode_test" : 1,
-    "UPDATE_FREQ" : 32,
     "NETW_UPDATE_FREQ" : 200,
     "memory" : 200000,
     "epsilon" : 0.5,
@@ -27,14 +23,30 @@
     "discount" : 0.999,
     
     
-    "nbr_neurone_first_layer" : 250,
-    "activation_first_layer" : "relu",
-    "nbr_neurone_second_layer" : 250,
+
     "nbr_neurone_first_layer" : 500,
     "activation_first_layer" : "relu",
     "nbr_neurone_second_layer" : 500,
     "activation_second_layer" : "relu",
-    "output_layer_activation" : "linear"
+    "output_layer_activation" : "linear",
+    
+    "target_date" : [
+        "2022-01-18 00:08:00",
+        "2022-01-24 00:08:00",
+        "2022-02-02 00:08:00",
+        "2022-02-07 00:08:00",
+        "2022-02-14 00:08:00",
+        "2022-02-21 00:08:00",
+        "2022-02-24 00:08:00",
+        "2022-02-28 00:08:00",
+        "2022-03-01 00:08:00",
+        "2022-03-07 00:08:00",
+        "2022-03-14 00:08:00",
+        "2022-03-21 00:08:00",
+        "2022-03-28 00:08:00",
+        "2022-04-04 00:08:00"
+        
+    ]
         
     
   
