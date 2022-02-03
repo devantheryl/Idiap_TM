@@ -193,8 +193,10 @@ class Production_line():
                 #si l'opération est la perry
                 if operation_to_schedule == 9:
                     #si on planifie pas le bon jour
+                    print(self.jobs[job_to_schedule-1].target_date, "    ",self.time)
+                    
                     if self.jobs[job_to_schedule-1].target_date != self.time:
-                        reward-=10
+                        reward-=1 + abs((self.time-self.jobs[job_to_schedule-1].target_date).days)
                 
             
         if (self.time-self.init_time).days > 14 and self.job_launched == False:
