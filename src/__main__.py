@@ -24,6 +24,9 @@ import src.utils as utils
 REQUIRED_PYTHON = "3.8.5"
 
 def train_model(wandb_activate = True,sweep = True):
+    
+    memoire = []
+    
     with open("src/config.json") as json_file:
             configs = json.load(json_file)
         
@@ -117,11 +120,20 @@ def train_model(wandb_activate = True,sweep = True):
         while not terminal:
             # Episode timestep
             actions = agent.act(states=states)
+            
+            if reward_tot ==0 and actions ==17:
+                print("good")
+            old_state = states["state"]
             states, terminal, reward = environment.execute(actions=actions)
             agent.observe(terminal=terminal, reward=reward)
             reward_tot += reward
             tracked = agent.tracked_tensors()
             step+=1
+            print("reward : ", reward,"  actions :", actions)
+            
+            
+            memoire.append(np.hstack((old_state,actions,reward,terminal)))
+            
         if wandb_activate:
             wandb.log(
                 {
@@ -160,6 +172,9 @@ def train_model(wandb_activate = True,sweep = True):
                 print("impossible to viusalize")
             #agent.save("model/" + run.project + "/" +  run.name +"/", '{:010d}'.format(i), format = "hdf5")
         
+    
+    np.savetxt("test.csv",np.array(memoire),delimiter = ';')
+    
     states = environment.reset()
     terminal = False
     reward_tot = 0
@@ -168,6 +183,7 @@ def train_model(wandb_activate = True,sweep = True):
         # Episode timestep
         actions = agent.act(states=states, independent=True)
         states, terminal, reward = environment.execute(actions=actions)
+        print("reward : ", reward,"  actions :", actions)
         
         reward_tot += reward
         
@@ -222,13 +238,13 @@ if __name__ == '__main__':
             },
             "parameters": {
                 "batch_size": {
-                    "values": [128,256,512]
+                    "values": [16,32,64,128,256,512]
                 },
                 "n_episode": {
-                    "values": [4000,8000]
+                    "values": [1000,2000]
                 },
                 "UPDATE_FREQ": {
-                    "values": [2,4,8,16]
+                    "values": [4,16]
                 },
                 "NETW_UPDATE_FREQ": {
                     "values": [10,50]
@@ -237,20 +253,23 @@ if __name__ == '__main__':
                     "values": [1,0.5]
                 },
                 "epsilon_min": {
-                    "values": [0.05]
+                    "values": [0.05,0.4]
                 },
                 "learning_rate": {
-                    "values": [0.0005]
+                    "values": [0.001,0.0001]
                 },
                 "huber_loss": {
                     "values": [0.9]
                 },
                 "horizon": {
-                    "values": [1,4,10]
+                    "values": [1,4,10,50,200]
                 },
                 "discount": {
                     "values": [0.999]
                 },
+                "entropy_regularization":{
+                    "values" : [0,0.2,0.5,1,10]
+                    },
                 "nbr_neurone_first_layer": {
                     "values": [500]
                 },
@@ -259,6 +278,6 @@ if __name__ == '__main__':
                 },
             }
         }
-        sweep_id = wandb.sweep(sweep=sweep_configs, project="sweeps_4_job")
-        wandb.agent(sweep_id=sweep_id, function=train_model, count=12)
+        sweep_id = wandb.sweep(sweep=sweep_configs, project="sweeps_1_job_test_reward_shaping")
+        wandb.agent(sweep_id=sweep_id, function=train_model, count=100)
         

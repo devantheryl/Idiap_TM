@@ -50,7 +50,7 @@ def visualize(results ,path = ""):
     jobs = sorted(list(schedule['Job'].unique()))
     operation_machine_sorted = [value for key,value in operation_machine.items()][::-1]
     machines = operation_machine_sorted
-    makespan = (schedule['Finish'].max() - schedule['Finish'].min()).days
+    makespan = (schedule['Finish'].max() - schedule['Start'].min()).days + 1
     end_date = schedule['Finish'].max()
     
     

@@ -12,7 +12,7 @@ from datetime import datetime, timedelta, date
 
 class Job:
     
-    def __init__(self,job_name, formulation, job_size, max_operation,target_date, melange_number =0):
+    def __init__(self,job_name, formulation, job_size, max_operation,target_date,creation_date ,melange_number =0):
         """
         init a new Job and create all corresponding operations
 
@@ -31,6 +31,7 @@ class Job:
         self.max_operation = max_operation
         self.melange_number = melange_number
         self.target_date = target_date
+        self.creation_date = creation_date
         
         
         #stats params
@@ -38,6 +39,7 @@ class Job:
         self.started = False
         self.ended = False
         
+        self.delta_time = (self.target_date - self.creation_date).days *2
         
         self.operation_planning = []
         
@@ -107,6 +109,9 @@ class Job:
                 
     def increment_lead_time(self, increment=1):
         self.lead_time += increment
+    
+    def increment_time(self):
+        self.delta_time -=1
         
     def build_gant_formated(self):
         
@@ -169,6 +174,14 @@ class Job:
     @lead_time.setter
     def lead_time(self, value):
         self.__lead_time = value  
+        
+        
+    @property
+    def delta_time(self):
+        return self.__delta_time
+    @delta_time.setter
+    def delta_time(self, value):
+        self.__delta_time = value
         
     @property
     def started(self):

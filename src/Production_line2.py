@@ -55,7 +55,7 @@ class Production_line():
     def reset(self):
         
         for i in range(self.nbr_job_max):
-            job = Job("TEST" + str(i), 1,20000, self.nbr_operations, datetime.fromisoformat(self.target_date[i]))
+            job = Job("TEST" + str(i), 1,20000, self.nbr_operations, datetime.fromisoformat(self.target_date[i]), self.time)
             self.add_job(job)
             
     def create_machines(self):
@@ -146,19 +146,27 @@ class Production_line():
                 
                 reward -= self.wip #a tester, on augmente la pénalitém d'avancer dans le temps en fonction du nombre de wip
                 
+                #if reward ==0:
+                    #reward+=1
+                
                 #update the processing time of all operation and remove the op from
                 #machine if the op has ended
                 #on libère aussi les opérateurs
-                self.update_processing_time()
+                ended_operations = self.update_processing_time()
+                for op in ended_operations :
+                    if op == 14:
+                        self.wip-=1
                 
                 #incremente lead_time for all job
                 for job in self.jobs:
                     if job != None:
-                        job.increment_lead_time()
+                        if job.started == True:
+                            job.increment_lead_time()
+                        job.increment_time()
                     
                 #update and check expiration time of all operations
-                if self.update_check_expiration_time():
-                    reward -=1 # a tester, pour éviter les doublons
+                nbr_echu = self.update_check_expiration_time()
+                reward -= nbr_echu # a tester, pour éviter les doublons
                 
                 #update and check newly executable operations
                 self.update_check_executable()
@@ -167,17 +175,18 @@ class Production_line():
             else:
                 self.job_launched = True
                 #le job est lancé au broyage polymère
-                if operation_to_schedule == 1:
+                if (operation_to_schedule == 1 or operation_to_schedule == 7) and self.jobs[job_to_schedule-1].started ==False:
                     self.jobs[job_to_schedule-1].started = True
                     self.wip +=1
                 
                 #le job se fini au retour IRR
                 if operation_to_schedule == 14:
                     self.jobs[job_to_schedule-1].ended = True
-                    self.wip -=1
                     if self.wip == 0:
                         self.job_launched = False
                         self.init_time = self.time
+                
+                reward-=1
                 
                 #on set l'opération à "en cours", set the start time and the machine
                 self.jobs[job_to_schedule-1].operations[operation_to_schedule-1].status = 1
@@ -194,9 +203,10 @@ class Production_line():
                 if operation_to_schedule == 9:
                     #si on planifie pas le bon jour
                     print(self.jobs[job_to_schedule-1].target_date, "    ",self.time)
-                    
-                    if self.jobs[job_to_schedule-1].target_date != self.time:
-                        reward-=1 + abs((self.time-self.jobs[job_to_schedule-1].target_date).days)
+                    if self.jobs[job_to_schedule-1].delta_time != 0:
+                        reward -= abs(self.jobs[job_to_schedule-1].delta_time)
+                        if reward < -10:
+                            reward =-10
                 
             
         if (self.time-self.init_time).days > 14 and self.job_launched == False:
@@ -209,10 +219,11 @@ class Production_line():
         done = self.check_done()
             
                 
-        return next_state,reward, done 
+        return next_state,reward/10, done 
     
     def update_processing_time(self):
         
+        ended_operations = []
         for job in self.jobs:
             if job != None:
                 for operation in job.operations:
@@ -222,10 +233,13 @@ class Production_line():
                             #si l'opration est terminée
                             if operation.forward() == 2:
                                 operation.end_time = self.time
+                                ended_operations.append(operation.operation_number)
                                 machine = operation.processed_on
                                 self.machines[machine-1].remove_operation()
                                 
                                 self.nbr_operator += operation.operator
+                                
+        return ended_operations
                                 
     def update_check_executable(self):
         for job in self.jobs:
@@ -244,6 +258,7 @@ class Production_line():
                         
     def update_check_expiration_time(self):
         
+        nbr_echu = 0
         for job in self.jobs:
             if job != None:  
                 for operation in job.operations:
@@ -260,8 +275,8 @@ class Production_line():
                                     #on recréer une operation
                                     job.create_operation(operation.operation_number)
                                     
-                                    return True
-        return False
+                                    nbr_echu += 1
+        return nbr_echu
                                 
     def check_done(self):
         
@@ -325,7 +340,7 @@ class Production_line():
                     sum_state += (4,0,0,0)
 
             #target date params
-            sum_state += ((job.target_date - self.time).days /180,) #6 mois dans le futur max
+            sum_state += (job.delta_time/180,) #6 mois dans le futur max
                     
         for machine in self.machines:
             sum_state += machine.get_state()
