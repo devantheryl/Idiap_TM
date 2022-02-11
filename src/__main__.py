@@ -61,6 +61,7 @@ def train_model(wandb_activate = True,sweep = True):
         huber_loss = config.huber_loss
         horizon = config.horizon
         discount = config.discount
+        target_update_weight  = config.target_update_weight 
         target_sync_frequency  = config.NETW_UPDATE_FREQ
         epsilon = config.epsilon
         epsilon_min = config.epsilon_min
@@ -78,6 +79,7 @@ def train_model(wandb_activate = True,sweep = True):
         huber_loss = configs["huber_loss"]
         horizon = configs["horizon"]
         discount = configs["discount"]
+        target_update_weight  = configs["target_update_weight"]
         target_sync_frequency  = configs["NETW_UPDATE_FREQ"]
         epsilon = configs["epsilon"]
         epsilon_min = configs["epsilon_min"]
@@ -89,7 +91,7 @@ def train_model(wandb_activate = True,sweep = True):
     environment = Environment.create(environment=TF_environment)
     
     agent = Agent.create(
-        agent='ddqn',
+        agent='dueling_dqn',
         states = environment.states(),
         actions = environment.actions(),
         memory=memory,
@@ -103,6 +105,7 @@ def train_model(wandb_activate = True,sweep = True):
         huber_loss = huber_loss,
         horizon = horizon,
         discount = discount,
+        target_update_weight = target_update_weight ,
         target_sync_frequency  = target_sync_frequency,
         exploration = dict(type = 'linear', unit = 'episodes', num_steps = int(num_episode*0.9), initial_value = epsilon, final_value = epsilon_min),
         config = dict(seed = 0),
@@ -129,7 +132,7 @@ def train_model(wandb_activate = True,sweep = True):
             reward_tot += reward
             tracked = agent.tracked_tensors()
             step+=1
-            print("reward : ", reward,"  actions :", actions)
+            #print("reward : ", reward,"  actions :", actions)
             
             
             memoire.append(np.hstack((old_state,actions,reward,terminal)))
@@ -199,10 +202,20 @@ def train_model(wandb_activate = True,sweep = True):
     
     tracked = agent.tracked_tensors()
     planning = environment.get_env().get_gant_formated()
-    try :
-        utils.visualize(planning)
-    except:
-        print("impossible to viusalize")
+    
+        
+    if wandb_activate:
+        path_img = "model/" + run.project + "/" +  run.name +"/" +"final" + ".png"
+        try :
+            utils.visualize(planning,path_img)
+        except:
+            print("impossible to viusalize")
+        agent.save("model/" + run.project + "/" +  run.name +"/", "final", format = "hdf5")
+    else:
+        try :
+            utils.visualize(planning)
+        except:
+            print("impossible to viusalize")
     agent.close()
     environment.close()
     
@@ -238,46 +251,68 @@ if __name__ == '__main__':
             },
             "parameters": {
                 "batch_size": {
-                    "values": [16,32,64,128,256,512]
+                    "min" : 4,
+                    "max" : 1024,
                 },
                 "n_episode": {
-                    "values": [1000,2000]
+                    "min" : 500,
+                    "max" : 6000
+                    
                 },
                 "UPDATE_FREQ": {
-                    "values": [4,16]
+                    "min" : 2,
+                    "max" : 64,
                 },
+                "target_update_weight" : {
+                    "min" : 0.01,
+                    "max" : 1
+                    
+                    },
                 "NETW_UPDATE_FREQ": {
-                    "values": [10,50]
+                    "min" : 2,
+                    "max" : 100
                 },
                 "epsilon": {
-                    "values": [1,0.5]
+                    "min" : 0.5,
+                    "max" : 1
                 },
                 "epsilon_min": {
-                    "values": [0.05,0.4]
+                    "min" : 0.01,
+                    "max" : 0.4
+                    
                 },
                 "learning_rate": {
-                    "values": [0.001,0.0001]
+                    "min" : 0.00001,
+                    "max" : 0.1
                 },
                 "huber_loss": {
-                    "values": [0.9]
+                    "min" : 0.1,
+                    "max" : 10
+                    
                 },
                 "horizon": {
-                    "values": [1,4,10,50,200]
+                    "min" : 1,
+                    "max" : 500
                 },
                 "discount": {
-                    "values": [0.999]
+                    "min" : 0.1,
+                    "max" : 0.9999
+                    
                 },
                 "entropy_regularization":{
-                    "values" : [0,0.2,0.5,1,10]
+                    "min" : 0,
+                    "max" : 100
                     },
                 "nbr_neurone_first_layer": {
-                    "values": [500]
+                    "min" : 200,
+                    "max" : 2000
                 },
                 "nbr_neurone_second_layer": {
-                    "values": [500]
+                    "min" : 200,
+                    "max" : 2000
                 },
             }
         }
-        sweep_id = wandb.sweep(sweep=sweep_configs, project="sweeps_1_job_test_reward_shaping")
-        wandb.agent(sweep_id=sweep_id, function=train_model, count=100)
+        sweep_id = wandb.sweep(sweep=sweep_configs, project="sweeps_2_job_test_reward_shaping_dueling_dqn")
+        wandb.agent(sweep_id=sweep_id, function=train_model, count=50)
         

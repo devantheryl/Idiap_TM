@@ -42,7 +42,7 @@ class Operation:
         return self.expiration_time
     
     def get_state(self):
-        return self.status/4, self. processing_time/4, self.expiration_time/60, self.executable
+        return self.status/4, self.processing_time/4, self.expiration_time/60, self.executable
     
     
     @property
