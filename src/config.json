@@ -8,17 +8,17 @@
     
     
     "batch_size" : 32,
-    "n_episode" : 1000,
+    "n_episode" : 40000,
     "n_epsiode_test" : 1,
-    "UPDATE_FREQ" : 4,
-    "target_update_weight" : 1,
+    "UPDATE_FREQ" : 16,
+    "target_update_weight" : 1.0,
     "NETW_UPDATE_FREQ" : 20,
     "memory" : 200000,
-    "epsilon" : 0.9,
+    "epsilon" : 0.5,
     "epsilon_decay" : 0.9992,
     "epsilon_min" : 0.1,
     
-    "learning_rate" : 0.0001,
+    "learning_rate" : 0.0005,
     "huber_loss" : 0.9,
     "horizon" : 5,
     "discount" : 0.999,

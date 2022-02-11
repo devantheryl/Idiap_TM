@@ -12,6 +12,7 @@ import numpy as np
 from tensorforce import Environment, Runner, Agent
 from src.Production_line2 import Production_line
 import src.utils as utils
+import time
 
 class TF_environment(Environment):
     
@@ -47,9 +48,7 @@ class TF_environment(Environment):
     
     def execute(self,actions):
         # Compute terminal and reward
-        
         next_state,reward, done  = self.production_line.step(actions)
-
         action_mask =self.production_line.get_mask()
 
         # Add action mask to states dictionary (mask item is "[NAME]_mask", here "action_mask")

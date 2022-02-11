@@ -19,7 +19,7 @@ from src.TF_env import TF_environment
 from tensorforce import Environment, Runner, Agent
 
 import src.utils as utils
-
+os.environ["WANDB_AGENT_MAX_INITIAL_FAILURES"]= "30"
 
 REQUIRED_PYTHON = "3.8.5"
 
@@ -36,10 +36,10 @@ def train_model(wandb_activate = True,sweep = True):
         else:
             run = wandb.init(
 
-              project="auto_scheduler_1jobs_TensorForce",
+              project="2_job_ppo",
 
               entity="devantheryl",
-              notes="tuning hyperparamters",
+              notes="removing reward = -wip, -1 instead + -2*delta reward",
               config=configs,
             )
         config = wandb.config
@@ -91,9 +91,10 @@ def train_model(wandb_activate = True,sweep = True):
     environment = Environment.create(environment=TF_environment)
     
     agent = Agent.create(
-        agent='dueling_dqn',
+        agent='ppo',
         states = environment.states(),
         actions = environment.actions(),
+        max_episode_timesteps = environment.max_episode_timesteps(),
         memory=memory,
         batch_size = batch_size,
         network = [
@@ -102,14 +103,15 @@ def train_model(wandb_activate = True,sweep = True):
             ],
         update_frequency = update_frequency,
         learning_rate = learning_rate,
-        huber_loss = huber_loss,
-        horizon = horizon,
+        #huber_loss = huber_loss,
+        #horizon = horizon,
         discount = discount,
-        target_update_weight = target_update_weight ,
-        target_sync_frequency  = target_sync_frequency,
+        #target_update_weight = target_update_weight ,
+        #target_sync_frequency  = target_sync_frequency,
         exploration = dict(type = 'linear', unit = 'episodes', num_steps = int(num_episode*0.9), initial_value = epsilon, final_value = epsilon_min),
         config = dict(seed = 0),
-        tracking = 'all'
+        tracking = 'all',
+        parallel_interactions  = 4,
     )
     
     print(agent.get_architecture())
@@ -120,23 +122,26 @@ def train_model(wandb_activate = True,sweep = True):
         states = environment.reset()
         terminal = False
         reward_tot = 0
+        
         while not terminal:
             # Episode timestep
+
             actions = agent.act(states=states)
-            
+                
             if reward_tot ==0 and actions ==17:
-                print("good")
+                print("good")               
+            
             old_state = states["state"]
             states, terminal, reward = environment.execute(actions=actions)
+            
             agent.observe(terminal=terminal, reward=reward)
             reward_tot += reward
             tracked = agent.tracked_tensors()
             step+=1
-            #print("reward : ", reward,"  actions :", actions)
-            
             
             memoire.append(np.hstack((old_state,actions,reward,terminal)))
-            
+        
+        
         if wandb_activate:
             wandb.log(
                 {
@@ -241,8 +246,8 @@ if __name__ == '__main__':
     if args.sweep:
         print("sweep model")
         sweep_configs = {
-            "name" : "my_sweep",
-            "project" : "sweep_4_job",
+            "name" : "removing limitation on deltatime reward, +1 if forward wip =0",
+            "project" : "sweep_2_jobs",
             "entity" : "devantheryl",
             "method": "bayes",
             "metric": {
@@ -265,7 +270,7 @@ if __name__ == '__main__':
                 },
                 "target_update_weight" : {
                     "min" : 0.01,
-                    "max" : 1
+                    "max" : 1.0
                     
                     },
                 "NETW_UPDATE_FREQ": {
@@ -274,7 +279,7 @@ if __name__ == '__main__':
                 },
                 "epsilon": {
                     "min" : 0.5,
-                    "max" : 1
+                    "max" : 1.0
                 },
                 "epsilon_min": {
                     "min" : 0.01,
@@ -287,7 +292,7 @@ if __name__ == '__main__':
                 },
                 "huber_loss": {
                     "min" : 0.1,
-                    "max" : 10
+                    "max" : 10.0
                     
                 },
                 "horizon": {
@@ -296,7 +301,7 @@ if __name__ == '__main__':
                 },
                 "discount": {
                     "min" : 0.1,
-                    "max" : 0.9999
+                    "max" : 1.0
                     
                 },
                 "entropy_regularization":{

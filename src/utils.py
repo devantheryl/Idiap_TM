@@ -95,7 +95,7 @@ def visualize(results ,path = ""):
         
     fig.tight_layout()
     fig.autofmt_xdate()
-    fig.show()
+    #fig.show()
     
     if len(path):
         fig.savefig(path)
