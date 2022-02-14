@@ -144,7 +144,7 @@ class Production_line():
                     self.time += timedelta(days=1)
                     self.time = self.time.replace(hour = 00)
                 
-                reward -= 1#self.wip #a tester, on augmente la pénalitém d'avancer dans le temps en fonction du nombre de wip
+                reward -= self.wip #a tester, on augmente la pénalitém d'avancer dans le temps en fonction du nombre de wip
                 
                 if reward ==0:
                     reward+=1
@@ -204,7 +204,7 @@ class Production_line():
                     #si on planifie pas le bon jour
                     print(self.jobs[job_to_schedule-1].target_date, "    ",self.time)
                     if self.jobs[job_to_schedule-1].delta_time != 0:
-                        reward -= abs(self.jobs[job_to_schedule-1].delta_time)*2
+                        reward -= abs(self.jobs[job_to_schedule-1].delta_time)**2
                         #if reward < -100:
                             #reward =-100
                 
