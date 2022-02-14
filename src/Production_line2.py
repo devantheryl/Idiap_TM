@@ -23,16 +23,17 @@ class Production_line():
         
         with open("src/config.json") as json_file:
             config = json.load(json_file)
-        self.nbr_job_max = config["nbr_job_max"]
-        self.nbr_operations = config["nbr_operation_max"]
+        self.nbr_job_max = 2#config["nbr_job_max"]
+        self.nbr_operations = 9#config["nbr_operation_max"]
         self.nbr_machines = config["nbr_machines"]
         self.nbr_operator = config["nbr_operator"]
         
         self.job_launched = False
-        self.init_time = time
+        
 
-        self.target_date = [datetime.fromisoformat(date) for date in config["target_date"]]
+        self.target_date = [datetime.fromisoformat(config["target_date"][i])+ timedelta(days=2) for i in range(self.nbr_job_max)]
         self.time = max(self.target_date)
+        self.init_time = self.time
         
         
         #params
@@ -58,6 +59,8 @@ class Production_line():
         for i in range(self.nbr_job_max):
             job = Job("TEST" + str(i), 1,20000, self.nbr_operations, self.target_date[i], self.time)
             self.add_job(job)
+            
+        self.update_check_executable()
         
         
             
@@ -85,7 +88,7 @@ class Production_line():
             batch_description = json.load(json_file)
             
         actions = []
-        for key,value in batch_description["action_space"].items():
+        for key,value in batch_description["action_space_reverse"].items():
             for i in range(self.nbr_job_max):
                 for machine in value:
                     actions.append((i+1,int(key),machine))
@@ -141,23 +144,23 @@ class Production_line():
             
             
             if action == "forward":
-                if self.time.time().hour == 00:
+                if self.time.time().hour == 12:
                     self.time -= timedelta(hours = 12)
                 else:
                     self.time -= timedelta(days=1)
-                    self.time = self.time.replace(hour = 00)
+                    self.time = self.time.replace(hour = 12)
                 
-                reward -= self.wip #a tester, on augmente la pénalitém d'avancer dans le temps en fonction du nombre de wip
+                reward -= self.wip #a tester, on augmente la pénalité d'avancer dans le temps en fonction du nombre de wip
+                if reward == 0:
+                    reward-=1
                 
-                if reward ==0:
-                    reward+=1
                 
                 #update the processing time of all operation and remove the op from
                 #machine if the op has ended
                 #on libère aussi les opérateurs
                 ended_operations = self.update_processing_time()
                 for op in ended_operations :
-                    if op == 14:
+                    if op == 1:
                         self.wip-=1
                 
                 #incremente lead_time for all job
@@ -172,17 +175,18 @@ class Production_line():
                 
                 #update and check newly executable operations
                 self.update_check_executable()
-                    
+                if abs(self.time-self.init_time).days > 7 and self.job_launched == False:
+                    reward-=1000#aussi à tester
             
             else:
                 self.job_launched = True
                 #le job est lancé au broyage polymère
-                if (operation_to_schedule == 1 or operation_to_schedule == 7) and self.jobs[job_to_schedule-1].started ==False:
+                if (operation_to_schedule == 9) and self.jobs[job_to_schedule-1].started ==False:
                     self.jobs[job_to_schedule-1].started = True
                     self.wip +=1
                 
                 #le job se fini au retour IRR
-                if operation_to_schedule == 14:
+                if operation_to_schedule == 1:
                     self.jobs[job_to_schedule-1].ended = True
                     if self.wip == 0:
                         self.job_launched = False
@@ -200,6 +204,7 @@ class Production_line():
                 
                 #decrease the number of operator remaining
                 self.nbr_operator -= self.jobs[job_to_schedule-1].operations[operation_to_schedule-1].operator
+                
                 
                 
         
@@ -245,7 +250,10 @@ class Production_line():
                                     executable = False
                             if executable:
                                 operation.executable = executable
-                        
+                        #si op = perry
+                        if operation.operation_number == 9:
+                            if self.time == job.target_date:
+                                operation.executable = True
                         
     def update_check_expiration_time(self):
         

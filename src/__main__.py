@@ -91,7 +91,7 @@ def train_model(wandb_activate = True,sweep = True):
     environment = Environment.create(environment=TF_environment)
     
     agent = Agent.create(
-        agent='ppo',
+        agent='ddqn',
         states = environment.states(),
         actions = environment.actions(),
         max_episode_timesteps = environment.max_episode_timesteps(),
@@ -103,11 +103,11 @@ def train_model(wandb_activate = True,sweep = True):
             ],
         update_frequency = update_frequency,
         learning_rate = learning_rate,
-        #huber_loss = huber_loss,
-        #horizon = horizon,
+        huber_loss = huber_loss,
+        horizon = horizon,
         discount = discount,
-        #target_update_weight = target_update_weight ,
-        #target_sync_frequency  = target_sync_frequency,
+        target_update_weight = target_update_weight ,
+        target_sync_frequency  = target_sync_frequency,
         exploration = dict(type = 'linear', unit = 'episodes', num_steps = int(num_episode*0.9), initial_value = epsilon, final_value = epsilon_min),
         config = dict(seed = 0),
         tracking = 'all',

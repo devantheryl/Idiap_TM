@@ -58,7 +58,7 @@ class Job:
             
         if self.formulation == 1 and self.job_size == 20000:
             
-            batch_info = batch_description["Batch_3.75_20000"]
+            batch_info = batch_description["Batch_3.75_20000_REVERSE"]
             for key, value in batch_info.items():
                 number = value["number"]
                 processable_on = value["processable_on"]
@@ -68,8 +68,8 @@ class Job:
                 executable = False
                 operator = value["operator"]
                 used_by = value["used_by"]
-                if number == 1 or number == 7:
-                    executable = True
+                #if number == 1 or number == 7:
+                    #executable = True
                     
                 #create the operation
                 operation = Operation(self.job_name,number,processable_on,

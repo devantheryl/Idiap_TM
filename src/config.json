@@ -8,7 +8,7 @@
     
     
     "batch_size" : 32,
-    "n_episode" : 40,
+    "n_episode" : 1000,
     "n_epsiode_test" : 1,
     "UPDATE_FREQ" : 16,
     "target_update_weight" : 1.0,
@@ -26,9 +26,9 @@
     
     
 
-    "nbr_neurone_first_layer" : 500,
+    "nbr_neurone_first_layer" : 250,
     "activation_first_layer" : "relu",
-    "nbr_neurone_second_layer" : 500,
+    "nbr_neurone_second_layer" : 250,
     "activation_second_layer" : "relu",
     "output_layer_activation" : "linear",
     
