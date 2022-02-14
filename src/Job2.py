@@ -39,7 +39,6 @@ class Job:
         self.started = False
         self.ended = False
         
-        self.delta_time = (self.target_date - self.creation_date).days *2
         
         self.operation_planning = []
         
@@ -87,7 +86,7 @@ class Job:
         
         if self.formulation == 1 and self.job_size == 20000:
             
-            batch_info = batch_description["Batch_3.75_20000"]
+            batch_info = batch_description["Batch_3.75_20000_REVERSE"]
             batch_info = batch_info["operation"+str(operation_number)]
             processable_on = batch_info["processable_on"]
             processing_time = batch_info["processing_time"]
@@ -110,8 +109,6 @@ class Job:
     def increment_lead_time(self, increment=1):
         self.lead_time += increment
     
-    def increment_time(self):
-        self.delta_time -=1
         
     def build_gant_formated(self):
         
@@ -175,13 +172,7 @@ class Job:
     def lead_time(self, value):
         self.__lead_time = value  
         
-        
-    @property
-    def delta_time(self):
-        return self.__delta_time
-    @delta_time.setter
-    def delta_time(self, value):
-        self.__delta_time = value
+    
         
     @property
     def started(self):

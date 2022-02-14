@@ -128,7 +128,7 @@ def train_model(wandb_activate = True,sweep = True):
 
             actions = agent.act(states=states)
                 
-            if reward_tot ==0 and actions ==17:
+            if reward_tot ==0 and actions ==34:
                 print("good")               
             
             old_state = states["state"]
@@ -171,7 +171,8 @@ def train_model(wandb_activate = True,sweep = True):
                 utils.visualize(planning,path_img)
                 agent.save("model/" + run.project + "/" +  run.name +"/", '{:010d}'.format(i), format = "hdf5")
             else:
-                utils.visualize(planning)
+                #utils.visualize(planning)
+                pass
 
             #path_img = "model/" + run.project + "/" +  run.name +"/" + '{:010d}'.format(i) + ".png"
             try: 

@@ -30,8 +30,9 @@ class Production_line():
         
         self.job_launched = False
         self.init_time = time
-        self.time = time
-        self.target_date = config["target_date"]
+
+        self.target_date = [datetime.fromisoformat(date) for date in config["target_date"]]
+        self.time = max(self.target_date)
         
         
         #params
@@ -55,8 +56,10 @@ class Production_line():
     def reset(self):
         
         for i in range(self.nbr_job_max):
-            job = Job("TEST" + str(i), 1,20000, self.nbr_operations, datetime.fromisoformat(self.target_date[i]), self.time)
+            job = Job("TEST" + str(i), 1,20000, self.nbr_operations, self.target_date[i], self.time)
             self.add_job(job)
+        
+        
             
     def create_machines(self):
         """
@@ -139,9 +142,9 @@ class Production_line():
             
             if action == "forward":
                 if self.time.time().hour == 00:
-                    self.time += timedelta(hours = 12)
+                    self.time -= timedelta(hours = 12)
                 else:
-                    self.time += timedelta(days=1)
+                    self.time -= timedelta(days=1)
                     self.time = self.time.replace(hour = 00)
                 
                 reward -= self.wip #a tester, on augmente la pénalitém d'avancer dans le temps en fonction du nombre de wip
@@ -162,7 +165,6 @@ class Production_line():
                     if job != None:
                         if job.started == True:
                             job.increment_lead_time()
-                        job.increment_time()
                     
                 #update and check expiration time of all operations
                 nbr_echu = self.update_check_expiration_time()
@@ -199,18 +201,7 @@ class Production_line():
                 #decrease the number of operator remaining
                 self.nbr_operator -= self.jobs[job_to_schedule-1].operations[operation_to_schedule-1].operator
                 
-                #si l'opération est la perry
-                if operation_to_schedule == 9:
-                    #si on planifie pas le bon jour
-                    print(self.jobs[job_to_schedule-1].target_date, "    ",self.time)
-                    if self.jobs[job_to_schedule-1].delta_time != 0:
-                        reward -= abs(self.jobs[job_to_schedule-1].delta_time)**2
-                        #if reward < -100:
-                            #reward =-100
                 
-            
-        if (self.time-self.init_time).days > 14 and self.job_launched == False:
-            reward-=1000#aussi à tester
         
         
         next_state = self.get_state()
@@ -320,7 +311,7 @@ class Production_line():
         
         params_op = 4
         params_machine = 3
-        state_size = self.nbr_job_max * self.nbr_operations * params_op + self.nbr_machines * params_machine + 1 + self.nbr_job_max#  +1 for the operator number + nbr_job_max for the target date
+        state_size = self.nbr_job_max * self.nbr_operations * params_op + self.nbr_machines * params_machine + 1#  +1 for the operator number + nbr_job_max for the target date
         
         return state_size
     
@@ -339,8 +330,6 @@ class Production_line():
                 for i in range (self.nbr_job_max):
                     sum_state += (4,0,0,0)
 
-            #target date params
-            sum_state += (job.delta_time/180,) #6 mois dans le futur max
                     
         for machine in self.machines:
             sum_state += machine.get_state()

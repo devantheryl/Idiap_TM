@@ -8,7 +8,7 @@
     
     
     "batch_size" : 32,
-    "n_episode" : 40000,
+    "n_episode" : 40,
     "n_epsiode_test" : 1,
     "UPDATE_FREQ" : 16,
     "target_update_weight" : 1.0,
