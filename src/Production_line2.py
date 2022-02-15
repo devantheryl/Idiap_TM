@@ -19,11 +19,11 @@ os.chdir("C:/Users/LDE/Prog/projet_master/digital_twins")
 
 class Production_line():
     
-    def __init__(self,time = datetime.fromisoformat('2022-01-01 00:00:00')):
+    def __init__(self):
         
         with open("src/config.json") as json_file:
             config = json.load(json_file)
-        self.nbr_job_max = 2#config["nbr_job_max"]
+        self.nbr_job_max = 6#config["nbr_job_max"]
         self.nbr_operations = 9#config["nbr_operation_max"]
         self.nbr_machines = config["nbr_machines"]
         self.nbr_operator = config["nbr_operator"]
@@ -34,6 +34,7 @@ class Production_line():
         self.target_date = [datetime.fromisoformat(config["target_date"][i])+ timedelta(days=2) for i in range(self.nbr_job_max)]
         self.time = max(self.target_date)
         self.init_time = self.time
+        self.morning_afternoon = 0
         
         
         #params
@@ -132,6 +133,7 @@ class Production_line():
 
         """
         
+        
         #TODO
         action = self.actions_space[action_index]
         reward = 0
@@ -146,9 +148,11 @@ class Production_line():
             if action == "forward":
                 if self.time.time().hour == 12:
                     self.time -= timedelta(hours = 12)
+                    self.morning_afternoon = 0
                 else:
                     self.time -= timedelta(days=1)
                     self.time = self.time.replace(hour = 12)
+                    self.morning_afternoon = 1
                 
                 reward -= self.wip #a tester, on augmente la pénalité d'avancer dans le temps en fonction du nombre de wip
                 if reward == 0:
@@ -171,7 +175,7 @@ class Production_line():
                     
                 #update and check expiration time of all operations
                 nbr_echu = self.update_check_expiration_time()
-                reward -= nbr_echu # a tester, pour éviter les doublons
+                reward -= nbr_echu*10 # a tester, pour éviter les doublons
                 
                 #update and check newly executable operations
                 self.update_check_executable()
@@ -248,8 +252,11 @@ class Production_line():
                                 #si l'opération précédente est terminée
                                 if job.operations[dependencie-1].status != 2:
                                     executable = False
-                            if executable:
-                                operation.executable = executable
+                                    
+                            if operation.begin_day == 0 and self.morning_afternoon ==1:
+                                executable = False
+                           
+                            operation.executable = executable
                         #si op = perry
                         if operation.operation_number == 9:
                             if self.time == job.target_date:

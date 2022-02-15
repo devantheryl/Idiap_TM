@@ -8,7 +8,7 @@
     
     
     "batch_size" : 32,
-    "n_episode" : 1000,
+    "n_episode" : 20000,
     "n_epsiode_test" : 1,
     "UPDATE_FREQ" : 16,
     "target_update_weight" : 1.0,
@@ -26,14 +26,14 @@
     
     
 
-    "nbr_neurone_first_layer" : 250,
+    "nbr_neurone_first_layer" : 500,
     "activation_first_layer" : "relu",
-    "nbr_neurone_second_layer" : 250,
+    "nbr_neurone_second_layer" : 500,
     "activation_second_layer" : "relu",
     "output_layer_activation" : "linear",
     
     "target_date" : [
-        "2022-01-09 00:00:00",
+        "2022-01-18 00:00:00",
         "2022-01-24 00:00:00",
         "2022-02-02 00:00:00",
         "2022-02-07 00:00:00",

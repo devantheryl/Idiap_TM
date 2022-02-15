@@ -10,7 +10,7 @@ import numpy as np
 class Operation:
     
     def __init__(self,job_name, operation_number, processable_on, processing_time,
-                 expiration_time, dependencies, operator, used_by, 
+                 expiration_time, dependencies, operator, used_by, QC_delay,begin_day,
                  executable = False, status = 0):
         
         #init variable
@@ -22,8 +22,10 @@ class Operation:
         self.dependencies = dependencies
         self.operator = operator
         self.used_by = used_by
+        self.QC_delay = QC_delay
+        self.begin_day = begin_day
         self.executable = executable
-        self.status = 0 #0:non-attribué, 1:en cours, 2:terminé, 3:used, 4:doens't exist
+        self.status = 0 #0:non-attribué, 1:en cours, 2:terminé, 3:used, 4:doens't exist, 5 : attente QC
         
         #stats vars
         self.start_time = 0.0
@@ -31,9 +33,17 @@ class Operation:
         self.processed_on = 0
         
     def forward(self):
-        self.processing_time-=1
-        if self.processing_time == 0:
+        
+        if self.status == 1:
+            self.processing_time-=1
+            
+        if self.status == 5:
+            self.QC_delay -=1
+            
+        if self.processing_time == 0 and self.QC_delay == 0:
             self.status = 2
+        else:
+            self.status = 5
             
         return self.status
         
@@ -42,7 +52,7 @@ class Operation:
         return self.expiration_time
     
     def get_state(self):
-        return self.status/4, self.processing_time/4, self.expiration_time/60, self.executable
+        return self.status/5, self.processing_time/4, self.expiration_time/60, self.executable
     
     
     @property
@@ -99,7 +109,14 @@ class Operation:
         return self.__used_by
     @used_by.setter
     def used_by(self, value):
-        self.__used_by = value      
+        self.__used_by = value 
+           
+    @property
+    def QC_delay(self):
+        return self.__QC_delay
+    @QC_delay.setter
+    def QC_delay(self, value):
+        self.__QC_delay = value 
         
     @property
     def executable(self):

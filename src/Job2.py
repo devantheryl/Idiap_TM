@@ -68,13 +68,15 @@ class Job:
                 executable = False
                 operator = value["operator"]
                 used_by = value["used_by"]
+                QC_delay = value["QC_delay"]
+                begin_day = value["begin_day"]
                 #if number == 1 or number == 7:
                     #executable = True
                     
                 #create the operation
                 operation = Operation(self.job_name,number,processable_on,
                                       processing_time,expiration_time,
-                                      dependencies,operator,used_by,executable)
+                                      dependencies,operator,used_by,QC_delay,begin_day,executable)
                 
                 #store it in the jobs array
                 self.operations[number-1] = operation

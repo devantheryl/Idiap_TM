@@ -36,7 +36,7 @@ def train_model(wandb_activate = True,sweep = True):
         else:
             run = wandb.init(
 
-              project="2_job_ppo",
+              project="6_job_ddqn",
 
               entity="devantheryl",
               notes="removing reward = -wip, -1 instead + -2*delta reward",
@@ -127,9 +127,6 @@ def train_model(wandb_activate = True,sweep = True):
             # Episode timestep
 
             actions = agent.act(states=states)
-                
-            if reward_tot ==0 and actions ==34:
-                print("good")               
             
             old_state = states["state"]
             states, terminal, reward = environment.execute(actions=actions)
