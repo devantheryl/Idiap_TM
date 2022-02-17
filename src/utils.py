@@ -15,7 +15,7 @@ import time
 def visualize(results ,path = ""):
     
     operation_machine = {
-                     (0)   : "No Op",
+                     (0)   : "QC",
                      (1,1) : "broyage_poly_1",
                      (1,2) : "broyage_poly_2",
                      (2,3) : "tamisage_poly_3",
@@ -50,7 +50,7 @@ def visualize(results ,path = ""):
     jobs = sorted(list(schedule['Job'].unique()))
     operation_machine_sorted = [value for key,value in operation_machine.items()][::-1]
     machines = operation_machine_sorted
-    makespan = (schedule['Finish'].max() - schedule['Start'].min()).days + 1
+    makespan = 10#(schedule['Finish'].max() - schedule['Start'].min()).days + 1
     end_date = schedule['Finish'].max()
     
     

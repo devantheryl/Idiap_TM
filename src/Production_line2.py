@@ -23,8 +23,8 @@ class Production_line():
         
         with open("src/config.json") as json_file:
             config = json.load(json_file)
-        self.nbr_job_max = 6#config["nbr_job_max"]
-        self.nbr_operations = 9#config["nbr_operation_max"]
+        self.nbr_job_max = config["nbr_job_max"]
+        self.nbr_operations = config["nbr_operation_max"]
         self.nbr_machines = config["nbr_machines"]
         self.nbr_operator = config["nbr_operator"]
         
@@ -34,7 +34,7 @@ class Production_line():
         self.target_date = [datetime.fromisoformat(config["target_date"][i])+ timedelta(days=2) for i in range(self.nbr_job_max)]
         self.time = max(self.target_date)
         self.init_time = self.time
-        self.morning_afternoon = 0
+        self.morning_afternoon = 0 #o : morning, 1: afternoon
         
         
         #params
@@ -58,7 +58,7 @@ class Production_line():
     def reset(self):
         
         for i in range(self.nbr_job_max):
-            job = Job("TEST" + str(i), 1,20000, self.nbr_operations, self.target_date[i], self.time)
+            job = Job("TEST" + str(i),i+1,1,20000, self.nbr_operations, self.target_date[i], self.time)
             self.add_job(job)
             
         self.update_check_executable()
@@ -239,9 +239,12 @@ class Production_line():
                                 
                                 self.nbr_operator += operation.operator
                                 
+                                
+                                
         return ended_operations
                                 
     def update_check_executable(self):
+        executables = []
         for job in self.jobs:
             if job != None:
                 for operation in job.operations:
@@ -249,18 +252,28 @@ class Production_line():
                         if operation.status == 0 and operation.executable == False:
                             executable = True
                             for dependencie in operation.dependencies:
-                                #si l'opération précédente est terminée
+                                #si l'opération précédente n'est pas terminée
                                 if job.operations[dependencie-1].status != 2:
                                     executable = False
-                                    
-                            if operation.begin_day == 0 and self.morning_afternoon ==1:
+                            
+                            if operation.begin_day == 1 and self.morning_afternoon == 1:
                                 executable = False
-                           
+                            
+                            if operation.op_type == "liberation" and executable == True:
+                                self.jobs[job.job_number-1].operations[operation.operation_number-1].status = 1
+                                self.jobs[job.job_number-1].operations[operation.operation_number-1].start_time = self.time
+                                self.jobs[job.job_number-1].operations[operation.operation_number-1].processed_on = 0
+                                
+                            
+                            
+                            if executable:
+                                executables.append(operation.operation_number)
                             operation.executable = executable
                         #si op = perry
                         if operation.operation_number == 9:
                             if self.time == job.target_date:
                                 operation.executable = True
+        return executables
                         
     def update_check_expiration_time(self):
         
@@ -326,7 +339,7 @@ class Production_line():
         
         params_op = 4
         params_machine = 3
-        state_size = self.nbr_job_max * self.nbr_operations * params_op + self.nbr_machines * params_machine + 1#  +1 for the operator number + nbr_job_max for the target date
+        state_size = self.nbr_job_max * self.nbr_operations * params_op + self.nbr_machines * params_machine + 2#  +1 for the operator number 
         
         return state_size
     
@@ -350,6 +363,8 @@ class Production_line():
             sum_state += machine.get_state()
             
         sum_state += (self.nbr_operator/12,)
+        
+        sum_state += (self.morning_afternoon,)
         
         
         state[:] = sum_state 

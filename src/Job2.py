@@ -12,7 +12,7 @@ from datetime import datetime, timedelta, date
 
 class Job:
     
-    def __init__(self,job_name, formulation, job_size, max_operation,target_date,creation_date ,melange_number =0):
+    def __init__(self,job_name,job_number, formulation, job_size, max_operation,target_date,creation_date ,melange_number =0):
         """
         init a new Job and create all corresponding operations
 
@@ -26,6 +26,7 @@ class Job:
         
         #init params
         self.job_name = job_name
+        self.job_number = job_number
         self.formulation = formulation
         self.job_size = job_size
         self.max_operation = max_operation
@@ -60,23 +61,33 @@ class Job:
             
             batch_info = batch_description["Batch_3.75_20000_REVERSE"]
             for key, value in batch_info.items():
-                number = value["number"]
-                processable_on = value["processable_on"]
-                processing_time = value["processing_time"]
-                expiration_time = value["expiration_time"]
-                dependencies = value["dependencies"]
-                executable = False
-                operator = value["operator"]
-                used_by = value["used_by"]
-                QC_delay = value["QC_delay"]
-                begin_day = value["begin_day"]
-                #if number == 1 or number == 7:
-                    #executable = True
+                op_type = value["type"]
+                if op_type == "operation":
+                    number = value["number"]
+                    processable_on = value["processable_on"]
+                    processing_time = value["processing_time"]
+                    expiration_time = value["expiration_time"]
+                    dependencies = value["dependencies"]
+                    executable = False
+                    operator = value["operator"]
+                    used_by = value["used_by"]
+                    begin_day = value["begin_day"]
+                    
+                if op_type == "liberation":
+                    number = value["number"]
+                    processable_on = 0
+                    processing_time = value["processing_time"]
+                    expiration_time = 0
+                    dependencies = value["dependencies"]
+                    executable = False
+                    operator = 0
+                    used_by = value["used_by"]
+                    begin_day = 1
                     
                 #create the operation
-                operation = Operation(self.job_name,number,processable_on,
+                operation = Operation(self.job_name,op_type,number,processable_on,
                                       processing_time,expiration_time,
-                                      dependencies,operator,used_by,QC_delay,begin_day,executable)
+                                      dependencies,operator,used_by,begin_day,executable)
                 
                 #store it in the jobs array
                 self.operations[number-1] = operation
@@ -89,23 +100,40 @@ class Job:
         if self.formulation == 1 and self.job_size == 20000:
             
             batch_info = batch_description["Batch_3.75_20000_REVERSE"]
-            batch_info = batch_info["operation"+str(operation_number)]
-            processable_on = batch_info["processable_on"]
-            processing_time = batch_info["processing_time"]
-            expiration_time = batch_info["expiration_time"]
-            dependencies = batch_info["dependencies"]
-            executable = False
-            operator = batch_info["operator"]
-            used_by = batch_info["used_by"]
-            if operation_number == 1 or operation_number ==7:
-                executable = True
-            #create the operation
-            operation = Operation(self.job_name,operation_number,processable_on,
-                                  processing_time,expiration_time,
-                                  dependencies,operator,used_by,executable)
-            #store it in the jobs array
-            self.operations[operation_number-1] = operation
-            self.operation_planning.append(operation)
+            for key, value in batch_info.items():
+                if value["number"] == operation_number:
+                    op_type = value["type"]
+                    if op_type == "operation":
+                        number = value["number"]
+                        processable_on = value["processable_on"]
+                        processing_time = value["processing_time"]
+                        expiration_time = value["expiration_time"]
+                        dependencies = value["dependencies"]
+                        executable = False
+                        operator = value["operator"]
+                        used_by = value["used_by"]
+                        begin_day = value["begin_day"]
+                        
+                    if op_type == "liberation":
+                        number = value["number"]
+                        processable_on = 0
+                        processing_time = value["processing_time"]
+                        expiration_time = 0
+                        dependencies = value["dependencies"]
+                        executable = False
+                        operator = 0
+                        used_by = value["used_by"]
+                        begin_day = 1
+                        
+                    #create the operation
+                    operation = Operation(self.job_name,op_type,number,processable_on,
+                                          processing_time,expiration_time,
+                                          dependencies,operator,used_by,begin_day,executable)
+                    #store it in the jobs array
+                    self.operations[operation_number-1] = operation
+                    self.operation_planning.append(operation)
+                    
+                    return
         
                 
     def increment_lead_time(self, increment=1):
@@ -121,7 +149,10 @@ class Job:
                 machine = operation.processed_on
                 start = operation.start_time
                 end = operation.end_time
-                duration = end-start
+                try:
+                    duration = end-start
+                except:
+                    duration  = 0.0
                 planning.append((self.job_name,machine,operation_number,start,duration,end))
         return planning
         
@@ -131,6 +162,14 @@ class Job:
     @job_name.setter
     def job_name(self, value):
         self.__job_name = value  
+        
+        
+    @property
+    def job_number(self):
+        return self.__job_number
+    @job_number.setter
+    def job_number(self, value):
+        self.__job_number = value  
     
     @property
     def formulation(self):

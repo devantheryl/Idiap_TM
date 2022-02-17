@@ -9,12 +9,13 @@ import numpy as np
 
 class Operation:
     
-    def __init__(self,job_name, operation_number, processable_on, processing_time,
-                 expiration_time, dependencies, operator, used_by, QC_delay,begin_day,
+    def __init__(self,job_name,op_type, operation_number, processable_on, processing_time,
+                 expiration_time, dependencies, operator, used_by,begin_day,
                  executable = False, status = 0):
         
         #init variable
         self.job_name = job_name
+        self.op_type = op_type
         self.operation_number = operation_number
         self.processable_on = processable_on
         self.processing_time = processing_time
@@ -22,10 +23,9 @@ class Operation:
         self.dependencies = dependencies
         self.operator = operator
         self.used_by = used_by
-        self.QC_delay = QC_delay
-        self.begin_day = begin_day
+        self.begin_day = begin_day #0 : must begin in the morning, 1 : don't care
         self.executable = executable
-        self.status = 0 #0:non-attribué, 1:en cours, 2:terminé, 3:used, 4:doens't exist, 5 : attente QC
+        self.status = 0 #0:non-attribué, 1:en cours, 2:terminé, 3:used, 4:doens't exist
         
         #stats vars
         self.start_time = 0.0
@@ -37,13 +37,9 @@ class Operation:
         if self.status == 1:
             self.processing_time-=1
             
-        if self.status == 5:
-            self.QC_delay -=1
-            
-        if self.processing_time == 0 and self.QC_delay == 0:
+        if self.processing_time == 0:
             self.status = 2
-        else:
-            self.status = 5
+        
             
         return self.status
         
@@ -52,7 +48,7 @@ class Operation:
         return self.expiration_time
     
     def get_state(self):
-        return self.status/5, self.processing_time/4, self.expiration_time/60, self.executable
+        return self.status/4, self.processing_time/4, self.expiration_time/60, self.executable
     
     
     @property
@@ -60,7 +56,16 @@ class Operation:
         return self.__job_name
     @job_name.setter
     def job_name(self, value):
-        self.__job_name = value            
+        self.__job_name = value         
+        
+        
+    @property
+    def op_type(self):
+        return self.__op_type
+    @op_type.setter
+    def op_type(self, value):
+        self.__op_type = value       
+    
 
     @property
     def operation_number(self):
@@ -111,12 +116,6 @@ class Operation:
     def used_by(self, value):
         self.__used_by = value 
            
-    @property
-    def QC_delay(self):
-        return self.__QC_delay
-    @QC_delay.setter
-    def QC_delay(self, value):
-        self.__QC_delay = value 
         
     @property
     def executable(self):

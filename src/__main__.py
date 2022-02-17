@@ -111,7 +111,7 @@ def train_model(wandb_activate = True,sweep = True):
         exploration = dict(type = 'linear', unit = 'episodes', num_steps = int(num_episode*0.9), initial_value = epsilon, final_value = epsilon_min),
         config = dict(seed = 0),
         tracking = 'all',
-        parallel_interactions  = 4,
+        parallel_interactions  = 8,
     )
     
     print(agent.get_architecture())
@@ -165,7 +165,11 @@ def train_model(wandb_activate = True,sweep = True):
             planning = environment.get_env().get_gant_formated()
             if wandb_activate:
                 path_img = "model/" + run.project + "/" +  run.name +"/" + '{:010d}'.format(i) + ".png"
-                utils.visualize(planning,path_img)
+                try: 
+                    utils.visualize(planning,path_img)
+                except:
+                    print("impossible to viusalize")
+                
                 agent.save("model/" + run.project + "/" +  run.name +"/", '{:010d}'.format(i), format = "hdf5")
             else:
                 #utils.visualize(planning)
