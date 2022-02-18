@@ -23,10 +23,14 @@ class Production_line():
         
         with open("src/config.json") as json_file:
             config = json.load(json_file)
-        self.nbr_job_max = config["nbr_job_max"]
+        self.nbr_job_max = 1#config["nbr_job_max"]
         self.nbr_operations = config["nbr_operation_max"]
         self.nbr_machines = config["nbr_machines"]
         self.nbr_operator = config["nbr_operator"]
+        self.operator_vector_length = config["operator_vector_length"]
+        self.operator = np.zeros((self.operator_vector_length))
+        
+        
         
         self.job_launched = False
         
@@ -57,10 +61,22 @@ class Production_line():
         
     def reset(self):
         
+        self.set_operator_vector()
+        self.time = max(self.target_date)
+        self.init_time = self.time
+        self.morning_afternoon = 0 #o : morning, 1: afternoon
+        self.wip = 0
+
+        #list to keep the jobs objects
+        self.jobs = np.full(self.nbr_job_max,None)
+        
+        #list to keep the machines objects
+        self.machines = self.create_machines()
+        
         for i in range(self.nbr_job_max):
             job = Job("TEST" + str(i),i+1,1,20000, self.nbr_operations, self.target_date[i], self.time)
             self.add_job(job)
-            
+        
         self.update_check_executable()
         
         
@@ -154,6 +170,9 @@ class Production_line():
                     self.time = self.time.replace(hour = 12)
                     self.morning_afternoon = 1
                 
+                #update the operator
+                self.update_operator_vector()
+                
                 reward -= self.wip #a tester, on augmente la pénalité d'avancer dans le temps en fonction du nombre de wip
                 if reward == 0:
                     reward-=1
@@ -207,7 +226,7 @@ class Production_line():
                 self.machines[machine_to_schedule-1].assign_operation(job_to_schedule,operation_to_schedule)
                 
                 #decrease the number of operator remaining
-                self.nbr_operator -= self.jobs[job_to_schedule-1].operations[operation_to_schedule-1].operator
+                self.operator -= self.jobs[job_to_schedule-1].operations[operation_to_schedule-1].operator
                 
                 
                 
@@ -237,7 +256,7 @@ class Production_line():
                                 machine = operation.processed_on
                                 self.machines[machine-1].remove_operation()
                                 
-                                self.nbr_operator += operation.operator
+                                self.operator += operation.operator
                                 
                                 
                                 
@@ -322,7 +341,7 @@ class Production_line():
         if job != None:
             operation = job.operations[operation_to_schedule-1]
             if operation != None:
-                if operation.status == 0 and operation.executable and operation.operator <= self.nbr_operator and self.machines[machine_to_schedule-1].status == 0:
+                if operation.status == 0 and operation.executable and operation.operator <= self.operator[-1] and self.machines[machine_to_schedule-1].status == 0:
                     return True
                 
         return False
@@ -339,7 +358,7 @@ class Production_line():
         
         params_op = 4
         params_machine = 3
-        state_size = self.nbr_job_max * self.nbr_operations * params_op + self.nbr_machines * params_machine + 2#  +1 for the operator number 
+        state_size = self.nbr_job_max * self.nbr_operations * params_op + self.nbr_machines * params_machine + self.operator_vector_length + 1#  +1 for morning afternoon
         
         return state_size
     
@@ -362,7 +381,7 @@ class Production_line():
         for machine in self.machines:
             sum_state += machine.get_state()
             
-        sum_state += (self.nbr_operator/12,)
+        sum_state += tuple(self.operator/12)
         
         sum_state += (self.morning_afternoon,)
         
@@ -390,6 +409,28 @@ class Production_line():
             
         return plan_df
         
+    def set_operator_vector(self):
+        current_date = self.time
+        
+        for i in range(self.operator_vector_length):
+            #si jour de weekend
+            if current_date.weekday() > 4:
+                self.operator[-(i+1)] = 0
+            #TODO ajouter les jours férier + vacances
+            else:
+                self.operator[-(i+1)] = self.nbr_operator
+            current_date -= timedelta(days = 1)
+    
+    def update_operator_vector(self):
+        
+        self.operator = np.roll(self.operator,1)
+        new_date = self.time - timedelta(days= self.operator_vector_length-1)
+        if new_date.weekday() > 4:
+            self.operator[0] = 0
+        #TODO ajouter les jours férier + vacances
+        else:
+            self.operator[0] = self.nbr_operator
+                
         
     
        

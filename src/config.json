@@ -3,12 +3,13 @@
     "nbr_operation_max" : 14,
     "nbr_machines" : 14,
     "nbr_operator" : 12,
+    "operator_vector_length" : 21,
     
     
     
     
     "batch_size" : 32,
-    "n_episode" : 20000,
+    "n_episode" : 300,
     "n_epsiode_test" : 1,
     "UPDATE_FREQ" : 16,
     "target_update_weight" : 1.0,
@@ -24,11 +25,10 @@
     "discount" : 0.999,
     "entropy_regularization" : 0.5, 
     
-    
 
-    "nbr_neurone_first_layer" : 1000,
+    "nbr_neurone_first_layer" : 200,
     "activation_first_layer" : "relu",
-    "nbr_neurone_second_layer" : 1000,
+    "nbr_neurone_second_layer" : 200,
     "activation_second_layer" : "relu",
     "output_layer_activation" : "linear",
     
