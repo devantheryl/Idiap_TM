@@ -1,7 +1,7 @@
 {
-    "nbr_job_max" : 3,
+    "nbr_job_max" : 2,
     "nbr_operation_max" : 11,
-    "nbr_machines" : 14,
+    "nbr_machines" : 13,
     "nbr_operator" : 12,
     "operator_vector_length" : 14,
     
@@ -15,22 +15,16 @@
     "target_update_weight" : 1.0,
     "NETW_UPDATE_FREQ" : 20,
     "memory" : 50000,
-    "epsilon" : 0.5,
+    "epsilon" : 0.9,
     "epsilon_decay" : 0.9992,
     "epsilon_min" : 0.1,
     
-    "learning_rate" : 0.001,
+    "learning_rate" : 0.005,
     "huber_loss" : 0.9,
     "horizon" : 50,
     "discount" : 0.999,
     "entropy_regularization" : 0.5, 
     
-
-    "nbr_neurone_first_layer" : 500,
-    "activation_first_layer" : "relu",
-    "nbr_neurone_second_layer" : 500,
-    "activation_second_layer" : "relu",
-    "output_layer_activation" : "linear",
     
     "network" : [
             {
@@ -42,12 +36,8 @@
                 "type" : "dense",
                 "size" : 500,
                 "activation" : "relu"
-            },
-            {
-                "type" : "dense",
-                "size" : 500,
-                "activation" : "relu"
             }
+            
     ],
     
     "target_date" : [
@@ -65,6 +55,24 @@
         "2022-03-21 00:00:00",
         "2022-03-28 00:00:00",
         "2022-04-04 00:00:00"
+        
+    ],
+    
+    "target_date2" : [
+        "2021-08-24 00:00:00",
+        "2021-08-31 00:00:00",
+        "2021-09-07 00:00:00",
+        "2021-09-14 00:00:00",
+        "2021-09-21 00:00:00",
+        "2021-09-28 00:00:00",
+        "2021-10-04 00:00:00",
+        "2021-10-07 00:00:00",
+        "2021-10-13 00:00:00",
+        "2021-10-19 00:00:00",
+        "2021-10-26 00:00:00",
+        "2021-11-02 00:00:00",
+        "2021-11-10 00:00:00",
+        "2021-11-16 00:00:00"
         
     ]
         

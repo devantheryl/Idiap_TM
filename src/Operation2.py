@@ -39,6 +39,7 @@ class Operation:
             
         if self.processing_time == 0:
             self.status = 2
+            
         
             
         return self.status

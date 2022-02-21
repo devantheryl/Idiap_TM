@@ -52,10 +52,6 @@ def train_model(wandb_activate = True,sweep = True):
         num_episode = config.n_episode
         memory = config.memory
         batch_size = config.batch_size
-        nbr_neurone_first_layer = config.nbr_neurone_first_layer
-        activation_first_layer = config.activation_first_layer
-        nbr_neurone_second_layer = config.nbr_neurone_second_layer
-        activation_second_layer = config.activation_second_layer
         network = config.network
         update_frequency = config.UPDATE_FREQ
         learning_rate = config.learning_rate
@@ -71,10 +67,6 @@ def train_model(wandb_activate = True,sweep = True):
         num_episode = configs["n_episode"]
         memory = configs["memory"]
         batch_size = configs["batch_size"]
-        nbr_neurone_first_layer = configs["nbr_neurone_first_layer"]
-        activation_first_layer = configs["activation_first_layer"]
-        nbr_neurone_second_layer = configs["nbr_neurone_second_layer"]
-        activation_second_layer = configs["activation_second_layer"]
         network = configs["network"]
         update_frequency = configs["UPDATE_FREQ"]
         learning_rate = configs["learning_rate"]

@@ -50,6 +50,13 @@ class Job:
         
         
         
+    def forward(self):
+        
+        if self.started and not self.ended:
+            self.lead_time += 1
+        
+        for operation in self.operations:
+            operation.forward()
         
         
     def create_all_operations(self):

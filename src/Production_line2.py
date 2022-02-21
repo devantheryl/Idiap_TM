@@ -35,7 +35,7 @@ class Production_line():
         self.job_launched = False
         
 
-        self.target_date = [datetime.fromisoformat(config["target_date"][i])+ timedelta(days=2) for i in range(self.nbr_job_max)]
+        self.target_date = [datetime.fromisoformat(config["target_date2"][i])+ timedelta(days=2) for i in range(self.nbr_job_max)]
         self.time = max(self.target_date)
         self.init_time = self.time
         self.morning_afternoon = 0 #o : morning, 1: afternoon
@@ -235,7 +235,7 @@ class Production_line():
         done = self.check_done()
             
                 
-        return next_state,reward/10, done 
+        return next_state,reward, done 
     
     def update_processing_time(self):
         
@@ -413,6 +413,11 @@ class Production_line():
         
     def set_operator_vector(self):
         current_date = self.time
+        if current_date.hour == 12:
+            current_date -= timedelta(hours = 12)
+        else:
+            current_date -= timedelta(days=1)
+            current_date = current_date.replace(hour = 12)
         
         for i in range(int(self.operator_vector_length)):
             #si jour de weekend
