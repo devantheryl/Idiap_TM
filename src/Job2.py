@@ -82,7 +82,7 @@ class Job:
                     executable = False
                     operator = 0
                     used_by = value["used_by"]
-                    begin_day = 1
+                    begin_day = value["begin_day"]
                     
                 #create the operation
                 operation = Operation(self.job_name,op_type,number,processable_on,

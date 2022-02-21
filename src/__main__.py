@@ -56,6 +56,7 @@ def train_model(wandb_activate = True,sweep = True):
         activation_first_layer = config.activation_first_layer
         nbr_neurone_second_layer = config.nbr_neurone_second_layer
         activation_second_layer = config.activation_second_layer
+        network = config.network
         update_frequency = config.UPDATE_FREQ
         learning_rate = config.learning_rate
         huber_loss = config.huber_loss
@@ -74,6 +75,7 @@ def train_model(wandb_activate = True,sweep = True):
         activation_first_layer = configs["activation_first_layer"]
         nbr_neurone_second_layer = configs["nbr_neurone_second_layer"]
         activation_second_layer = configs["activation_second_layer"]
+        network = configs["network"]
         update_frequency = configs["UPDATE_FREQ"]
         learning_rate = configs["learning_rate"]
         huber_loss = configs["huber_loss"]
@@ -97,10 +99,7 @@ def train_model(wandb_activate = True,sweep = True):
         max_episode_timesteps = environment.max_episode_timesteps(),
         memory=memory,
         batch_size = batch_size,
-        network = [
-            dict(type = 'dense', size = nbr_neurone_first_layer, activation = activation_first_layer),
-            dict(type = 'dense', size = nbr_neurone_second_layer, activation = activation_second_layer),
-            ],
+        network = network,
         update_frequency = update_frequency,
         learning_rate = learning_rate,
         huber_loss = huber_loss,

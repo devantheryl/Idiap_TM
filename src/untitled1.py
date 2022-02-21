@@ -17,6 +17,12 @@ print(time[0].weekday())
 
 
 test = np.linspace(1,10,10)
-print(test+10)
-test = np.roll(test, 1)
+test[0:1] -=10
 print(test)
+
+for i in range(4):
+    print(i)
+    
+    
+    
+print(time[0] < time[1])

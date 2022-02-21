@@ -1,20 +1,20 @@
 {
-    "nbr_job_max" : 10,
-    "nbr_operation_max" : 14,
+    "nbr_job_max" : 3,
+    "nbr_operation_max" : 11,
     "nbr_machines" : 14,
     "nbr_operator" : 12,
-    "operator_vector_length" : 21,
+    "operator_vector_length" : 14,
     
     
     
     
     "batch_size" : 32,
-    "n_episode" : 300,
+    "n_episode" : 2000,
     "n_epsiode_test" : 1,
     "UPDATE_FREQ" : 16,
     "target_update_weight" : 1.0,
     "NETW_UPDATE_FREQ" : 20,
-    "memory" : 200000,
+    "memory" : 50000,
     "epsilon" : 0.5,
     "epsilon_decay" : 0.9992,
     "epsilon_min" : 0.1,
@@ -26,11 +26,29 @@
     "entropy_regularization" : 0.5, 
     
 
-    "nbr_neurone_first_layer" : 200,
+    "nbr_neurone_first_layer" : 500,
     "activation_first_layer" : "relu",
-    "nbr_neurone_second_layer" : 200,
+    "nbr_neurone_second_layer" : 500,
     "activation_second_layer" : "relu",
     "output_layer_activation" : "linear",
+    
+    "network" : [
+            {
+                "type" : "dense",
+                "size" : 500,
+                "activation" : "relu"
+            },
+            {
+                "type" : "dense",
+                "size" : 500,
+                "activation" : "relu"
+            },
+            {
+                "type" : "dense",
+                "size" : 500,
+                "activation" : "relu"
+            }
+    ],
     
     "target_date" : [
         "2022-01-18 00:00:00",

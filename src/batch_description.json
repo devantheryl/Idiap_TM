@@ -222,8 +222,8 @@
             "number" : 9,
             "processable_on" : [9],
             "processing_time" : 4,
-            "expiration_time" : 10,
-            "dependencies" : [9],
+            "expiration_time" : 14,
+            "dependencies" : [],
             "operator" : 8,
             "used_by" : 6,
             "begin_day" : 1
@@ -233,14 +233,16 @@
             "number" : 10,
             "processing_time" : 1,
             "dependencies" : [9],
-            "used_by" : 7
+            "used_by" : 7,
+            "begin_day" : 1
         },
         "liberation_QC_ug" : {
             "type" : "liberation",
             "number" : 11,
             "processing_time" : 4,
             "dependencies" : [9],
-            "used_by" : 6
+            "used_by" : 6,
+            "begin_day" : 1
         }
         
     },

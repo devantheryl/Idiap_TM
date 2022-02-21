@@ -23,7 +23,7 @@ class Production_line():
         
         with open("src/config.json") as json_file:
             config = json.load(json_file)
-        self.nbr_job_max = 1#config["nbr_job_max"]
+        self.nbr_job_max = config["nbr_job_max"]
         self.nbr_operations = config["nbr_operation_max"]
         self.nbr_machines = config["nbr_machines"]
         self.nbr_operator = config["nbr_operator"]
@@ -56,22 +56,11 @@ class Production_line():
         #state size
         self.state_size = self.get_state_size()
         
+        self.set_operator_vector()
         self.reset()
         
         
     def reset(self):
-        
-        self.set_operator_vector()
-        self.time = max(self.target_date)
-        self.init_time = self.time
-        self.morning_afternoon = 0 #o : morning, 1: afternoon
-        self.wip = 0
-
-        #list to keep the jobs objects
-        self.jobs = np.full(self.nbr_job_max,None)
-        
-        #list to keep the machines objects
-        self.machines = self.create_machines()
         
         for i in range(self.nbr_job_max):
             job = Job("TEST" + str(i),i+1,1,20000, self.nbr_operations, self.target_date[i], self.time)
@@ -160,6 +149,9 @@ class Production_line():
             operation_to_schedule = action[1]
             machine_to_schedule = action[2]
             
+            #print(self.operator[-1])
+            #print(self.time.weekday())
+            
             
             if action == "forward":
                 if self.time.time().hour == 12:
@@ -172,6 +164,8 @@ class Production_line():
                 
                 #update the operator
                 self.update_operator_vector()
+                update = self.operator
+                time = self.time
                 
                 reward -= self.wip #a tester, on augmente la pénalité d'avancer dans le temps en fonction du nombre de wip
                 if reward == 0:
@@ -197,7 +191,8 @@ class Production_line():
                 reward -= nbr_echu*10 # a tester, pour éviter les doublons
                 
                 #update and check newly executable operations
-                self.update_check_executable()
+                executables = self.update_check_executable()
+                
                 if abs(self.time-self.init_time).days > 7 and self.job_launched == False:
                     reward-=1000#aussi à tester
             
@@ -215,7 +210,7 @@ class Production_line():
                         self.job_launched = False
                         self.init_time = self.time
                 
-                reward-=1
+                reward -= 1
                 
                 #on set l'opération à "en cours", set the start time and the machine
                 self.jobs[job_to_schedule-1].operations[operation_to_schedule-1].status = 1
@@ -226,7 +221,9 @@ class Production_line():
                 self.machines[machine_to_schedule-1].assign_operation(job_to_schedule,operation_to_schedule)
                 
                 #decrease the number of operator remaining
-                self.operator -= self.jobs[job_to_schedule-1].operations[operation_to_schedule-1].operator
+                op_duration = self.jobs[job_to_schedule-1].operations[operation_to_schedule-1].processing_time
+                
+                self.operator[0:op_duration] -= self.jobs[job_to_schedule-1].operations[operation_to_schedule-1].operator
                 
                 
                 
@@ -256,7 +253,7 @@ class Production_line():
                                 machine = operation.processed_on
                                 self.machines[machine-1].remove_operation()
                                 
-                                self.operator += operation.operator
+                                #self.operator += operation.operator
                                 
                                 
                                 
@@ -278,20 +275,25 @@ class Production_line():
                             if operation.begin_day == 1 and self.morning_afternoon == 1:
                                 executable = False
                             
+                            duration = operation.processing_time
+                            for i in range(duration):
+                                if self.operator[i] <= 0:
+                                    executable = False
+                            
                             if operation.op_type == "liberation" and executable == True:
                                 self.jobs[job.job_number-1].operations[operation.operation_number-1].status = 1
                                 self.jobs[job.job_number-1].operations[operation.operation_number-1].start_time = self.time
                                 self.jobs[job.job_number-1].operations[operation.operation_number-1].processed_on = 0
                                 
-                            
+                            if operation.operation_number == 9:
+                                if self.time > job.target_date:
+                                    executable = False
                             
                             if executable:
                                 executables.append(operation.operation_number)
                             operation.executable = executable
                         #si op = perry
-                        if operation.operation_number == 9:
-                            if self.time == job.target_date:
-                                operation.executable = True
+                        
         return executables
                         
     def update_check_expiration_time(self):
@@ -341,7 +343,7 @@ class Production_line():
         if job != None:
             operation = job.operations[operation_to_schedule-1]
             if operation != None:
-                if operation.status == 0 and operation.executable and operation.operator <= self.operator[-1] and self.machines[machine_to_schedule-1].status == 0:
+                if operation.status == 0 and operation.executable and operation.operator <= self.operator[0] and self.machines[machine_to_schedule-1].status == 0:
                     return True
                 
         return False
@@ -412,24 +414,31 @@ class Production_line():
     def set_operator_vector(self):
         current_date = self.time
         
-        for i in range(self.operator_vector_length):
+        for i in range(int(self.operator_vector_length)):
             #si jour de weekend
             if current_date.weekday() > 4:
-                self.operator[-(i+1)] = 0
+                self.operator[i] = 0
             #TODO ajouter les jours férier + vacances
             else:
-                self.operator[-(i+1)] = self.nbr_operator
-            current_date -= timedelta(days = 1)
+                self.operator[i] = self.nbr_operator
+                
+            if current_date.hour == 12:
+                current_date -= timedelta(hours = 12)
+            else:
+                current_date -= timedelta(days=1)
+                current_date = current_date.replace(hour = 12)
     
     def update_operator_vector(self):
         
-        self.operator = np.roll(self.operator,1)
-        new_date = self.time - timedelta(days= self.operator_vector_length-1)
+        self.operator = np.roll(self.operator,-1)
+        new_date = self.time - timedelta(days= self.operator_vector_length/2)
         if new_date.weekday() > 4:
-            self.operator[0] = 0
+            self.operator[-1] = 0
         #TODO ajouter les jours férier + vacances
         else:
-            self.operator[0] = self.nbr_operator
+            self.operator[-1] = self.nbr_operator
+        
+            
                 
         
     
