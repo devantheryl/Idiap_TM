@@ -226,7 +226,7 @@ class Production_line():
                 self.operator[0:op_duration] -= self.jobs[job_to_schedule-1].operations[operation_to_schedule-1].operator
                 
                 #si l'opération est la perry
-                if self.jobs[job_to_schedule-1].operations[operation_to_schedule-1].number == 9:
+                if self.jobs[job_to_schedule-1].operations[operation_to_schedule-1].operation_number == 9:
                     if self.jobs[job_to_schedule-1].target_date != self.time:
                         reward-=10
                 
