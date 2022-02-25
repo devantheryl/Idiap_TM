@@ -188,7 +188,7 @@ class Production_line():
                     
                 #update and check expiration time of all operations
                 nbr_echu = self.update_check_expiration_time()
-                reward -= nbr_echu*10 # a tester, pour éviter les doublons
+                #reward -= nbr_echu*10 # a tester, pour éviter les doublons
                 
                 #update and check newly executable operations
                 executables = self.update_check_executable()
@@ -224,6 +224,11 @@ class Production_line():
                 op_duration = self.jobs[job_to_schedule-1].operations[operation_to_schedule-1].processing_time
                 
                 self.operator[0:op_duration] -= self.jobs[job_to_schedule-1].operations[operation_to_schedule-1].operator
+                
+                #si l'opération est la perry
+                if self.jobs[job_to_schedule-1].operations[operation_to_schedule-1].number == 9:
+                    if self.jobs[job_to_schedule-1].target_date != self.time:
+                        reward-=10
                 
                 
                 

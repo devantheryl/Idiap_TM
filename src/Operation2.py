@@ -23,7 +23,7 @@ class Operation:
         self.dependencies = dependencies
         self.operator = operator
         self.used_by = used_by
-        self.begin_day = begin_day #0 : must begin in the morning, 1 : don't care
+        self.begin_day = begin_day #1 : must begin in the morning, 0 : don't care
         self.executable = executable
         self.status = 0 #0:non-attribué, 1:en cours, 2:terminé, 3:used, 4:doens't exist
         
@@ -34,13 +34,16 @@ class Operation:
         
     def forward(self):
         
+        ended_op = False
+        expirated_op = False
+        executable_op = False
+            
+        #op en cours
         if self.status == 1:
             self.processing_time-=1
-            
+                   
         if self.processing_time == 0:
             self.status = 2
-            
-        
             
         return self.status
         
