@@ -10,7 +10,7 @@ import matplotlib as mpl
 import json
 import random 
 import time
-
+from datetime import datetime, timedelta, date
 
 def visualize(results ,path = ""):
     
@@ -100,3 +100,21 @@ def visualize(results ,path = ""):
     if len(path):
         fig.savefig(path)
     fig.savefig("test.png")
+    
+    
+
+def get_delta_time(current_time, delta):
+    temp = current_time
+    
+    for i in range(abs(delta)):
+        if delta < 0:
+            if temp.time().hour == 12:
+                temp -= timedelta(hours = 12)
+            else:
+                temp -= timedelta(days=1)
+                temp = temp.replace(hour = 12)
+        else :
+            #TODO
+            pass
+    return temp
+                

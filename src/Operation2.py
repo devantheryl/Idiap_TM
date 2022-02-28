@@ -6,11 +6,14 @@ Created on Mon Dec  6 17:15:04 2021
 """
 
 import numpy as np
+from datetime import datetime, timedelta, date
+
+
 
 class Operation:
     
     def __init__(self,job_name,op_type, operation_number, processable_on, processing_time,
-                 expiration_time, dependencies, operator, used_by,begin_day,
+                 expiration_time, dependencies, operator, used_by,begin_day, QC_delay,
                  executable = False, status = 0):
         
         #init variable
@@ -24,6 +27,7 @@ class Operation:
         self.operator = operator
         self.used_by = used_by
         self.begin_day = begin_day #1 : must begin in the morning, 0 : don't care
+        self.QC_delay = QC_delay
         self.executable = executable
         self.status = 0 #0:non-attribué, 1:en cours, 2:terminé, 3:used, 4:doens't exist
         
@@ -47,8 +51,10 @@ class Operation:
             
         return self.status
         
-    def decrease_get_expiration_time(self):
+    def decrease_get_expiration_time(self, time):
         self.expiration_time -= 1
+        if time.weekday() <5:
+            self.QC_delay -=1
         return self.expiration_time
     
     def get_state(self):

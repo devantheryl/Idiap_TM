@@ -20,9 +20,15 @@ test = np.linspace(1,10,10)
 test[0:1] -=10
 print(test)
 
-for i in range(4):
-    print(i)
     
     
     
 print(time[0] < time[1])
+for i in range(3):
+    print(i)
+
+temp = time[0]
+
+temp = 0
+
+print(temp,time[0])

@@ -39,7 +39,7 @@ def train_model(wandb_activate = True,sweep = True):
               project="6_job_ddqn",
 
               entity="devantheryl",
-              notes="removing reward = -wip, -1 instead + -2*delta reward",
+              notes="",
               config=configs,
             )
         config = wandb.config
@@ -85,7 +85,7 @@ def train_model(wandb_activate = True,sweep = True):
     environment = Environment.create(environment=TF_environment)
     
     agent = Agent.create(
-        agent='ddqn',
+        agent='dueling_dqn',
         states = environment.states(),
         actions = environment.actions(),
         max_episode_timesteps = environment.max_episode_timesteps(),
@@ -99,7 +99,7 @@ def train_model(wandb_activate = True,sweep = True):
         discount = discount,
         target_update_weight = target_update_weight ,
         target_sync_frequency  = target_sync_frequency,
-        exploration = dict(type = 'linear', unit = 'episodes', num_steps = int(num_episode*0.9), initial_value = epsilon, final_value = epsilon_min),
+        exploration = dict(type = 'linear', unit = 'episodes', num_steps = int(num_episode*0.8), initial_value = epsilon, final_value = epsilon_min),
         config = dict(seed = 0),
         tracking = 'all',
         parallel_interactions  = 8,

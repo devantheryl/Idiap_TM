@@ -79,22 +79,13 @@ class Job:
                     operator = value["operator"]
                     used_by = value["used_by"]
                     begin_day = value["begin_day"]
+                    QC_delay = value["QC_delay"]
                     
-                if op_type == "liberation":
-                    number = value["number"]
-                    processable_on = 0
-                    processing_time = value["processing_time"]
-                    expiration_time = 0
-                    dependencies = value["dependencies"]
-                    executable = False
-                    operator = 0
-                    used_by = value["used_by"]
-                    begin_day = value["begin_day"]
                     
                 #create the operation
                 operation = Operation(self.job_name,op_type,number,processable_on,
                                       processing_time,expiration_time,
-                                      dependencies,operator,used_by,begin_day,executable)
+                                      dependencies,operator,used_by,begin_day,QC_delay,executable)
                 
                 #store it in the jobs array
                 self.operations[number-1] = operation
@@ -120,22 +111,13 @@ class Job:
                         operator = value["operator"]
                         used_by = value["used_by"]
                         begin_day = value["begin_day"]
+                        QC_delay = value["QC_delay"]
                         
-                    if op_type == "liberation":
-                        number = value["number"]
-                        processable_on = 0
-                        processing_time = value["processing_time"]
-                        expiration_time = 0
-                        dependencies = value["dependencies"]
-                        executable = False
-                        operator = 0
-                        used_by = value["used_by"]
-                        begin_day = 1
                         
                     #create the operation
                     operation = Operation(self.job_name,op_type,number,processable_on,
                                           processing_time,expiration_time,
-                                          dependencies,operator,used_by,begin_day,executable)
+                                          dependencies,operator,used_by,begin_day,QC_delay,executable)
                     #store it in the jobs array
                     self.operations[operation_number-1] = operation
                     self.operation_planning.append(operation)

@@ -9,7 +9,7 @@
     
     
     "batch_size" : 32,
-    "n_episode" : 10000,
+    "n_episode" : 1500,
     "n_epsiode_test" : 1,
     "UPDATE_FREQ" : 16,
     "target_update_weight" : 1.0,
@@ -19,7 +19,7 @@
     "epsilon_decay" : 0.9992,
     "epsilon_min" : 0.05,
     
-    "learning_rate" : 0.001,
+    "learning_rate" : 0.002,
     "huber_loss" : 0.9,
     "horizon" : 50,
     "discount" : 0.999,

@@ -13,6 +13,7 @@ import pandas as pd
 import json
 import os
 from datetime import datetime, timedelta, date
+import src.utils as utils
 
 #to set the current working directory
 os.chdir("C:/Users/LDE/Prog/projet_master/digital_twins")
@@ -193,8 +194,8 @@ class Production_line():
                 #update and check newly executable operations
                 executables = self.update_check_executable()
                 
-                if abs(self.time-self.init_time).days > 7 and self.job_launched == False:
-                    reward-=1000#aussi à tester
+                #if abs(self.time-self.init_time).days > 7 and self.job_launched == False:
+                    #reward-=1000#aussi à tester
             
             else:
                 self.job_launched = True
@@ -263,7 +264,32 @@ class Production_line():
                                 
                                 
         return ended_operations
-                                
+           
+    def update_check_expiration_time(self):
+        
+        nbr_echu = 0
+        for job in self.jobs:
+            if job != None:  
+                for operation in job.operations:
+                    if operation != None:    
+                        #si l'opération est terminée
+                        if operation.status == 2:
+                            #si l'opération suivante n'a pas encore commencé
+                            
+                            for operation_used in operation.used_by:
+                                if job.operations[operation_used-1].status == 0:
+                            
+                                    #si l'opération est écheue
+                                    if job.operations[operation_used-1].decrease_get_expiration_time(self.time) == 0:
+                                        #l'opération suivante n'est plus executable
+                                        job.operations[operation_used-1].executable = False
+                                        #on recréer une operation
+                                        job.create_operation(operation.operation_number)
+                                        
+                                        nbr_echu += 1
+        return nbr_echu
+    
+                     
     def update_check_executable(self):
         executables = []
         for job in self.jobs:
@@ -277,18 +303,23 @@ class Production_line():
                                 if job.operations[dependencie-1].status != 2:
                                     executable = False
                             
-                            if operation.begin_day == 1 and self.morning_afternoon == 1:
-                                executable = False
                             
                             duration = operation.processing_time
+                            
+                            #L'opération doit commencer le matin
+                            if operation.begin_day == 1:
+                                begin_time = utils.get_delta_time(self.time, -duration)
+                                if begin_time.time().hour != 0:
+                                    executable = False
+                                
+                            if operation.QC_delay >0:
+                                executable = False
+                            
+                            
                             for i in range(duration):
-                                if self.operator[i] <= 0:
+                                if self.operator[i+1] <= 0:
                                     executable = False
                             
-                            if operation.op_type == "liberation" and executable == True:
-                                self.jobs[job.job_number-1].operations[operation.operation_number-1].status = 1
-                                self.jobs[job.job_number-1].operations[operation.operation_number-1].start_time = self.time
-                                self.jobs[job.job_number-1].operations[operation.operation_number-1].processed_on = 0
                                 
                             if operation.operation_number == 9:
                                 if self.time > job.target_date:
@@ -301,27 +332,7 @@ class Production_line():
                         
         return executables
                         
-    def update_check_expiration_time(self):
-        
-        nbr_echu = 0
-        for job in self.jobs:
-            if job != None:  
-                for operation in job.operations:
-                    if operation != None:    
-                        #si l'opération est terminée
-                        if operation.status == 2:
-                            #si l'opération suivante n'a pas encore commencé
-                            if job.operations[operation.used_by-1].status == 0:
-                            
-                                #si l'opération est écheue
-                                if operation.decrease_get_expiration_time() == 0:
-                                    #l'opération suivante n'est plus executable
-                                    job.operations[operation.used_by-1].executable = False
-                                    #on recréer une operation
-                                    job.create_operation(operation.operation_number)
-                                    
-                                    nbr_echu += 1
-        return nbr_echu
+    
                                 
     def check_done(self):
         

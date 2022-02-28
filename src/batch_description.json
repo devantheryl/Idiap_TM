@@ -147,8 +147,9 @@
             "expiration_time" : 12,
             "dependencies" : [2],
             "operator" : 2,
-            "used_by" : 1,
-            "begin_day" : 1
+            "used_by" : [],
+            "begin_day" : 1, 
+            "QC_delay" : 0
             
         },
         "operation2" : {
@@ -159,8 +160,9 @@
             "expiration_time" : 60,
             "dependencies" : [3],
             "operator" : 2,
-            "used_by" : 1,
-            "begin_day" : 0
+            "used_by" : [1],
+            "begin_day" : 0, 
+            "QC_delay" : 0
         },
         "operation3" : {
             "type" : "operation",
@@ -170,8 +172,9 @@
             "expiration_time" : 2,
             "dependencies" : [4],
             "operator" : 3,
-            "used_by" : 2,
-            "begin_day" : 0
+            "used_by" : [2],
+            "begin_day" : 0, 
+            "QC_delay" : 0
         },
         "operation4" : {
             "type" : "operation",
@@ -181,8 +184,9 @@
             "expiration_time" : 60,
             "dependencies" : [5],
             "operator" : 2,
-            "used_by" : 3,
-            "begin_day" : 1
+            "used_by" : [3],
+            "begin_day" : 1, 
+            "QC_delay" : 0
         },
         "operation5" : {
             "type" : "operation",
@@ -192,8 +196,9 @@
             "expiration_time" : 12,
             "dependencies" : [6],
             "operator" : 2,
-            "used_by" : 4,
-            "begin_day" : 1
+            "used_by" : [4],
+            "begin_day" : 1, 
+            "QC_delay" : 0
         },
         "operation6" : {
             "type" : "operation",
@@ -201,10 +206,11 @@
             "processable_on" : [3],
             "processing_time" : 2,
             "expiration_time" : 60,
-            "dependencies" : [11],
+            "dependencies" : [9],
             "operator" : 2,
-            "used_by" : 5,
-            "begin_day" : 1
+            "used_by" : [5],
+            "begin_day" : 1, 
+            "QC_delay" : 4
         },
         "operation7" : {
             "type" : "operation",
@@ -212,10 +218,11 @@
             "processable_on" : [8],
             "processing_time" : 3,
             "expiration_time" : 14,
-            "dependencies" : [9,10],
+            "dependencies" : [9],
             "operator" : 2,
-            "used_by" : 7,
-            "begin_day" : 0
+            "used_by" : [],
+            "begin_day" : 0, 
+            "QC_delay" : 1
         },
         "operation9" : {
             "type" : "operation",
@@ -225,25 +232,11 @@
             "expiration_time" : 14,
             "dependencies" : [],
             "operator" : 8,
-            "used_by" : 6,
-            "begin_day" : 1
-        },
-        "liberation_QC_tween" : {
-            "type" : "liberation",
-            "number" : 10,
-            "processing_time" : 1,
-            "dependencies" : [9],
-            "used_by" : 7,
-            "begin_day" : 1
-        },
-        "liberation_QC_ug" : {
-            "type" : "liberation",
-            "number" : 11,
-            "processing_time" : 4,
-            "dependencies" : [9],
-            "used_by" : 6,
-            "begin_day" : 1
+            "used_by" : [6,7],
+            "begin_day" : 1, 
+            "QC_delay" : 0
         }
+        
         
     },
     "action_space" : {
