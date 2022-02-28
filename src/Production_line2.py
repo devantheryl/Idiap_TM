@@ -309,7 +309,7 @@ class Production_line():
                             #L'opération doit commencer le matin
                             if operation.begin_day == 1:
                                 begin_time = utils.get_delta_time(self.time, -duration)
-                                if begin_time.time().hour != 0:
+                                if begin_time.time().hour == 12:
                                     executable = False
                                 
                             if operation.QC_delay >0:

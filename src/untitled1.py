@@ -7,9 +7,12 @@ Created on Mon Feb 14 09:38:26 2022
 
 from datetime import datetime, timedelta, date
 import numpy as np
+import src.utils as utils
+
+
 time = []
 
-time.append(datetime.fromisoformat('2022-01-01 00:00:00'))
+time.append(datetime.fromisoformat('2022-01-01 12:00:00'))
 time.append(datetime.fromisoformat('2022-01-10 00:00:00'))
 time.append(datetime.fromisoformat('2022-03-01 00:00:00'))
 
@@ -32,3 +35,5 @@ temp = time[0]
 temp = 0
 
 print(temp,time[0])
+
+print(utils.get_delta_time(time[0], -2).time().hour)
