@@ -10,30 +10,6 @@ import numpy as np
 import src.utils as utils
 
 
-time = []
-
-time.append(datetime.fromisoformat('2022-01-01 12:00:00'))
-time.append(datetime.fromisoformat('2022-01-10 00:00:00'))
-time.append(datetime.fromisoformat('2022-03-01 00:00:00'))
-
-print(time[0].weekday())
 
 
-test = np.linspace(1,10,10)
-test[0:1] -=10
-print(test)
-
-    
-    
-    
-print(time[0] < time[1])
-for i in range(3):
-    print(i)
-
-temp = time[0]
-
-temp = 0
-
-print(temp,time[0])
-
-print(utils.get_delta_time(time[0], -2).time().hour)
+print(4.0 in [1,2,3,4])

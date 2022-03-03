@@ -24,7 +24,7 @@ class Production_line():
         
         with open("src/config.json") as json_file:
             config = json.load(json_file)
-        self.nbr_job_max = config["nbr_job_max"]
+        self.nbr_job_max = 1#config["nbr_job_max"]
         self.nbr_operations = config["nbr_operation_max"]
         self.nbr_machines = config["nbr_machines"]
         self.nbr_operator = config["nbr_operator"]
@@ -36,10 +36,19 @@ class Production_line():
         self.job_launched = False
         
 
-        self.target_date = [datetime.fromisoformat(config["target_date2"][i])+ timedelta(days=2) for i in range(self.nbr_job_max)]
+        self.target_date = []
+        self.formulations = []
+        
+        
+        for i, (key, value) in enumerate(config["target_date2"].items()):
+            if i < self.nbr_job_max:
+                self.target_date.append(datetime.fromisoformat(key) + timedelta(days = 2))
+                self.formulations.append(value)
+            
+                
         self.time = max(self.target_date)
-        self.init_time = self.time
-        self.morning_afternoon = 0 #o : morning, 1: afternoon
+        self.init_time = self.time 
+        self.morning_afternoon = 0 #0: morning, 1: afternoon
         
         
         #params
@@ -64,7 +73,7 @@ class Production_line():
     def reset(self):
         
         for i in range(self.nbr_job_max):
-            job = Job("TEST" + str(i),i+1,1,20000, self.nbr_operations, self.target_date[i], self.time)
+            job = Job("TEST" + str(i),i+1,self.formulations[i],20000, self.nbr_operations, self.target_date[i], self.time)
             self.add_job(job)
         
         self.update_check_executable()

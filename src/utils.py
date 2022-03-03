@@ -6,33 +6,45 @@ Created on Fri Dec 17 16:45:59 2021
 """
 import matplotlib.pyplot as plt
 from matplotlib.dates import DayLocator
+import matplotlib.patches as pat
 import matplotlib as mpl
 import json
 import random 
 import time
 from datetime import datetime, timedelta, date
+import matplotlib.dates as mdates
+import numpy as np
 
 def visualize(results ,path = ""):
     
     operation_machine = {
-                     (0)   : "QC",
                      (1,1) : "broyage_poly_1",
                      (1,2) : "broyage_poly_2",
-                     (2,3) : "tamisage_poly_3",
-                     (3,4) : "mélange_4",
-                     (3,5) : "mélange_5",
-                     (4,6) : "extrusion_6",
-                     (5,1) : "broyage_ug_1",
-                     (5,2) : "broyage_ug_2",
-                     (6,3) : "tamisage_ug_3",
-                     (7,8) : "tween_8",
-                     (8,7) : "combinaison_7",
-                     (9,9) : "perry_9",
-                     (10,10) : "sortie_lyo_10",
-                     (11,11) : "capsulage_11",
-                     (12,12) : "IV_12",
-                     (13,13) : "envoi IRR_13",
-                     (14,14) : "retour IRR_14"}
+                     (2,1) : "broyage_poly_1",
+                     (2,2) : "broyage_poly_2",
+                     (3,3) : "tamisage_poly_3",
+                     (4,3) : "tamisage_poly_3",
+                     (5,4) : "mélange_4",
+                     (5,5) : "mélange_5",
+                     (6,4) : "mélange_4",
+                     (6,5) : "mélange_5",
+                     (7,6) : "extrusion_6",
+                     (8,6) : "extrusion_6",
+                     (9,1) : "broyage_ug_1",
+                     (9,2) : "broyage_ug_2",
+                     (10,1) : "broyage_ug_1",
+                     (10,2) : "broyage_ug_2",
+                     (11,3) : "tamisage_ug_3",
+                     (12,3) : "tamisage_ug_3",
+                     (13,8) : "tween_8",
+                     (14,7) : "combinaison_7",
+                     (15,9) : "perry_9",
+                     (16,10) : "sortie_lyo_10",
+                     (17,11) : "capsulage_11",
+                     (18,12) : "IV_12",
+                     (19,13) : "envoi IRR_13",
+                     (20,14) : "retour IRR_14"
+    }
     
     schedule = results.copy()
     op_machine = []
@@ -49,8 +61,9 @@ def visualize(results ,path = ""):
     
     jobs = sorted(list(schedule['Job'].unique()))
     operation_machine_sorted = [value for key,value in operation_machine.items()][::-1]
-    machines = operation_machine_sorted
-    makespan = (schedule['Finish'].max() - schedule['Start'].min()).days
+    uniq, index = np.unique(np.array(operation_machine_sorted), return_index=True)
+    machines = uniq[index.argsort()]
+    makespan = (schedule['Start'].max() - schedule['Finish'].min()).days
     end_date = schedule['Finish'].max()
     
     
@@ -71,12 +84,23 @@ def visualize(results ,path = ""):
 
                     xs = schedule.loc[(index,j,m), 'Start']
                     xf = schedule.loc[(index,j,m), 'Finish']
-                    
-
+                    xs = mdates.date2num(xs)
+                    xf = mdates.date2num(xf)
+                    width = xs - xf
+                    test = schedule.iloc[index]["Operation"]
+                        
                     ax[0].plot([xs, xf], [jdx]*2, c=colors[mdx%7], **bar_style)
                     #ax[0].text((xs + xf)/2, jdx, m, **text_style)
-                    ax[1].plot([xs, xf], [mdx]*2, c=colors[jdx%7], **bar_style)
-                    #ax[1].text((xs + xf)/2, mdx, j, **text_style)
+                    if schedule.iloc[index]["Operation"] in [1,3,5,7,9,11]:
+                        rect = pat.Rectangle((xf, mdx+0.5), width, 1, linewidth=2,facecolor=colors[jdx%7], linestyle = 'dotted', ec = "black")
+                        
+                        #ax[1].plot([xs, xf], [mdx]*2, c=colors[jdx%7], **bar_style, linestyle='dashed')
+                        ax[1].add_patch(rect)
+                    else:
+                        #ax[1].plot([xs, xf], [mdx]*2, c=colors[jdx%7], **bar_style, linestyle='dotted')
+                        rect = pat.Rectangle((xf, mdx+0.5), width, 1, linewidth=2, facecolor=colors[jdx%7], linestyle = 'solid',ec = "black")
+                        ax[1].add_patch(rect)
+                    #ax[1].text(xs, mdx, j, **text_style)
                 
     ax[0].set_title('Job Schedule')
     ax[0].set_ylabel('Job')
@@ -84,8 +108,8 @@ def visualize(results ,path = ""):
     ax[1].set_ylabel('Machine')
     
     for idx, s in enumerate([jobs, machines]):
-        ax[idx].set_ylim(0.5, len(s) + 0.5)
-        ax[idx].set_yticks(range(1, 1 + len(s)))
+        ax[idx].set_ylim(0.5, 0.5+len(s))
+        ax[idx].set_yticks(range(1, 1+len(s)))
         ax[idx].set_yticklabels(s)
         ax[idx].text(end_date, ax[idx].get_ylim()[0], "{0:0.1f}".format(makespan), ha='center', va='bottom')
         ax[idx].plot([end_date]*2, ax[idx].get_ylim(), 'r--')

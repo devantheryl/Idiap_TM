@@ -65,9 +65,53 @@ class Job:
             batch_description = json.load(json_file)
             
         if self.formulation == 1 and self.job_size == 20000:
-            
             batch_info = batch_description["Batch_3.75_20000_REVERSE"]
-            for key, value in batch_info.items():
+            
+        if self.formulation == 3 and self.job_size == 20000:
+            batch_info = batch_description["Batch_11.25_20000_REVERSE"]    
+            
+        if self.formulation == 6 and self.job_size == 20000:
+            batch_info = batch_description["Batch_22.50_20000_REVERSE"]    
+        
+        for key, value in batch_info.items():
+            op_type = value["type"]
+            if op_type == "operation":
+                number = value["number"]
+                processable_on = value["processable_on"]
+                processing_time = value["processing_time"]
+                expiration_time = value["expiration_time"]
+                dependencies = value["dependencies"]
+                executable = False
+                operator = value["operator"]
+                used_by = value["used_by"]
+                begin_day = value["begin_day"]
+                QC_delay = value["QC_delay"]
+                
+                
+            #create the operation
+            operation = Operation(self.job_name,op_type,number,processable_on,
+                                  processing_time,expiration_time,
+                                  dependencies,operator,used_by,begin_day,QC_delay,executable)
+            
+            #store it in the jobs array
+            self.operations[number-1] = operation
+            self.operation_planning.append(operation)
+                
+    def create_operation(self, operation_number):
+        with open("src/batch_description.json") as json_file:
+            batch_description = json.load(json_file)
+        
+        if self.formulation == 1 and self.job_size == 20000:
+            batch_info = batch_description["Batch_3.75_20000_REVERSE"]
+            
+        if self.formulation == 3 and self.job_size == 20000:
+            batch_info = batch_description["Batch_11.25_20000_REVERSE"]    
+            
+        if self.formulation == 6 and self.job_size == 20000:
+            batch_info = batch_description["Batch_22.50_20000_REVERSE"] 
+            
+        for key, value in batch_info.items():
+            if value["number"] == operation_number:
                 op_type = value["type"]
                 if op_type == "operation":
                     number = value["number"]
@@ -86,43 +130,11 @@ class Job:
                 operation = Operation(self.job_name,op_type,number,processable_on,
                                       processing_time,expiration_time,
                                       dependencies,operator,used_by,begin_day,QC_delay,executable)
-                
                 #store it in the jobs array
-                self.operations[number-1] = operation
+                self.operations[operation_number-1] = operation
                 self.operation_planning.append(operation)
                 
-    def create_operation(self, operation_number):
-        with open("src/batch_description.json") as json_file:
-            batch_description = json.load(json_file)
-        
-        if self.formulation == 1 and self.job_size == 20000:
-            
-            batch_info = batch_description["Batch_3.75_20000_REVERSE"]
-            for key, value in batch_info.items():
-                if value["number"] == operation_number:
-                    op_type = value["type"]
-                    if op_type == "operation":
-                        number = value["number"]
-                        processable_on = value["processable_on"]
-                        processing_time = value["processing_time"]
-                        expiration_time = value["expiration_time"]
-                        dependencies = value["dependencies"]
-                        executable = False
-                        operator = value["operator"]
-                        used_by = value["used_by"]
-                        begin_day = value["begin_day"]
-                        QC_delay = value["QC_delay"]
-                        
-                        
-                    #create the operation
-                    operation = Operation(self.job_name,op_type,number,processable_on,
-                                          processing_time,expiration_time,
-                                          dependencies,operator,used_by,begin_day,QC_delay,executable)
-                    #store it in the jobs array
-                    self.operations[operation_number-1] = operation
-                    self.operation_planning.append(operation)
-                    
-                    return
+                return
         
                 
     def increment_lead_time(self, increment=1):

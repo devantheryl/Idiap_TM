@@ -45,7 +45,7 @@ def train_model(wandb_activate = True,sweep = True):
         config = wandb.config
         
         os.makedirs("model/" + run.project, exist_ok=True)
-        os.makedirs("model/" + run.project + "/" + run.name, exist_ok=True)
+        os.makedirs("model/" + run.project + "/" + run.name, exist_ok = True)
         print(run.name)
         print(run.project)
         
