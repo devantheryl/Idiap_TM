@@ -224,7 +224,7 @@ class Production_line():
                 
                 #on set l'opération à "en cours", set the start time and the machine
                 self.jobs[job_to_schedule-1].operations[operation_to_schedule-1].status = 1
-                self.jobs[job_to_schedule-1].operations[operation_to_schedule-1].start_time = self.time
+                self.jobs[job_to_schedule-1].operations[operation_to_schedule-1].end_time = self.time
                 self.jobs[job_to_schedule-1].operations[operation_to_schedule-1].processed_on = machine_to_schedule
                 
                 #update the machine status
@@ -263,7 +263,7 @@ class Production_line():
                         if operation.status == 1:
                             #si l'opration est terminée
                             if operation.forward() == 2:
-                                operation.end_time = self.time
+                                operation.start_time = self.time
                                 ended_operations.append(operation.operation_number)
                                 machine = operation.processed_on
                                 self.machines[machine-1].remove_operation()

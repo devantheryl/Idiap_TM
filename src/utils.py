@@ -86,19 +86,19 @@ def visualize(results ,path = ""):
                     xf = schedule.loc[(index,j,m), 'Finish']
                     xs = mdates.date2num(xs)
                     xf = mdates.date2num(xf)
-                    width = xs - xf
+                    width = xf-xs
                     test = schedule.iloc[index]["Operation"]
                         
                     ax[0].plot([xs, xf], [jdx]*2, c=colors[mdx%7], **bar_style)
                     #ax[0].text((xs + xf)/2, jdx, m, **text_style)
                     if schedule.iloc[index]["Operation"] in [1,3,5,7,9,11]:
-                        rect = pat.Rectangle((xf, mdx+0.5), width, 1, linewidth=2,facecolor=colors[jdx%7], linestyle = 'dotted', ec = "black")
+                        rect = pat.Rectangle((xs, mdx+0.5), width, 1, linewidth=2,facecolor=colors[jdx%7], linestyle = 'dotted', ec = "black")
                         
                         #ax[1].plot([xs, xf], [mdx]*2, c=colors[jdx%7], **bar_style, linestyle='dashed')
                         ax[1].add_patch(rect)
                     else:
                         #ax[1].plot([xs, xf], [mdx]*2, c=colors[jdx%7], **bar_style, linestyle='dotted')
-                        rect = pat.Rectangle((xf, mdx+0.5), width, 1, linewidth=2, facecolor=colors[jdx%7], linestyle = 'solid',ec = "black")
+                        rect = pat.Rectangle((xs, mdx+0.5), width, 1, linewidth=2, facecolor=colors[jdx%7], linestyle = 'solid',ec = "black")
                         ax[1].add_patch(rect)
                     #ax[1].text(xs, mdx, j, **text_style)
                 
