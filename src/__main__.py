@@ -36,7 +36,7 @@ def train_model(wandb_activate = True,sweep = True):
         else:
             run = wandb.init(
 
-              project="6_job_ddqn",
+              project="2_job_ddqn_weekend",
 
               entity="devantheryl",
               notes="",
@@ -85,7 +85,7 @@ def train_model(wandb_activate = True,sweep = True):
     environment = Environment.create(environment=TF_environment)
     
     agent = Agent.create(
-        agent='dueling_dqn',
+        agent='ddqn',
         states = environment.states(),
         actions = environment.actions(),
         max_episode_timesteps = environment.max_episode_timesteps(),
@@ -94,13 +94,13 @@ def train_model(wandb_activate = True,sweep = True):
         network = network,
         update_frequency = update_frequency,
         learning_rate = learning_rate,
-        huber_loss = huber_loss,
+        #huber_loss = huber_loss,
         horizon = horizon,
         discount = discount,
         target_update_weight = target_update_weight ,
         target_sync_frequency  = target_sync_frequency,
-        exploration = dict(type = 'linear', unit = 'episodes', num_steps = int(num_episode*0.8), initial_value = epsilon, final_value = epsilon_min),
-        config = dict(seed = 0),
+        exploration = dict(type = 'linear', unit = 'episodes', num_steps = int(num_episode*0.9), initial_value = epsilon, final_value = epsilon_min),
+        config = dict(seed = 1),
         tracking = 'all',
         parallel_interactions  = 8,
     )
@@ -219,7 +219,7 @@ def train_model(wandb_activate = True,sweep = True):
     
 
 if __name__ == '__main__':
-    
+
     parser = argparse.ArgumentParser(description = 'Program options')
     parser.add_argument('-train', dest = 'train', action = 'store_true', help = 'Train the model given the paramters in config.json')
     parser.add_argument('-wandb', dest = 'wandb_activate', action = 'store_true' , help = 'Use the wandb framework to save the hyperparameters')

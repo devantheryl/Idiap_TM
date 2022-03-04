@@ -44,7 +44,7 @@ class Operation:
             
         #op en cours
         if self.status == 1:
-            self.processing_time-=1
+            self.processing_time -= 1
                    
         if self.processing_time == 0:
             self.status = 2

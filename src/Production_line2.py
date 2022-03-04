@@ -24,7 +24,7 @@ class Production_line():
         
         with open("src/config.json") as json_file:
             config = json.load(json_file)
-        self.nbr_job_max = 1#config["nbr_job_max"]
+        self.nbr_job_max = config["nbr_job_max"]
         self.nbr_operations = config["nbr_operation_max"]
         self.nbr_machines = config["nbr_machines"]
         self.nbr_operator = config["nbr_operator"]
@@ -40,7 +40,7 @@ class Production_line():
         self.formulations = []
         
         
-        for i, (key, value) in enumerate(config["target_date2"].items()):
+        for i, (key, value) in enumerate(config["target_date"].items()):
             if i < self.nbr_job_max:
                 self.target_date.append(datetime.fromisoformat(key) + timedelta(days = 2))
                 self.formulations.append(value)
@@ -73,7 +73,7 @@ class Production_line():
     def reset(self):
         
         for i in range(self.nbr_job_max):
-            job = Job("TEST" + str(i),i+1,self.formulations[i],20000, self.nbr_operations, self.target_date[i], self.time)
+            job = Job("TEST" + str(i),i+1,1,20000, self.nbr_operations, self.target_date[i], self.time)
             self.add_job(job)
         
         self.update_check_executable()
@@ -182,13 +182,7 @@ class Production_line():
                     reward-=1
                 
                 
-                #update the processing time of all operation and remove the op from
-                #machine if the op has ended
-                #on libère aussi les opérateurs
-                ended_operations = self.update_processing_time()
-                for op in ended_operations :
-                    if op == 1:
-                        self.wip-=1
+                
                 
                 #incremente lead_time for all job
                 for job in self.jobs:
@@ -200,6 +194,14 @@ class Production_line():
                 nbr_echu = self.update_check_expiration_time()
                 #reward -= nbr_echu*10 # a tester, pour éviter les doublons
                 
+                #update the processing time of all operation and remove the op from
+                #machine if the op has ended
+                #on libère aussi les opérateurs
+                ended_operations = self.update_processing_time()
+                for op in ended_operations :
+                    if op == 1:
+                        self.wip-=1
+                
                 #update and check newly executable operations
                 executables = self.update_check_executable()
                 
@@ -209,7 +211,7 @@ class Production_line():
             else:
                 self.job_launched = True
                 #le job est lancé au broyage polymère
-                if (operation_to_schedule == 9) and self.jobs[job_to_schedule-1].started ==False:
+                if (operation_to_schedule == 15) and self.jobs[job_to_schedule-1].started ==False:
                     self.jobs[job_to_schedule-1].started = True
                     self.wip +=1
                 
@@ -236,9 +238,9 @@ class Production_line():
                 self.operator[0:op_duration] -= self.jobs[job_to_schedule-1].operations[operation_to_schedule-1].operator
                 
                 #si l'opération est la perry
-                if self.jobs[job_to_schedule-1].operations[operation_to_schedule-1].operation_number == 9:
+                if self.jobs[job_to_schedule-1].operations[operation_to_schedule-1].operation_number == 15:
                     if self.jobs[job_to_schedule-1].target_date != self.time:
-                        reward-=10
+                        reward-=0
                 
                 
                 
@@ -292,8 +294,10 @@ class Production_line():
                                     if job.operations[operation_used-1].decrease_get_expiration_time(self.time) == 0:
                                         #l'opération suivante n'est plus executable
                                         job.operations[operation_used-1].executable = False
-                                        #on recréer une operation
+                                        
+                                        #on recréer les deux opérations
                                         job.create_operation(operation.operation_number)
+                                        #job.create_operation(operation_used)
                                         
                                         nbr_echu += 1
         return nbr_echu
@@ -305,7 +309,7 @@ class Production_line():
             if job != None:
                 for operation in job.operations:
                     if operation != None:
-                        if operation.status == 0 and operation.executable == False:
+                        if operation.status == 0: #and operation.executable == False:
                             executable = True
                             for dependencie in operation.dependencies:
                                 #si l'opération précédente n'est pas terminée
@@ -326,11 +330,11 @@ class Production_line():
                             
                             
                             for i in range(duration):
-                                if self.operator[i+1] <= 0:
+                                if self.operator[i] <= 0:
                                     executable = False
                             
                                 
-                            if operation.operation_number == 9:
+                            if operation.operation_number == 15:
                                 if self.time > job.target_date:
                                     executable = False
                             
@@ -368,7 +372,7 @@ class Production_line():
         if job != None:
             operation = job.operations[operation_to_schedule-1]
             if operation != None:
-                if operation.status == 0 and operation.executable and operation.operator <= self.operator[0] and self.machines[machine_to_schedule-1].status == 0:
+                if operation.status == 0 and operation.executable and self.machines[machine_to_schedule-1].status == 0:
                     return True
                 
         return False
