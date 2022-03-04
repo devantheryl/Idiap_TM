@@ -152,6 +152,9 @@ def train_model(wandb_activate = True,sweep = True):
                     "reward" : reward_tot,
                 }
             )
+        if reward_tot == -68:
+            planning = environment.get_env().get_gant_formated()
+            utils.visualize(planning,environment.get_env().historic_time,environment.get_env().historic_operator)
         if i %100 == 0:
             planning = environment.get_env().get_gant_formated()
             if wandb_activate:
@@ -168,7 +171,7 @@ def train_model(wandb_activate = True,sweep = True):
 
             #path_img = "model/" + run.project + "/" +  run.name +"/" + '{:010d}'.format(i) + ".png"
             try: 
-                utils.visualize(planning)
+                utils.visualize(planning,environment.get_env().historic_time,environment.get_env().historic_operator)
             except:
                 print("impossible to viusalize")
             #agent.save("model/" + run.project + "/" +  run.name +"/", '{:010d}'.format(i), format = "hdf5")

@@ -15,7 +15,7 @@ from datetime import datetime, timedelta, date
 import matplotlib.dates as mdates
 import numpy as np
 
-def visualize(results ,path = ""):
+def visualize(results ,historical_time, historical_operator, path = ""):
     
     operation_machine = {
                      (1,1) : "broyage_poly_1",
@@ -107,6 +107,11 @@ def visualize(results ,path = ""):
     ax[1].set_title('Machine Schedule')
     ax[1].set_ylabel('Machine')
     
+    ax3 = ax[1].twinx()
+    ax3.set_ylabel("operator")
+    ax3.step(historical_time,historical_operator, alpha = 1.0, where = 'pre')
+    
+    
     for idx, s in enumerate([jobs, machines]):
         ax[idx].set_ylim(0.5, 0.5+len(s))
         ax[idx].set_yticks(range(1, 1+len(s)))
@@ -116,6 +121,8 @@ def visualize(results ,path = ""):
         ax[idx].set_xlabel('Time')
         ax[idx].grid(True)
         ax[idx].xaxis.set_major_locator(DayLocator())
+        
+    
         
     fig.tight_layout()
     fig.autofmt_xdate()

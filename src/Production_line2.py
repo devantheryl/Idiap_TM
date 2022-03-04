@@ -32,7 +32,8 @@ class Production_line():
         self.operator = np.zeros((self.operator_vector_length))
         
         
-        
+        self.historic_operator = []
+        self.historic_time = []
         self.job_launched = False
         
 
@@ -164,6 +165,10 @@ class Production_line():
             
             
             if action == "forward":
+                
+                
+                self.historic_operator.append(self.operator[0])
+                
                 if self.time.time().hour == 12:
                     self.time -= timedelta(hours = 12)
                     self.morning_afternoon = 0
@@ -171,6 +176,8 @@ class Production_line():
                     self.time -= timedelta(days=1)
                     self.time = self.time.replace(hour = 12)
                     self.morning_afternoon = 1
+                    
+                self.historic_time.append(self.time)
                 
                 #update the operator
                 self.update_operator_vector()
