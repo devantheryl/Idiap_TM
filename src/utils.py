@@ -134,7 +134,7 @@ def visualize(results ,historical_time, historical_operator, path = ""):
     
     
 
-def get_delta_time(current_time, delta):
+def get_new_time(current_time, delta):
     temp = current_time
     
     for i in range(abs(delta)):
@@ -148,6 +148,31 @@ def get_delta_time(current_time, delta):
             #TODO
             pass
     return temp
+
+
+def get_delta_time(current_time, target_time):
+    
+    
+    if current_time > target_time:
+        temp = current_time
+        i = 0
+        while(1):
+            if temp == target_time:
+                return i
+            temp = get_new_time(temp,-1)
+            i +=1
+    
+    if current_time < target_time:
+        i = 0
+        temp = target_time
+        while(1):
+            if temp == current_time:
+                return i
+            temp = get_new_time(temp,-1)
+            i+=1
+        
+    return 0
+    
 
 
 

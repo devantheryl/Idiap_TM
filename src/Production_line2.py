@@ -247,7 +247,7 @@ class Production_line():
                 #si l'opération est la perry
                 if self.jobs[job_to_schedule-1].operations[operation_to_schedule-1].operation_number == 15:
                     if self.jobs[job_to_schedule-1].target_date != self.time:
-                        reward-=0
+                        reward-=10
                 
                 
                 
@@ -328,7 +328,7 @@ class Production_line():
                             
                             #L'opération doit commencer le matin
                             if operation.begin_day == 1:
-                                begin_time = utils.get_delta_time(self.time, -duration)
+                                begin_time = utils.get_new_time(self.time, -duration)
                                 if begin_time.time().hour == 12:
                                     executable = False
                                 
@@ -396,7 +396,7 @@ class Production_line():
         
         params_op = 4
         params_machine = 3
-        state_size = self.nbr_job_max * self.nbr_operations * params_op + self.nbr_machines * params_machine + self.operator_vector_length + 1#  +1 for morning afternoon
+        state_size = self.nbr_job_max * self.nbr_operations * params_op + self.nbr_job_max + self.nbr_machines * params_machine + self.operator_vector_length + 1#  +1 for morning afternoon
         
         return state_size
     
@@ -414,6 +414,8 @@ class Production_line():
             else:
                 for i in range (self.nbr_job_max):
                     sum_state += (4,0,0,0)
+            
+            sum_state += (utils.get_delta_time(self.time, job.target_date) /180,)
 
                     
         for machine in self.machines:
