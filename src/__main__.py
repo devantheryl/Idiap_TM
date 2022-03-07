@@ -23,7 +23,7 @@ os.environ["WANDB_AGENT_MAX_INITIAL_FAILURES"]= "30"
 
 REQUIRED_PYTHON = "3.8.5"
 
-def train_model(wandb_activate = True,sweep = True):
+def train_model(wandb_activate = True,sweep = True, load = False):
     
     memoire = []
     
@@ -34,14 +34,25 @@ def train_model(wandb_activate = True,sweep = True):
         if sweep:
             run = wandb.init(config = configs)    
         else:
-            run = wandb.init(
-
-              project="2_job_ddqn_weekend",
-
-              entity="devantheryl",
-              notes="",
-              config=configs,
-            )
+            if load:
+                run = wandb.init(
+    
+                  project="2_job_ddqn_weekend",
+                  id = "3uzxjpk8",
+                  resume = "must",
+                  entity="devantheryl",
+                  notes="with reward echu, herite from proud-energy-3",
+                  config=configs,
+                )
+            else:
+                
+                run = wandb.init(
+    
+                  project="2_job_ddqn_weekend",
+                  entity="devantheryl",
+                  notes="all formulation, kind of final test",
+                  config=configs,
+                )
         config = wandb.config
         
         os.makedirs("model/" + run.project, exist_ok=True)
@@ -78,35 +89,40 @@ def train_model(wandb_activate = True,sweep = True):
         epsilon = configs["epsilon"]
         epsilon_min = configs["epsilon_min"]
     
-    score_mean = deque(maxlen = 100)
+    score_mean = deque(maxlen = 300)
     score_min = -10000
     
     
     environment = Environment.create(environment=TF_environment)
+    step = 0
     
-    agent = Agent.create(
-        agent='ddqn',
-        states = environment.states(),
-        actions = environment.actions(),
-        max_episode_timesteps = environment.max_episode_timesteps(),
-        memory=memory,
-        batch_size = batch_size,
-        network = network,
-        update_frequency = update_frequency,
-        learning_rate = learning_rate,
-        #huber_loss = huber_loss,
-        horizon = horizon,
-        discount = discount,
-        target_update_weight = target_update_weight ,
-        target_sync_frequency  = target_sync_frequency,
-        exploration = dict(type = 'linear', unit = 'episodes', num_steps = int(num_episode*0.9), initial_value = epsilon, final_value = epsilon_min),
-        config = dict(seed = 1),
-        tracking = 'all',
-        parallel_interactions  = 8,
-    )
+    if load:
+        agent = Agent.load("model/6_job_ddqn_weekend/proud-energy-3","0000040000.hdf5")
+        step = 6789315
+    else: 
+        agent = Agent.create(
+            agent='ddqn',
+            states = environment.states(),
+            actions = environment.actions(),
+            max_episode_timesteps = environment.max_episode_timesteps(),
+            memory=memory,
+            batch_size = batch_size,
+            network = network,
+            update_frequency = update_frequency,
+            learning_rate = learning_rate,
+            #huber_loss = huber_loss,
+            horizon = horizon,
+            discount = discount,
+            target_update_weight = target_update_weight ,
+            target_sync_frequency  = target_sync_frequency,
+            exploration = dict(type = 'linear', unit = 'episodes', num_steps = int(num_episode*0.9), initial_value = epsilon, final_value = epsilon_min),
+            config = dict(seed = 1),
+            tracking = 'all',
+            parallel_interactions  = 8,
+        )
     
     print(agent.get_architecture())
-    step = 0
+    
     for i in range(num_episode):
 
         # Initialize episode
@@ -152,9 +168,7 @@ def train_model(wandb_activate = True,sweep = True):
                     "reward" : reward_tot,
                 }
             )
-        if reward_tot == -68:
-            planning = environment.get_env().get_gant_formated()
-            utils.visualize(planning,environment.get_env().historic_time,environment.get_env().historic_operator)
+        
         if i %100 == 0:
             planning = environment.get_env().get_gant_formated()
             if wandb_activate:
@@ -163,8 +177,8 @@ def train_model(wandb_activate = True,sweep = True):
                     utils.visualize(planning,path_img)
                 except:
                     print("impossible to viusalize")
-                
-                agent.save("model/" + run.project + "/" +  run.name +"/", '{:010d}'.format(i), format = "hdf5")
+                if i %1000== 0:
+                    agent.save("model/" + run.project + "/" +  run.name +"/", '{:010d}'.format(i), format = "hdf5")
             else:
                 #utils.visualize(planning)
                 pass
@@ -227,6 +241,7 @@ if __name__ == '__main__':
     parser.add_argument('-train', dest = 'train', action = 'store_true', help = 'Train the model given the paramters in config.json')
     parser.add_argument('-wandb', dest = 'wandb_activate', action = 'store_true' , help = 'Use the wandb framework to save the hyperparameters')
     parser.add_argument('-sweep', dest = 'sweep', action = 'store_true' , help = 'Launch a bayesian hyperparameters search process over the range of parameters in config.json')
+    parser.add_argument('-load', dest = 'load', action = 'store_true' , help = 'load a pretrained NN weights and biases')
     
     
     args = parser.parse_args()
@@ -237,7 +252,7 @@ if __name__ == '__main__':
     
     if args.train:
         print("train model")
-        train_model(args.wandb_activate,False)
+        train_model(args.wandb_activate,False,args.load)
         
     if args.sweep:
         print("sweep model")

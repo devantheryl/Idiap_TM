@@ -22,4 +22,9 @@ def read_target_date(file):
     return df
     
     
-df =read_target_date(file)
+#df =read_target_date(file)
+
+
+test = np.array([1,0,0,0])
+
+print((test <0).any() == True)

@@ -24,7 +24,7 @@ class Production_line():
         
         with open("src/config.json") as json_file:
             config = json.load(json_file)
-        self.nbr_job_max = config["nbr_job_max"]
+        self.nbr_job_max = 2#config["nbr_job_max"]
         self.nbr_operations = config["nbr_operation_max"]
         self.nbr_machines = config["nbr_machines"]
         self.nbr_operator = config["nbr_operator"]
@@ -74,7 +74,7 @@ class Production_line():
     def reset(self):
         
         for i in range(self.nbr_job_max):
-            job = Job("TEST" + str(i),i+1,1,20000, self.nbr_operations, self.target_date[i], self.time)
+            job = Job("TEST" + str(i),i+1,self.formulations[i],20000, self.nbr_operations, self.target_date[i], self.time)
             self.add_job(job)
         
         self.update_check_executable()
@@ -199,7 +199,7 @@ class Production_line():
                     
                 #update and check expiration time of all operations
                 nbr_echu = self.update_check_expiration_time()
-                #reward -= nbr_echu*10 # a tester, pour éviter les doublons
+                reward -= nbr_echu # a tester, pour éviter les doublons
                 
                 #update the processing time of all operation and remove the op from
                 #machine if the op has ended
@@ -209,8 +209,7 @@ class Production_line():
                     if op == 1:
                         self.wip-=1
                 
-                #update and check newly executable operations
-                executables = self.update_check_executable()
+                
                 
                 #if abs(self.time-self.init_time).days > 7 and self.job_launched == False:
                     #reward-=1000#aussi à tester
@@ -244,14 +243,16 @@ class Production_line():
                 
                 self.operator[0:op_duration] -= self.jobs[job_to_schedule-1].operations[operation_to_schedule-1].operator
                 
+                
                 #si l'opération est la perry
                 if self.jobs[job_to_schedule-1].operations[operation_to_schedule-1].operation_number == 15:
                     if self.jobs[job_to_schedule-1].target_date != self.time:
-                        reward-=10
+                        reward-=10 + utils.get_delta_time(self.time, self.jobs[job_to_schedule-1].target_date)
                 
                 
                 
-        
+        #update and check newly executable operations
+        executables = self.update_check_executable()
         
         next_state = self.get_state()
         
@@ -337,7 +338,7 @@ class Production_line():
                             
                             
                             for i in range(duration):
-                                if self.operator[i] <= 0:
+                                if self.operator[i] < operation.operator:
                                     executable = False
                             
                                 

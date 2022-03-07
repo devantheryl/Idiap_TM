@@ -53,7 +53,7 @@ class Operation:
         
     def decrease_get_expiration_time(self, time):
         self.expiration_time -= 1
-        if time.weekday() <5:
+        if time.weekday() <5 and self.QC_delay >0:
             self.QC_delay -=1
         return self.expiration_time
     

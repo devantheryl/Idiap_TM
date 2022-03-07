@@ -1,5 +1,5 @@
 {
-    "nbr_job_max" : 2,
+    "nbr_job_max" : 6,
     "nbr_operation_max" : 15,
     "nbr_machines" : 13,
     "nbr_operator" : 12,
@@ -9,9 +9,9 @@
     
     
     "batch_size" : 32,
-    "n_episode" : 2000,
+    "n_episode" : 20000,
     "n_epsiode_test" : 1,
-    "UPDATE_FREQ" : 8,
+    "UPDATE_FREQ" : 2,
     "target_update_weight" : 1.0,
     "NETW_UPDATE_FREQ" : 50,
     "memory" : 100000,
@@ -26,6 +26,11 @@
     
     
     "network" : [
+            {
+                "type" : "dense",
+                "size" : 500,
+                "activation" : "relu"
+            },
             {
                 "type" : "dense",
                 "size" : 500,
