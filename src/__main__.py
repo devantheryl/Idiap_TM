@@ -174,24 +174,24 @@ def train_model(wandb_activate = True,sweep = True, load = False):
             if wandb_activate:
                 path_img = "model/" + run.project + "/" +  run.name +"/" + '{:010d}'.format(i) + ".png"
                 try: 
-                    utils.visualize(planning,path_img)
+                    utils.visualize(planning,environment.get_env().historic_time,environment.get_env().historic_operator,path_img)
                 except:
                     print("impossible to viusalize")
                 if i %1000== 0:
                     agent.save("model/" + run.project + "/" +  run.name +"/", '{:010d}'.format(i), format = "hdf5")
             else:
-                #utils.visualize(planning)
+                try: 
+                    utils.visualize(planning,environment.get_env().historic_time,environment.get_env().historic_operator)
+                except:
+                    print("impossible to viusalize")
                 pass
 
             #path_img = "model/" + run.project + "/" +  run.name +"/" + '{:010d}'.format(i) + ".png"
-            try: 
-                utils.visualize(planning,environment.get_env().historic_time,environment.get_env().historic_operator)
-            except:
-                print("impossible to viusalize")
+            
             #agent.save("model/" + run.project + "/" +  run.name +"/", '{:010d}'.format(i), format = "hdf5")
         
     
-    np.savetxt("test.csv",np.array(memoire),delimiter = ';')
+    #np.savetxt("test.csv",np.array(memoire),delimiter = ';')
     
     states = environment.reset()
     terminal = False

@@ -74,7 +74,7 @@ def visualize(results ,historical_time, historical_operator, path = ""):
     schedule.sort_values(by=['Job', 'Start'])
     schedule.set_index(['Job', 'op_machine'], inplace=True,append = True)
     
-    fig, ax = plt.subplots(2,1, figsize=(30, 5+(len(jobs)+len(machines))/4))
+    fig, ax = plt.subplots(2,1, figsize=(30, (len(jobs)+len(machines))))
     
     for jdx, j in enumerate(jobs, 1):
         for mdx, m in enumerate(machines, 1):
