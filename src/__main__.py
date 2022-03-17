@@ -23,13 +23,17 @@ os.environ["WANDB_AGENT_MAX_INITIAL_FAILURES"]= "30"
 
 REQUIRED_PYTHON = "3.8.5"
 
+
 def train_model(wandb_activate = True,sweep = True, load = False):
     
     memoire = []
     
     with open("src/config.json") as json_file:
             configs = json.load(json_file)
-        
+    
+    test_every = configs["test_every"]
+    
+    
     if wandb_activate:
         if sweep:
             run = wandb.init(config = configs)    
@@ -37,20 +41,20 @@ def train_model(wandb_activate = True,sweep = True, load = False):
             if load:
                 run = wandb.init(
     
-                  project="2_job_ddqn_weekend",
-                  id = "3uzxjpk8",
+                  project="8_job_ddqn_weekend",
+                  id = "3fao6600",
                   resume = "must",
                   entity="devantheryl",
-                  notes="with reward echu, herite from proud-energy-3",
+                  notes="without reward echu",
                   config=configs,
                 )
             else:
                 
                 run = wandb.init(
     
-                  project="2_job_ddqn_weekend",
+                  project="8_job_ddqn_weekend",
                   entity="devantheryl",
-                  notes="all formulation, kind of final test",
+                  notes = "without reward echu, all formu",
                   config=configs,
                 )
         config = wandb.config
@@ -97,8 +101,15 @@ def train_model(wandb_activate = True,sweep = True, load = False):
     step = 0
     
     if load:
-        agent = Agent.load("model/6_job_ddqn_weekend/proud-energy-3","0000040000.hdf5")
-        step = 6789315
+        agent = Agent.load(
+            directory = "model/8_job_ddqn_weekend/lunar-snowflake-2/", 
+            filename = "0000009000.hdf5", 
+            environment = environment,
+            learning_rate = 0.0001,
+            tracking = 'all',
+            exploration = 0.5,
+        )
+        step = 3043659
     else: 
         agent = Agent.create(
             agent='ddqn',
@@ -109,16 +120,16 @@ def train_model(wandb_activate = True,sweep = True, load = False):
             batch_size = batch_size,
             network = network,
             update_frequency = update_frequency,
-            learning_rate = learning_rate,
+            learning_rate = dict(type = 'linear', unit = 'episodes', num_steps = int(num_episode*0.5), initial_value = 0.01, final_value = learning_rate),
             #huber_loss = huber_loss,
             horizon = horizon,
             discount = discount,
             target_update_weight = target_update_weight ,
             target_sync_frequency  = target_sync_frequency,
-            exploration = dict(type = 'linear', unit = 'episodes', num_steps = int(num_episode*0.9), initial_value = epsilon, final_value = epsilon_min),
+            exploration = dict(type = 'linear', unit = 'episodes', num_steps = int(num_episode*0.8), initial_value = epsilon, final_value = epsilon_min),
             config = dict(seed = 1),
             tracking = 'all',
-            parallel_interactions  = 8,
+            parallel_interactions  = 1,
         )
     
     print(agent.get_architecture())
@@ -133,7 +144,7 @@ def train_model(wandb_activate = True,sweep = True, load = False):
         while not terminal:
             # Episode timestep
 
-            actions = agent.act(states=states)
+            actions = agent.act(states=states, independent = False)
             
             old_state = states["state"]
             states, terminal, reward = environment.execute(actions=actions)
@@ -141,15 +152,18 @@ def train_model(wandb_activate = True,sweep = True, load = False):
             agent.observe(terminal=terminal, reward=reward)
             reward_tot += reward
             tracked = agent.tracked_tensors()
+            
             step+=1
             
-            memoire.append(np.hstack((old_state,actions,reward,terminal)))
+            #memoire.append(np.hstack((old_state,actions,reward,terminal)))
         
         
-        if wandb_activate:
+        if wandb_activate and not load:
             wandb.log(
                 {
+                    "score_minimum" : score_min,
                     "exploration" : tracked["agent/exploration/exploration"],
+                    "learning_rate" : tracked["agent/policy_optimizer/learning_rate/learning_rate"],
                     "policy-loss" : tracked["agent/policy-loss"],
                     "policy-objective-loss" : tracked["agent/policy-objective-loss"],
                     "update-return" : tracked["agent/update-return"],
@@ -158,33 +172,62 @@ def train_model(wandb_activate = True,sweep = True, load = False):
                 step =step
             )
             
+            
         score_mean.append(reward_tot)
         if score_min < reward_tot:
                 score_min = reward_tot
+                
         print("episode: ", i, "  reward : ",reward_tot, "mean_reward : ", np.mean(score_mean), "score min : ", score_min)
+        
         if wandb_activate:
             wandb.log(
                 {
                     "reward" : reward_tot,
-                }
+                },
+                step = step
             )
         
-        if i %100 == 0:
+        if i % test_every == 0:
+            
+            #test for 1 episode
+            states = environment.reset()
+            internals = agent.initial_internals()
+            terminal = False
+            reward_tot = 0
+        
+            while not terminal:
+                # Episode timestep
+                actions, internals = agent.act(states=states, internals = internals, independent=True)
+                states, terminal, reward = environment.execute(actions=actions)
+                
+                
+                reward_tot += reward
+                
+            print("test at epsiode : ", str(i), "  reward : ", str(reward_tot))
             planning = environment.get_env().get_gant_formated()
+            
             if wandb_activate:
-                path_img = "model/" + run.project + "/" +  run.name +"/" + '{:010d}'.format(i) + ".png"
+                path_img = "model/" + run.project + "/" +  run.name +"/" + '{:010d}'.format(step) + ".png"
                 try: 
                     utils.visualize(planning,environment.get_env().historic_time,environment.get_env().historic_operator,path_img)
                 except:
                     print("impossible to viusalize")
-                if i %1000== 0:
-                    agent.save("model/" + run.project + "/" +  run.name +"/", '{:010d}'.format(i), format = "hdf5")
+
+                wandb.log(
+                    {
+                        "evaluation_return" : reward_tot     
+                    },
+                    step = step
+                )
+                
+                agent.save("model/" + run.project + "/" +  run.name +"/", '{:010d}'.format(step), format = "hdf5")
             else:
                 try: 
                     utils.visualize(planning,environment.get_env().historic_time,environment.get_env().historic_operator)
                 except:
                     print("impossible to viusalize")
                 pass
+            
 
             #path_img = "model/" + run.project + "/" +  run.name +"/" + '{:010d}'.format(i) + ".png"
             
@@ -194,30 +237,22 @@ def train_model(wandb_activate = True,sweep = True, load = False):
     #np.savetxt("test.csv",np.array(memoire),delimiter = ';')
     
     states = environment.reset()
+    internals = agent.initial_internals()
     terminal = False
     reward_tot = 0
 
     while not terminal:
         # Episode timestep
-        actions = agent.act(states=states, independent=True)
+        actions, internals = agent.act(states=states, internals = internals, independent=True)
         states, terminal, reward = environment.execute(actions=actions)
-        print("reward : ", reward,"  actions :", actions)
         
+        step+=1
         reward_tot += reward
         
-    print("final result : ", reward_tot)
-    if wandb_activate:
-        wandb.log(
-            {
-                "score_minimum" : score_min,
-                "evaluation_return" : reward_tot     
-            }
-        )
-        run.finish()
+    print("final result : ", reward_tot)        
     
     tracked = agent.tracked_tensors()
-    planning = environment.get_env().get_gant_formated()
-    
+    planning = environment.get_env().get_gant_formated()    
         
     if wandb_activate:
         path_img = "model/" + run.project + "/" +  run.name +"/" +"final" + ".png"
@@ -226,11 +261,22 @@ def train_model(wandb_activate = True,sweep = True, load = False):
         except:
             print("impossible to viusalize")
         agent.save("model/" + run.project + "/" +  run.name +"/", "final", format = "hdf5")
+        
+        wandb.log(
+            {
+                "score_minimum" : score_min,
+                "evaluation_return" : reward_tot     
+            },
+            step = step
+        )
+        run.finish()
+        
     else:
         try :
             utils.visualize(planning)
         except:
             print("impossible to viusalize")
+                 
     agent.close()
     environment.close()
     

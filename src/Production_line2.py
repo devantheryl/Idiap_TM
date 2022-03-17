@@ -14,6 +14,7 @@ import json
 import os
 from datetime import datetime, timedelta, date
 import src.utils as utils
+from random import sample
 
 #to set the current working directory
 os.chdir("C:/Users/LDE/Prog/projet_master/digital_twins")
@@ -24,8 +25,9 @@ class Production_line():
         
         with open("src/config.json") as json_file:
             config = json.load(json_file)
-        self.nbr_job_max = 2#config["nbr_job_max"]
-        self.nbr_operations = config["nbr_operation_max"]
+        self.nbr_job_max = config["nbr_job_max"]
+        self.nbr_job_to_use = config["nbr_job_to_use"]
+        self.nbr_operation_max = config["nbr_operation_max"]
         self.nbr_machines = config["nbr_machines"]
         self.nbr_operator = config["nbr_operator"]
         self.operator_vector_length = config["operator_vector_length"]
@@ -42,7 +44,7 @@ class Production_line():
         
         
         for i, (key, value) in enumerate(config["target_date"].items()):
-            if i < self.nbr_job_max:
+            if i < self.nbr_job_to_use:
                 self.target_date.append(datetime.fromisoformat(key) + timedelta(days = 2))
                 self.formulations.append(value)
             
@@ -73,8 +75,8 @@ class Production_line():
         
     def reset(self):
         
-        for i in range(self.nbr_job_max):
-            job = Job("TEST" + str(i),i+1,self.formulations[i],20000, self.nbr_operations, self.target_date[i], self.time)
+        for i in range(len(self.target_date)):
+            job = Job("TEST" + str(i),i+1,self.formulations[i],20000, self.nbr_operation_max, self.target_date[i], self.time)
             self.add_job(job)
         
         self.update_check_executable()
@@ -124,11 +126,19 @@ class Production_line():
             false if prod_line queue is full
 
         """
+        available_index = []
+        
+        #get available index in the job grid
         for i, _ in enumerate(self.jobs):
             if self.jobs[i] == None:
-                self.jobs[i] = job
-                return True
-            
+                available_index.append(i)
+                
+        #assign the job to a random available place in the grid
+        if len(available_index):
+            i = sample(available_index,1)[0]
+            self.jobs[i] = job
+            return True
+        
         return False
             
     
@@ -199,7 +209,7 @@ class Production_line():
                     
                 #update and check expiration time of all operations
                 nbr_echu = self.update_check_expiration_time()
-                reward -= nbr_echu # a tester, pour éviter les doublons
+                #reward -= 5*nbr_echu # a tester, pour éviter les doublons
                 
                 #update the processing time of all operation and remove the op from
                 #machine if the op has ended
@@ -397,7 +407,7 @@ class Production_line():
         
         params_op = 4
         params_machine = 3
-        state_size = self.nbr_job_max * self.nbr_operations * params_op + self.nbr_job_max + self.nbr_machines * params_machine + self.operator_vector_length + 1#  +1 for morning afternoon
+        state_size = self.nbr_job_max * self.nbr_operation_max * params_op + self.nbr_job_max + self.nbr_machines * params_machine + self.operator_vector_length + 1#  +1 for morning afternoon
         
         return state_size
     
@@ -411,12 +421,19 @@ class Production_line():
                         sum_state += operation.get_state()
                     else:
                         #default state
-                        sum_state += (4,0,0,0)
+                        sum_state += (1,0,0,0) # 1 = 4/4
+                        
+                #target_date delta time        
+                sum_state += (utils.get_delta_time(self.time, job.target_date) /180,)
+                
             else:
-                for i in range (self.nbr_job_max):
-                    sum_state += (4,0,0,0)
+                for i in range (self.nbr_operation_max):
+                    sum_state += (1,0,0,0) # 1 = 4/4
+                    
+                #target_date delta time  default value
+                sum_state += (0,)
             
-            sum_state += (utils.get_delta_time(self.time, job.target_date) /180,)
+            
 
                     
         for machine in self.machines:
@@ -497,11 +514,11 @@ class Production_line():
         self.__nbr_job_max = value  
         
     @property
-    def nbr_operations(self):
-        return self.__nbr_operations
-    @nbr_operations.setter
-    def nbr_operations(self, value):
-        self.__nbr_operations = value 
+    def nbr_operation_max(self):
+        return self.__nbr_operation_max
+    @nbr_operation_max.setter
+    def nbr_operation_max(self, value):
+        self.__nbr_operation_max = value 
         
     @property
     def nbr_machines(self):
