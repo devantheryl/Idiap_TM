@@ -16,10 +16,20 @@ import time
 
 class TF_environment(Environment):
     
-    def __init__(self):
+    def __init__(self, nbr_job_max, nbr_job_to_use, nbr_operation_max, nbr_machines, nbr_operator, operator_vector_length,
+                 dict_target_date):
         
         super().__init__()
-        self.production_line = Production_line()
+        self.nbr_job_max = nbr_job_max
+        self.nbr_job_to_use = nbr_job_to_use
+        self.nbr_operation_max = nbr_operation_max
+        self.nbr_machines = nbr_machines
+        self.nbr_operator = nbr_operator
+        self.operator_vector_length = operator_vector_length
+        self.dict_target_date = dict_target_date
+        
+        self.production_line = Production_line(self.nbr_job_max, self.nbr_job_to_use, self.nbr_operation_max, self.nbr_machines,
+                                               self.nbr_operator, self.operator_vector_length, self.dict_target_date)
         self.max_step_per_episode = 350
         
         
@@ -38,7 +48,9 @@ class TF_environment(Environment):
         
     def reset(self):
         # Initial state and associated action mask
-        self.production_line = Production_line()
+        self.production_line = Production_line(self.nbr_job_max, self.nbr_job_to_use, self.nbr_operation_max, self.nbr_machines,
+                                               self.nbr_operator, self.operator_vector_length, self.dict_target_date)
+        
         action_mask = self.production_line.get_mask()
         
         # Add action mask to states dictionary (mask item is "[NAME]_mask", here "action_mask")

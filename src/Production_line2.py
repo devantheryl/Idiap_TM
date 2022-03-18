@@ -21,16 +21,16 @@ os.chdir("C:/Users/LDE/Prog/projet_master/digital_twins")
 
 class Production_line():
     
-    def __init__(self):
+    def __init__(self, nbr_job_max, nbr_job_to_use, nbr_operation_max, nbr_machines, nbr_operator, operator_vector_length,
+                 dict_target_date):
         
-        with open("src/config.json") as json_file:
-            config = json.load(json_file)
-        self.nbr_job_max = config["nbr_job_max"]
-        self.nbr_job_to_use = config["nbr_job_to_use"]
-        self.nbr_operation_max = config["nbr_operation_max"]
-        self.nbr_machines = config["nbr_machines"]
-        self.nbr_operator = config["nbr_operator"]
-        self.operator_vector_length = config["operator_vector_length"]
+        
+        self.nbr_job_max = nbr_job_max
+        self.nbr_job_to_use = nbr_job_to_use
+        self.nbr_operation_max = nbr_operation_max
+        self.nbr_machines = nbr_machines
+        self.nbr_operator = nbr_operator
+        self.operator_vector_length = operator_vector_length
         self.operator = np.zeros((self.operator_vector_length))
         
         
@@ -43,7 +43,7 @@ class Production_line():
         self.formulations = []
         
         
-        for i, (key, value) in enumerate(config["target_date"].items()):
+        for i, (key, value) in enumerate(dict_target_date.items()):
             if i < self.nbr_job_to_use:
                 self.target_date.append(datetime.fromisoformat(key) + timedelta(days = 2))
                 self.formulations.append(value)

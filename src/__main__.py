@@ -31,7 +31,30 @@ def train_model(wandb_activate = True,sweep = True, load = False):
     with open("src/config.json") as json_file:
             configs = json.load(json_file)
     
+    nbr_job_max = configs["nbr_job_max"]
+    nbr_job_to_use = configs["nbr_job_to_use"]
+    nbr_operation_max = configs["nbr_operation_max"]
+    nbr_machines = configs["nbr_machines"]
+    nbr_operator = configs["nbr_operator"]
+    operator_vector_length = configs["operator_vector_length"]
+    dict_target_date = configs["target_date"]
+    
+    num_episode = configs["n_episode"]
+    memory = configs["memory"]
+    batch_size = configs["batch_size"]
+    network = configs["network"]
+    update_frequency = configs["UPDATE_FREQ"]
+    learning_rate = configs["learning_rate"]
+    huber_loss = configs["huber_loss"]
+    horizon = configs["horizon"]
+    discount = configs["discount"]
+    target_update_weight  = configs["target_update_weight"]
+    target_sync_frequency  = configs["NETW_UPDATE_FREQ"]
+    epsilon = configs["epsilon"]
+    epsilon_min = configs["epsilon_min"]
+    
     test_every = configs["test_every"]
+    save_every = configs["save_every"]
     
     
     if wandb_activate:
@@ -57,47 +80,24 @@ def train_model(wandb_activate = True,sweep = True, load = False):
                   notes = "without reward echu, all formu",
                   config=configs,
                 )
-        config = wandb.config
+        
         
         os.makedirs("model/" + run.project, exist_ok=True)
         os.makedirs("model/" + run.project + "/" + run.name, exist_ok = True)
         print(run.name)
         print(run.project)
         
-        num_episode = config.n_episode
-        memory = config.memory
-        batch_size = config.batch_size
-        network = config.network
-        update_frequency = config.UPDATE_FREQ
-        learning_rate = config.learning_rate
-        huber_loss = config.huber_loss
-        horizon = config.horizon
-        discount = config.discount
-        target_update_weight  = config.target_update_weight
-        target_sync_frequency  = config.NETW_UPDATE_FREQ
-        epsilon = config.epsilon
-        epsilon_min = config.epsilon_min
         
-    else:
-        num_episode = configs["n_episode"]
-        memory = configs["memory"]
-        batch_size = configs["batch_size"]
-        network = configs["network"]
-        update_frequency = configs["UPDATE_FREQ"]
-        learning_rate = configs["learning_rate"]
-        huber_loss = configs["huber_loss"]
-        horizon = configs["horizon"]
-        discount = configs["discount"]
-        target_update_weight  = configs["target_update_weight"]
-        target_sync_frequency  = configs["NETW_UPDATE_FREQ"]
-        epsilon = configs["epsilon"]
-        epsilon_min = configs["epsilon_min"]
+    
     
     score_mean = deque(maxlen = 300)
     score_min = -10000
     
     
-    environment = Environment.create(environment=TF_environment)
+    environment = Environment.create(environment=TF_environment(nbr_job_max, nbr_job_to_use, nbr_operation_max, 
+                                                                nbr_machines, nbr_operator, operator_vector_length,
+                                                                dict_target_date))
+    
     step = 0
     
     if load:
@@ -186,7 +186,9 @@ def train_model(wandb_activate = True,sweep = True, load = False):
                 },
                 step = step
             )
-        
+        if i % save_every == 0 and wandb_activate:
+            agent.save("model/" + run.project + "/" +  run.name +"/", '{:010d}'.format(step), format = "hdf5")
+                
         if i % test_every == 0:
             
             #test for 1 episode
@@ -220,7 +222,7 @@ def train_model(wandb_activate = True,sweep = True, load = False):
                     step = step
                 )
                 
-                agent.save("model/" + run.project + "/" +  run.name +"/", '{:010d}'.format(step), format = "hdf5")
+                
             else:
                 try: 
                     utils.visualize(planning,environment.get_env().historic_time,environment.get_env().historic_operator)
