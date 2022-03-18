@@ -310,12 +310,12 @@ class Production_line():
                             
                                     #si l'opération est écheue
                                     if job.operations[operation_used-1].decrease_get_expiration_time(self.time) == 0:
-                                        #l'opération suivante n'est plus executable
-                                        job.operations[operation_used-1].executable = False
                                         
-                                        #on recréer les deux opérations
+                                        
+                                    
+                                        #on recrée les deux opérations
                                         job.create_operation(operation.operation_number)
-                                        #job.create_operation(operation_used)
+                                        job.create_operation(operation_used)
                                         
                                         nbr_echu += 1
         return nbr_echu

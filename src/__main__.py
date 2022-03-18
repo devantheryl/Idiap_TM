@@ -73,7 +73,7 @@ def train_model(wandb_activate = True,sweep = True, load = False):
         huber_loss = config.huber_loss
         horizon = config.horizon
         discount = config.discount
-        target_update_weight  = config.target_update_weight 
+        target_update_weight  = config.target_update_weight
         target_sync_frequency  = config.NETW_UPDATE_FREQ
         epsilon = config.epsilon
         epsilon_min = config.epsilon_min
