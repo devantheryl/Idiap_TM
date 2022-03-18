@@ -103,11 +103,11 @@ def train_model(wandb_activate = True,sweep = True, load = False):
     if load:
         agent = Agent.load(
             directory = "model/8_job_ddqn_weekend/lunar-snowflake-2/", 
-            filename = "0000009000.hdf5", 
+            filename = "0000011000.hdf5", 
             environment = environment,
-            learning_rate = 0.0001,
-            tracking = 'all',
-            exploration = 0.5,
+            #learning_rate = 0.0001,
+            #tracking = 'all',
+            #exploration = 0.9,
         )
         step = 3043659
     else: 

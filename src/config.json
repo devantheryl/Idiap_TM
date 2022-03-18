@@ -1,6 +1,6 @@
 {
     "nbr_job_max" : 9,
-    "nbr_job_to_use" : 3,
+    "nbr_job_to_use" : 9,
     "nbr_operation_max" : 15,
     "nbr_machines" : 13,
     "nbr_operator" : 12,
@@ -25,7 +25,7 @@
     "discount" : 0.99,
     "entropy_regularization" : 0.5, 
     
-    "test_every" : 10,
+    "test_every" : 100,
     "save_every" : 500,
     
     
