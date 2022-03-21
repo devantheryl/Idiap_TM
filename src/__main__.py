@@ -75,9 +75,9 @@ def train_model(wandb_activate = True,sweep = True, load = False):
                 
                 run = wandb.init(
     
-                  project="8_job_ddqn_weekend",
+                  project="9_job_ddqn_weekend",
                   entity="devantheryl",
-                  notes = "without reward echu, all formu",
+                  notes = "",
                   config=configs,
                 )
         
@@ -129,7 +129,7 @@ def train_model(wandb_activate = True,sweep = True, load = False):
             exploration = dict(type = 'linear', unit = 'episodes', num_steps = int(num_episode*0.8), initial_value = epsilon, final_value = epsilon_min),
             config = dict(seed = 1),
             tracking = 'all',
-            parallel_interactions  = 1,
+            parallel_interactions  = 8,
         )
     
     print(agent.get_architecture())
@@ -167,6 +167,7 @@ def train_model(wandb_activate = True,sweep = True, load = False):
                     "policy-loss" : tracked["agent/policy-loss"],
                     "policy-objective-loss" : tracked["agent/policy-objective-loss"],
                     "update-return" : tracked["agent/update-return"],
+                    "reward" : reward_tot,
                     
                 },
                 step =step
@@ -179,13 +180,7 @@ def train_model(wandb_activate = True,sweep = True, load = False):
                 
         print("episode: ", i, "  reward : ",reward_tot, "mean_reward : ", np.mean(score_mean), "score min : ", score_min)
         
-        if wandb_activate:
-            wandb.log(
-                {
-                    "reward" : reward_tot,
-                },
-                step = step
-            )
+        
         if i % save_every == 0 and wandb_activate:
             agent.save("model/" + run.project + "/" +  run.name +"/", '{:010d}'.format(step), format = "hdf5")
                 
@@ -283,6 +278,41 @@ def train_model(wandb_activate = True,sweep = True, load = False):
     environment.close()
     
 
+def use_model(model_path, target_date):
+    
+    environment = Environment.create(environment=TF_environment(9, len(target_date), 15, 
+                                                                13, 12, 14,
+                                                                target_date))
+    
+    agent = Agent.load(
+            directory = "model/8_job_ddqn_weekend/lunar-snowflake-2/", 
+            filename = "0000011000.hdf5", 
+            environment = environment,
+            )
+    
+    states = environment.reset()
+    internals = agent.initial_internals()
+    terminal = False
+    reward_tot = 0
+
+    while not terminal:
+        # Episode timestep
+        actions, internals = agent.act(states=states, internals = internals, independent=True)
+        states, terminal, reward = environment.execute(actions=actions)
+        
+        
+        reward_tot += reward
+        
+    print("reward tot : ", "  reward : ", str(reward_tot))
+    planning = environment.get_env().get_gant_formated()
+    
+    
+    path_img = "output/" + "output.png"
+    try: 
+        utils.visualize(planning,environment.get_env().historic_time,environment.get_env().historic_operator,path_img)
+    except:
+        pass
+
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description = 'Program options')
@@ -290,7 +320,7 @@ if __name__ == '__main__':
     parser.add_argument('-wandb', dest = 'wandb_activate', action = 'store_true' , help = 'Use the wandb framework to save the hyperparameters')
     parser.add_argument('-sweep', dest = 'sweep', action = 'store_true' , help = 'Launch a bayesian hyperparameters search process over the range of parameters in config.json')
     parser.add_argument('-load', dest = 'load', action = 'store_true' , help = 'load a pretrained NN weights and biases')
-    
+    parser.add_argument('-use', dest = 'use', action = 'store_true', help = 'use the model')
     
     args = parser.parse_args()
     
@@ -379,4 +409,8 @@ if __name__ == '__main__':
         }
         sweep_id = wandb.sweep(sweep=sweep_configs, project="sweeps_2_job_test_reward_shaping_dueling_dqn")
         wandb.agent(sweep_id=sweep_id, function=train_model, count=50)
+    
+    if args.use:
+        print("use model")
+        use_model(args.wandb_activate,False,args.load)
         
