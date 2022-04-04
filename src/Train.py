@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Jan 20 11:46:42 2022
+Created on Fri Apr  1 10:12:59 2022
 
 @author: LDE
 """
-
 import numpy as np
 import pandas as pd
 import sys
@@ -22,7 +21,6 @@ import src.utils as utils
 os.environ["WANDB_AGENT_MAX_INITIAL_FAILURES"]= "30"
 
 REQUIRED_PYTHON = "3.8.5"
-
 
 def train_model(wandb_activate = True,sweep = True, load = False):
     
@@ -45,7 +43,6 @@ def train_model(wandb_activate = True,sweep = True, load = False):
     network = configs["network"]
     update_frequency = configs["UPDATE_FREQ"]
     learning_rate = configs["learning_rate"]
-    learning_rate_min = configs["learning_rate_min"]
     huber_loss = configs["huber_loss"]
     horizon = configs["horizon"]
     discount = configs["discount"]
@@ -65,7 +62,7 @@ def train_model(wandb_activate = True,sweep = True, load = False):
             if load:
                 run = wandb.init(
     
-                  project="2_job_ddqn_weekend",
+                  project="8_job_ddqn_weekend",
                   id = "3fao6600",
                   resume = "must",
                   entity="devantheryl",
@@ -76,7 +73,7 @@ def train_model(wandb_activate = True,sweep = True, load = False):
                 
                 run = wandb.init(
     
-                  project="2_job_ddqn_weekend",
+                  project="9_job_ddqn_weekend",
                   entity="devantheryl",
                   notes = "",
                   config=configs,
@@ -113,8 +110,7 @@ def train_model(wandb_activate = True,sweep = True, load = False):
         step = 3043659
     else: 
         
-        lr_decay = learning_rate_min/learning_rate
-        
+        lr_decay = np.log()
         agent = Agent.create(
             agent='ddqn',
             states = environment.states(),
@@ -124,7 +120,7 @@ def train_model(wandb_activate = True,sweep = True, load = False):
             batch_size = batch_size,
             network = network,
             update_frequency = update_frequency,
-            learning_rate = dict(type = 'exponential', unit = 'episodes', num_steps = int(num_episode), initial_value = learning_rate, decay_rate = lr_decay),
+            learning_rate = dict(type = 'linear', unit = 'episodes', num_steps = int(num_episode*0.8), initial_value = 0.001, final_value = learning_rate),
             #huber_loss = huber_loss,
             horizon = horizon,
             discount = discount,
@@ -161,7 +157,7 @@ def train_model(wandb_activate = True,sweep = True, load = False):
             
             #memoire.append(np.hstack((old_state,actions,reward,terminal)))
         
-        print(tracked["agent/policy_optimizer/learning_rate/learning_rate"])
+        
         if wandb_activate and not load:
             wandb.log(
                 {
@@ -280,157 +276,8 @@ def train_model(wandb_activate = True,sweep = True, load = False):
                  
     agent.close()
     environment.close()
-    
-
-def use_model(model_path, model_name, target_date):
-    
-    environment = Environment.create(environment=TF_environment(9, len(target_date), 15, 
-                                                                13, 12, 14,
-                                                                target_date))
-    
-    agent = Agent.load(
-            directory = model_path, 
-            filename = model_name, 
-            environment = environment,
-            )
-    
-    states = environment.reset()
-    internals = agent.initial_internals()
-    terminal = False
-    reward_tot = 0
-
-    while not terminal:
-        # Episode timestep
-        actions, internals = agent.act(states=states, internals = internals, independent=True)
-        states, terminal, reward = environment.execute(actions=actions)
         
         
-        reward_tot += reward
         
-    print("reward tot : ", "  reward : ", str(reward_tot))
-    planning = environment.get_env().get_gant_formated()
-    
-    
-    path_img = "output/" + "output.png"
-    try: 
-        utils.visualize(planning,environment.get_env().historic_time,environment.get_env().historic_operator,path_img)
-    except:
-        pass
-
-if __name__ == '__main__':
-
-    parser = argparse.ArgumentParser(description = 'Program options')
-    parser.add_argument('-train', dest = 'train', action = 'store_true', help = 'Train the model given the paramters in config.json')
-    parser.add_argument('-wandb', dest = 'wandb_activate', action = 'store_true' , help = 'Use the wandb framework to save the hyperparameters')
-    parser.add_argument('-sweep', dest = 'sweep', action = 'store_true' , help = 'Launch a bayesian hyperparameters search process over the range of parameters in config.json')
-    parser.add_argument('-load', dest = 'load', action = 'store_true' , help = 'load a pretrained NN weights and biases')
-    parser.add_argument('-use', dest = 'use', action = 'store_true', help = 'use the model')
-    
-    args = parser.parse_args()
-    
-    start = time.time()
-    
-    print("Begin of the training phase")
-    
-    if args.train:
-        print("train model")
-        train_model(args.wandb_activate,False,args.load)
         
-    if args.sweep:
-        print("sweep model")
-        sweep_configs = {
-            "name" : "removing limitation on deltatime reward, +1 if forward wip =0",
-            "project" : "sweep_2_jobs",
-            "entity" : "devantheryl",
-            "method": "bayes",
-            "metric": {
-                "name": "evaluation_return",
-                "goal": "maximize",
-            },
-            "parameters": {
-                "batch_size": {
-                    "min" : 4,
-                    "max" : 1024,
-                },
-                "n_episode": {
-                    "min" : 500,
-                    "max" : 6000
-                    
-                },
-                "UPDATE_FREQ": {
-                    "min" : 2,
-                    "max" : 64,
-                },
-                "target_update_weight" : {
-                    "min" : 0.01,
-                    "max" : 1.0
-                    
-                    },
-                "NETW_UPDATE_FREQ": {
-                    "min" : 2,
-                    "max" : 100
-                },
-                "epsilon": {
-                    "min" : 0.5,
-                    "max" : 1.0
-                },
-                "epsilon_min": {
-                    "min" : 0.01,
-                    "max" : 0.4
-                    
-                },
-                "learning_rate": {
-                    "min" : 0.00001,
-                    "max" : 0.1
-                },
-                "huber_loss": {
-                    "min" : 0.1,
-                    "max" : 10.0
-                    
-                },
-                "horizon": {
-                    "min" : 1,
-                    "max" : 500
-                },
-                "discount": {
-                    "min" : 0.1,
-                    "max" : 1.0
-                    
-                },
-                "entropy_regularization":{
-                    "min" : 0,
-                    "max" : 100
-                    },
-                "nbr_neurone_first_layer": {
-                    "min" : 200,
-                    "max" : 2000
-                },
-                "nbr_neurone_second_layer": {
-                    "min" : 200,
-                    "max" : 2000
-                },
-            }
-        }
-        sweep_id = wandb.sweep(sweep=sweep_configs, project="sweeps_2_job_test_reward_shaping_dueling_dqn")
-        wandb.agent(sweep_id=sweep_id, function=train_model, count=50)
-    
-    if args.use:
-        print("use model")
-        directory = "model/8_job_ddqn_weekend/lunar-snowflake-2/", 
-        filename = "0000011000.hdf5",
-        
-        target_date = {
-            "2021-08-24 00:00:00" : 6,
-            "2021-08-31 00:00:00" : 6,
-            "2021-09-07 00:00:00" : 1,
-            "2021-09-14 00:00:00" : 1,
-            "2021-09-21 00:00:00" : 3,
-            "2021-09-28 00:00:00" : 3,
-            "2021-10-04 00:00:00" : 1,
-            "2021-10-07 00:00:00" : 3,
-            "2021-10-13 00:00:00" : 1,
-            "2021-10-19 00:00:00" : 6,
-        }
-        
-        use_model(directory, filename, target_date)
         

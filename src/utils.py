@@ -18,6 +18,7 @@ import numpy as np
 def visualize(results ,historical_time, historical_operator, path = ""):
     
     operation_machine = {
+                     (0) : "echu",
                      (1,1) : "broyage_poly_1",
                      (1,2) : "broyage_poly_2",
                      (2,1) : "broyage_poly_1",
@@ -63,6 +64,7 @@ def visualize(results ,historical_time, historical_operator, path = ""):
     operation_machine_sorted = [value for key,value in operation_machine.items()][::-1]
     uniq, index = np.unique(np.array(operation_machine_sorted), return_index=True)
     machines = uniq[index.argsort()]
+    schedule = schedule[schedule["op_machine"] != "echu"]
     makespan = (schedule['Start'].max() - schedule['Finish'].min()).days
     end_date = schedule['Finish'].max()
     
@@ -81,17 +83,20 @@ def visualize(results ,historical_time, historical_operator, path = ""):
             for index,_,_ in schedule.index:
                 if (index,j,m) in schedule.index:
                     
-
+                    
                     xs = schedule.loc[(index,j,m), 'Start']
                     xf = schedule.loc[(index,j,m), 'Finish']
                     xs = mdates.date2num(xs)
                     xf = mdates.date2num(xf)
                     width = xf-xs
-                    test = schedule.iloc[index]["Operation"]
+                    
+                    op = schedule.loc[(index,j,m), 'Operation']
+                    
                         
                     ax[0].plot([xs, xf], [jdx]*2, c=colors[mdx%7], **bar_style)
                     #ax[0].text((xs + xf)/2, jdx, m, **text_style)
-                    if schedule.iloc[index]["Operation"] in [1,3,5,7,9,11]:
+                    
+                    if op in [1,3,5,7,9,11]:
                         rect = pat.Rectangle((xs, mdx-0.5), width, 1, linewidth=2,facecolor=colors[jdx%7], linestyle = 'dotted', ec = "black")
                         
                         #ax[1].plot([xs, xf], [mdx]*2, c=colors[jdx%7], **bar_style, linestyle='dashed')
@@ -101,6 +106,8 @@ def visualize(results ,historical_time, historical_operator, path = ""):
                         rect = pat.Rectangle((xs, mdx-0.5), width, 1, linewidth=2, facecolor=colors[jdx%7], linestyle = 'solid',ec = "black")
                         ax[1].add_patch(rect)
                     #ax[1].text(xs, mdx, j, **text_style)
+                    
+                        
                 
     ax[0].set_title('Job Schedule')
     ax[0].set_ylabel('Job')

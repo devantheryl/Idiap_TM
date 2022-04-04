@@ -209,7 +209,7 @@ class Production_line():
                     
                 #update and check expiration time of all operations
                 nbr_echu = self.update_check_expiration_time()
-                #reward -= 5*nbr_echu # a tester, pour éviter les doublons
+                reward -= 5*nbr_echu # a tester, pour éviter les doublons
                 
                 #update the processing time of all operation and remove the op from
                 #machine if the op has ended
@@ -355,6 +355,11 @@ class Production_line():
                             if operation.operation_number == 15:
                                 if self.time > job.target_date:
                                     executable = False
+                                    
+                            #check op for the mel-ex part
+                            #if it is melange or extrusion
+                            #TODO
+                            #if operation.operation_number in []
                             
                             if executable:
                                 executables.append(operation.operation_number)

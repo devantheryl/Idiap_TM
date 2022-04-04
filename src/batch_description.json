@@ -360,6 +360,7 @@
         
         "operation1" : {
             "type" : "operation",
+            "name" : "broyage_poly",
             "number" : 1,
             "OF" : "POLBR",
             "processable_on" : [1,2],
