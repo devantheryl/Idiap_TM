@@ -152,7 +152,11 @@ def get_new_time(current_time, delta):
                 temp -= timedelta(days=1)
                 temp = temp.replace(hour = 12)
         else :
-            #TODO
+            if temp.time().hour == 00:
+                temp += timedelta(hours = 12)
+            else:
+                temp += timedelta(days=1)
+                temp = temp.replace(hour = 00)
             pass
     return temp
 
@@ -181,6 +185,32 @@ def get_delta_time(current_time, target_time):
     return 0
     
 
+def generate_test_scenarios(start_date, nbr_job, seed):
+    day_stat = [0.36,0.44,0.12,0.08]
+    formu_stat = [0.29,0.29,0.42]
+    
+    target_dates = {}
+    start_date = datetime.fromisoformat(start_date)
+    np.random.seed(seed)
+    i=0
+    while i < nbr_job:
+        day = np.random.choice([0,1,2,3], 1, p = day_stat)[0]
+        
+        #if jeudi
+        if day == 3:
+            formu = np.random.choice([1,3,6], 1, p = formu_stat)[0]
+            target_dates[str(start_date)] = formu #on ajoute aussi le lundi
+            if i+1<nbr_job:
+                i += 1
+            else:
+                return target_dates
+            
+        formu = np.random.choice([1,3,6], 1, p = formu_stat)[0]
+        target_date = get_new_time(start_date, 2*day)
+        target_dates[str(target_date)] = formu
+        start_date = get_new_time(start_date, 14) # + 1 week
+        
+        i +=1
+        
+    return target_dates
 
-
-                

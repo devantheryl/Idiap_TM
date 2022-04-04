@@ -18,6 +18,7 @@ import wandb
 from src.TF_env import TF_environment
 from tensorforce import Environment, Runner, Agent
 
+
 import src.utils as utils
 os.environ["WANDB_AGENT_MAX_INITIAL_FAILURES"]= "30"
 
@@ -27,6 +28,7 @@ REQUIRED_PYTHON = "3.8.5"
 def train_model(wandb_activate = True,sweep = True, load = False):
     
     memoire = []
+    
     
     with open("src/config.json") as json_file:
             configs = json.load(json_file)
@@ -57,6 +59,7 @@ def train_model(wandb_activate = True,sweep = True, load = False):
     test_every = configs["test_every"]
     save_every = configs["save_every"]
     
+    nbr_test_per_max_job = configs["nbr_test_per_max_job"]
     
     if wandb_activate:
         if sweep:
@@ -138,6 +141,9 @@ def train_model(wandb_activate = True,sweep = True, load = False):
     
     print(agent.get_architecture())
     
+    summaries = np.empty((nbr_job_max * nbr_test_per_max_job,1))
+    target_date_test = []
+    
     for i in range(num_episode):
 
         # Initialize episode
@@ -190,6 +196,13 @@ def train_model(wandb_activate = True,sweep = True, load = False):
                 
         if i % test_every == 0:
             
+            
+            target,r = test_model(agent, nbr_test_per_max_job, nbr_job_max, nbr_operation_max, nbr_machines, nbr_operator, operator_vector_length)
+            
+            if np.shape(summaries)[1] == 1:
+                summaries[:,0] = target[:,0]
+
+            summaries = np.append(summaries, r, axis = 1)
             #test for 1 episode
             states = environment.reset()
             internals = agent.initial_internals()
@@ -263,10 +276,14 @@ def train_model(wandb_activate = True,sweep = True, load = False):
             print("impossible to viusalize")
         agent.save("model/" + run.project + "/" +  run.name +"/", "final", format = "hdf5")
         
+        np.savetxt("model/" + run.project + "/" +  run.name +"/" + "target_test.csv", target_date_test, delimiter=',')
+        np.savetxt("model/" + run.project + "/" +  run.name +"/" + "reward_test.csv", summaries, delimiter=',')
+        
         wandb.log(
             {
                 "score_minimum" : score_min,
-                "evaluation_return" : reward_tot     
+                "evaluation_return" : reward_tot
+
             },
             step = step
         )
@@ -281,6 +298,46 @@ def train_model(wandb_activate = True,sweep = True, load = False):
     agent.close()
     environment.close()
     
+def test_model(agent , nbr_test_per_max_job, nbr_job_max, nbr_operation_max, nbr_machines, nbr_operator, operator_vector_length):
+    
+    start_date = "2022-04-04 00:00:00"
+
+    reward_vector = np.empty((nbr_job_max*nbr_test_per_max_job,1), dtype = int)
+    dict_target_dates = np.empty((nbr_job_max*nbr_test_per_max_job,1), dtype = dict)
+    
+    index = 0
+    for i in range(nbr_job_max):
+        for j in range(nbr_test_per_max_job):
+            #on genere i+1 target date avec leur formulation
+            dict_target_date = utils.generate_test_scenarios(start_date, i+1, j)
+            
+            #on crée l'environnement avec i+1 nbr job max to use
+            environment = Environment.create(environment=TF_environment(nbr_job_max, i+1, nbr_operation_max, 
+                                                                        nbr_machines, nbr_operator, operator_vector_length,
+                                                                        dict_target_date))
+            states = environment.reset()
+            internals = agent.initial_internals()
+            terminal = False
+            reward_tot = 0
+        
+            while not terminal:
+                # Episode timestep
+                actions, internals = agent.act(states=states, internals = internals, independent=True)
+                states, terminal, reward = environment.execute(actions=actions)
+                
+                
+                reward_tot += reward
+                
+            
+            print(reward_tot, " for test ",index, "  with ", i+1, " job")
+            reward_vector[index,0] = reward_tot
+            dict_target_dates[index,0] = dict_target_date
+            index += 1
+            
+    return dict_target_dates, reward_vector
+            
+    
+
 
 def use_model(model_path, model_name, target_date):
     

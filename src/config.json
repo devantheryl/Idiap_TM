@@ -9,8 +9,8 @@
     
     
     
-    "batch_size" : 64,
-    "n_episode" : 2000,
+    "batch_size" : 32,
+    "n_episode" : 100,
     "n_epsiode_test" : 1,
     "UPDATE_FREQ" : 2,
     "target_update_weight" : 1.0,
@@ -29,18 +29,21 @@
     "test_every" : 20,
     "save_every" : 500,
     
+    "nbr_test_per_max_job" : 3,
+    
     
     "network" : [
             {
                 "type" : "dense",
-                "size" : 250,
+                "size" : 100,
                 "activation" : "relu"
             },
             {
                 "type" : "dense",
-                "size" : 250,
+                "size" : 100,
                 "activation" : "relu"
             }
+            
             
     ],
     
