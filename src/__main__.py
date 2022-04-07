@@ -205,8 +205,6 @@ def train_model(wandb_activate = True,sweep = True, load = False):
                     summaries[i,0] = str(item)
 
             summaries = np.append(summaries, r, axis = 1)
-            
-            print(summaries)
 
             
             #test for 1 episode
@@ -225,13 +223,23 @@ def train_model(wandb_activate = True,sweep = True, load = False):
                 
             print("test at epsiode : ", str(i), "  reward : ", str(reward_tot))
             planning = environment.get_env().get_gant_formated()
+            job_stats = environment.get_env().get_job_stats()
             
             if wandb_activate:
                 path_img = "model/" + run.project + "/" +  run.name +"/" + '{:010d}'.format(step) + ".png"
                 try: 
-                    utils.visualize(planning,environment.get_env().historic_time,environment.get_env().historic_operator,path_img)
+                    utils.visualize(planning,environment.get_env().historic_time,environment.get_env().historic_operator ,job_stats, path_img)
                 except:
                     print("impossible to viusalize")
+                    
+                for key, value in job_stats.items():
+                    wandb.log(
+                        {
+                            key + "_lead_time" : value[0],
+                            key + "_nbr_echu" : value[1]                
+                        },
+                        step= step
+                    )
 
                 wandb.log(
                     {
@@ -243,7 +251,7 @@ def train_model(wandb_activate = True,sweep = True, load = False):
                 
             else:
                 try: 
-                    utils.visualize(planning,environment.get_env().historic_time,environment.get_env().historic_operator)
+                    utils.visualize(planning,environment.get_env().historic_time,environment.get_env().historic_operator, job_stats)
                 except:
                     print("impossible to viusalize")
                 pass
@@ -272,24 +280,32 @@ def train_model(wandb_activate = True,sweep = True, load = False):
     print("final result : ", reward_tot)        
     
     tracked = agent.tracked_tensors()
-    planning = environment.get_env().get_gant_formated()    
+    planning = environment.get_env().get_gant_formated()  
+    job_stats = environment.get_env().get_job_stats()
         
     if wandb_activate:
         path_img = "model/" + run.project + "/" +  run.name +"/" +"final" + ".png"
         try :
-            utils.visualize(planning,path_img)
+            utils.visualize(planning,environment.get_env().historic_time,environment.get_env().historic_operator ,job_stats, path_img)
         except:
             print("impossible to viusalize")
         agent.save("model/" + run.project + "/" +  run.name +"/", "final", format = "hdf5")
         
         np.savetxt("model/" + run.project + "/" +  run.name +"/" + "reward_test.csv", summaries, delimiter=';', fmt="%s")
         
+        for key, value in job_stats.items():
+            wandb.log(
+                {
+                    key + "_lead_time" : value[0],
+                    key + "_nbr_echu" : value[1]                
+                },
+                step = step
+            )
+        
         wandb.log(
             {
                 "score_minimum" : score_min,
                 "evaluation_return" : reward_tot
-                
-
             },
             step = step
         )
@@ -297,10 +313,10 @@ def train_model(wandb_activate = True,sweep = True, load = False):
         
     else:
         try :
-            utils.visualize(planning)
+            utils.visualize(planning,environment.get_env().historic_time,environment.get_env().historic_operator, job_stats)
         except:
             print("impossible to viusalize")
-        #np.savetxt("target_test.csv", target_date_test, delimiter=',')
+
         np.savetxt("reward_test.csv", summaries, delimiter=';', fmt="%s")
                  
     agent.close()
