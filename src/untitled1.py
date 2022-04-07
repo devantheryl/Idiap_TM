@@ -13,29 +13,23 @@ import os
 from random import sample
 
 
-list1 = [0,1,2,3]
-nbr0 = 0
-nbr1 = 0
-nbr2 = 0
-nbr3 = 0
-
-it = 100000
-
-for i in range(it):
-    if sample(list1,1)[0] == 0:
-         nbr0+=1   
-
-    if sample(list1,1)[0] == 1:
-         nbr1+=1 
-         
-    if sample(list1,1)[0] == 2:
-         nbr2+=1
-         
-    if sample(list1,1)[0] == 3:
-         nbr3+=1 
-
-
-print(nbr0/it)
-print(nbr1/it)
-print(nbr2/it)
-print(nbr3/it)
+# Python code to demonstrate
+# to convert dictionary into string
+# using str()
+  
+# initialising dictionary
+test1 = { "testname" : "akshat",
+          "test2name" : "manjeet",
+          "test3name" : "nikhil"}
+  
+# print original dictionary
+print (type(test1))
+print ("initial dictionary = ", test1)
+  
+# convert dictionary into string
+# using str
+result = str(test1)
+  
+# print resulting string
+print ("\n", type(result))
+print ("final string = ", result)

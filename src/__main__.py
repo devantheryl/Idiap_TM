@@ -79,7 +79,7 @@ def train_model(wandb_activate = True,sweep = True, load = False):
                 
                 run = wandb.init(
     
-                  project="2_job_ddqn_weekend",
+                  project=str(nbr_job_max)+"_job_ddqn_weekend",
                   entity="devantheryl",
                   notes = "",
                   config=configs,
@@ -141,7 +141,7 @@ def train_model(wandb_activate = True,sweep = True, load = False):
     
     print(agent.get_architecture())
     
-    summaries = np.empty((nbr_job_max * nbr_test_per_max_job,1))
+    summaries = np.empty((nbr_job_max * nbr_test_per_max_job,1), dtype =  object)
     target_date_test = []
     
     for i in range(num_episode):
@@ -197,12 +197,18 @@ def train_model(wandb_activate = True,sweep = True, load = False):
         if i % test_every == 0:
             
             
-            target,r = test_model(agent, nbr_test_per_max_job, nbr_job_max, nbr_operation_max, nbr_machines, nbr_operator, operator_vector_length)
+            test_dict_target_dates,r = test_model(agent, nbr_test_per_max_job, nbr_job_max, nbr_operation_max, nbr_machines, nbr_operator, operator_vector_length)
+            
             
             if np.shape(summaries)[1] == 1:
-                summaries[:,0] = target[:,0]
+                for i,item in enumerate(test_dict_target_dates):
+                    summaries[i,0] = str(item)
 
             summaries = np.append(summaries, r, axis = 1)
+            
+            print(summaries)
+
+            
             #test for 1 episode
             states = environment.reset()
             internals = agent.initial_internals()
@@ -276,13 +282,13 @@ def train_model(wandb_activate = True,sweep = True, load = False):
             print("impossible to viusalize")
         agent.save("model/" + run.project + "/" +  run.name +"/", "final", format = "hdf5")
         
-        np.savetxt("model/" + run.project + "/" +  run.name +"/" + "target_test.csv", target_date_test, delimiter=',')
-        np.savetxt("model/" + run.project + "/" +  run.name +"/" + "reward_test.csv", summaries, delimiter=',')
+        np.savetxt("model/" + run.project + "/" +  run.name +"/" + "reward_test.csv", summaries, delimiter=';', fmt="%s")
         
         wandb.log(
             {
                 "score_minimum" : score_min,
                 "evaluation_return" : reward_tot
+                
 
             },
             step = step
@@ -294,6 +300,8 @@ def train_model(wandb_activate = True,sweep = True, load = False):
             utils.visualize(planning)
         except:
             print("impossible to viusalize")
+        #np.savetxt("target_test.csv", target_date_test, delimiter=',')
+        np.savetxt("reward_test.csv", summaries, delimiter=';', fmt="%s")
                  
     agent.close()
     environment.close()
@@ -302,7 +310,7 @@ def test_model(agent , nbr_test_per_max_job, nbr_job_max, nbr_operation_max, nbr
     
     start_date = "2022-04-04 00:00:00"
 
-    reward_vector = np.empty((nbr_job_max*nbr_test_per_max_job,1), dtype = int)
+    reward_vector = np.empty((nbr_job_max*nbr_test_per_max_job,1))
     dict_target_dates = np.empty((nbr_job_max*nbr_test_per_max_job,1), dtype = dict)
     
     index = 0
