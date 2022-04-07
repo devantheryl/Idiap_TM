@@ -30,7 +30,7 @@ class TF_environment(Environment):
         
         self.production_line = Production_line(self.nbr_job_max, self.nbr_job_to_use, self.nbr_operation_max, self.nbr_machines,
                                                self.nbr_operator, self.operator_vector_length, self.dict_target_date)
-        self.max_step_per_episode = 120
+        self.max_step_per_episode = 200
         
         
     def states(self):

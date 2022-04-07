@@ -8,6 +8,7 @@ from src.Operation2 import Operation
 import numpy as np
 import json
 from datetime import datetime, timedelta, date
+import pandas as pd
 
 
 class Job:
@@ -39,6 +40,7 @@ class Job:
         self.lead_time = 0
         self.started = False
         self.ended = False
+        self.echu = []
         
         
         self.operation_planning = []
@@ -156,6 +158,23 @@ class Job:
                     duration  = 0.0
                 planning.append((self.job_name,machine,operation_number,start,duration,end))
         return planning
+    
+    def get_stats(self):
+        
+        lead_time = 0
+        if self.ended:
+            planning = self.build_gant_formated()
+            df = pd.DataFrame(planning, columns =['Job','Machine', 'Operation', 'Start','Duration','Finish'])
+            df_planned = df[df["Machine"] != 0]
+            lead_time = (df_planned['Start'].max() - df_planned['Finish'].min()).days
+            
+        
+        
+        return lead_time, len(self.echu)
+        
+        
+    
+        
         
     @property
     def job_name(self):

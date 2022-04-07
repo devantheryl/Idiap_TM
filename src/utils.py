@@ -15,7 +15,7 @@ from datetime import datetime, timedelta, date
 import matplotlib.dates as mdates
 import numpy as np
 
-def visualize(results ,historical_time, historical_operator, path = ""):
+def visualize(results ,historical_time, historical_operator, job_stats, path = ""):
     
     operation_machine = {
                      (0) : "echu",
@@ -48,6 +48,9 @@ def visualize(results ,historical_time, historical_operator, path = ""):
     }
     
     schedule = results.copy()
+    
+    
+    
     op_machine = []
     for index, row in schedule.iterrows():
         
@@ -60,6 +63,7 @@ def visualize(results ,historical_time, historical_operator, path = ""):
     
     schedule["op_machine"] = op_machine
     
+    
     jobs = sorted(list(schedule['Job'].unique()))
     operation_machine_sorted = [value for key,value in operation_machine.items()][::-1]
     uniq, index = np.unique(np.array(operation_machine_sorted), return_index=True)
@@ -67,6 +71,10 @@ def visualize(results ,historical_time, historical_operator, path = ""):
     schedule = schedule[schedule["op_machine"] != "echu"]
     makespan = (schedule['Start'].max() - schedule['Finish'].min()).days
     end_date = schedule['Finish'].max()
+    
+    
+    #get some stats
+    
     
     
     bar_style = {'alpha':1.0, 'lw':25, 'solid_capstyle':'butt'}
@@ -97,13 +105,13 @@ def visualize(results ,historical_time, historical_operator, path = ""):
                     #ax[0].text((xs + xf)/2, jdx, m, **text_style)
                     
                     if op in [1,3,5,7,9,11]:
-                        rect = pat.Rectangle((xs, mdx-0.5), width, 1, linewidth=2,facecolor=colors[jdx%7], linestyle = 'dotted', ec = "black")
+                        rect = pat.Rectangle((xs, mdx-0.5), width, 1, linewidth=2,facecolor=colors[jdx%7], linestyle = 'solid', ec = "black")
                         
                         #ax[1].plot([xs, xf], [mdx]*2, c=colors[jdx%7], **bar_style, linestyle='dashed')
                         ax[1].add_patch(rect)
                     else:
                         #ax[1].plot([xs, xf], [mdx]*2, c=colors[jdx%7], **bar_style, linestyle='dotted')
-                        rect = pat.Rectangle((xs, mdx-0.5), width, 1, linewidth=2, facecolor=colors[jdx%7], linestyle = 'solid',ec = "black")
+                        rect = pat.Rectangle((xs, mdx-0.5), width, 1, linewidth=2, facecolor=colors[jdx%7], linestyle = 'dotted',ec = "black")
                         ax[1].add_patch(rect)
                     #ax[1].text(xs, mdx, j, **text_style)
                     
@@ -213,4 +221,7 @@ def generate_test_scenarios(start_date, nbr_job, seed):
         i +=1
         
     return target_dates
+
+
+
 

@@ -209,7 +209,7 @@ class Production_line():
                     
                 #update and check expiration time of all operations
                 nbr_echu = self.update_check_expiration_time()
-                reward -= 5*nbr_echu # a tester, pour éviter les doublons
+                reward -= 20*nbr_echu # a tester, pour éviter les doublons
                 
                 #update the processing time of all operation and remove the op from
                 #machine if the op has ended
@@ -318,6 +318,7 @@ class Production_line():
                                         job.create_operation(operation_used)
                                         
                                         nbr_echu += 1
+                                        job.echu += [operation_used]
         return nbr_echu
     
                      
@@ -471,6 +472,21 @@ class Production_line():
         plan_df['Duration']= plan_df['Duration']
             
         return plan_df
+    
+    def get_job_stats(self):
+        
+        stats = {}
+        #for batch
+        for job in self.jobs:
+            if job != None:
+                stat = job.get_stats()
+                stats[job.job_name] = stat
+                
+                
+        return stats
+        
+        
+        #TODO summarize all the stats and kpis of the prod line
         
     def set_operator_vector(self):
         current_date = self.time
