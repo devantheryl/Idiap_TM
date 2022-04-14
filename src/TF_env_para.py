@@ -19,6 +19,7 @@ class TF_environment(Environment):
     def __init__(self):
         
         super().__init__()
+        self.i = 0
         self.production_line = Production_line()
         self.max_step_per_episode = 350
         
@@ -40,6 +41,15 @@ class TF_environment(Environment):
         super().close()
         
     def reset(self, num_parallel=None):
+        
+        self.i += 1
+        
+        self._is_parallel = (num_parallel is not None)
+        if self._is_parallel:
+            self._parallel_indices = np.arange(num_parallel)
+        else:
+            self._parallel_indices = np.arange(1)
+        
         # Initial state and associated action mask
         self.production_line = Production_line()
         action_mask = self.production_line.get_mask()

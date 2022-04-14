@@ -73,10 +73,6 @@ def visualize(results ,historical_time, historical_operator, job_stats, path = "
     end_date = schedule['Finish'].max()
     
     
-    #get some stats
-    
-    
-    
     bar_style = {'alpha':1.0, 'lw':25, 'solid_capstyle':'butt'}
     text_style = {'color':'white', 'weight':'bold', 'ha':'center', 'va':'center'}
     colors = mpl.cm.Dark2.colors

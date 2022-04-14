@@ -33,6 +33,9 @@ def train_model(wandb_activate = True,sweep = True, load = False):
     with open("src/config.json") as json_file:
             configs = json.load(json_file)
     
+    
+    agent_type = configs["agent_type"]
+    
     nbr_job_max = configs["nbr_job_max"]
     nbr_job_to_use = configs["nbr_job_to_use"]
     nbr_operation_max = configs["nbr_operation_max"]
@@ -56,10 +59,13 @@ def train_model(wandb_activate = True,sweep = True, load = False):
     epsilon = configs["epsilon"]
     epsilon_min = configs["epsilon_min"]
     
+    multi_step = configs["multi_step"]
+    
     test_every = configs["test_every"]
     save_every = configs["save_every"]
     
     nbr_test_per_max_job = configs["nbr_test_per_max_job"]
+    echu_weights = configs["echu_weights"]
     
     if wandb_activate:
         if sweep:
@@ -79,7 +85,7 @@ def train_model(wandb_activate = True,sweep = True, load = False):
                 
                 run = wandb.init(
     
-                  project=str(nbr_job_max)+"_job_ddqn_weekend",
+                  project=str(nbr_job_max)+"_job_" + agent_type+ "_weekend",
                   entity="devantheryl",
                   notes = "",
                   config=configs,
@@ -97,12 +103,13 @@ def train_model(wandb_activate = True,sweep = True, load = False):
     score_mean = deque(maxlen = 300)
     score_min = -10000
     
-    
+    dict_target_date = utils.generate_test_scenarios("2022-04-04 00:00:00", nbr_job_max, seed = 0)
     environment = Environment.create(environment=TF_environment(nbr_job_max, nbr_job_to_use, nbr_operation_max, 
                                                                 nbr_machines, nbr_operator, operator_vector_length,
-                                                                dict_target_date))
+                                                                dict_target_date,echu_weights))
     
     step = 0
+    
     
     if load:
         agent = Agent.load(
@@ -117,39 +124,86 @@ def train_model(wandb_activate = True,sweep = True, load = False):
     else: 
         
         lr_decay = learning_rate_min/learning_rate
-        
-        agent = Agent.create(
-            agent='ddqn',
-            states = environment.states(),
-            actions = environment.actions(),
-            max_episode_timesteps = environment.max_episode_timesteps(),
-            memory=memory,
-            batch_size = batch_size,
-            network = network,
-            update_frequency = update_frequency,
-            learning_rate = dict(type = 'exponential', unit = 'episodes', num_steps = int(num_episode), initial_value = learning_rate, decay_rate = lr_decay),
-            #huber_loss = huber_loss,
-            horizon = horizon,
-            discount = discount,
-            target_update_weight = target_update_weight ,
-            target_sync_frequency  = target_sync_frequency,
-            exploration = dict(type = 'linear', unit = 'episodes', num_steps = int(num_episode*0.9), initial_value = epsilon, final_value = epsilon_min),
-            config = dict(seed = 1),
-            tracking = 'all',
-            parallel_interactions  = 8,
-        )
+        if agent_type == "ddqn" or agent_type == "dueling_dqn":
+            agent = Agent.create(
+                agent=agent_type,
+                states = environment.states(),
+                actions = environment.actions(),
+                max_episode_timesteps = environment.max_episode_timesteps(),
+                memory=memory,
+                batch_size = batch_size,
+                network = network,
+                update_frequency = update_frequency,
+                learning_rate = dict(type = 'exponential', unit = 'episodes', num_steps = int(num_episode), initial_value = learning_rate, decay_rate = lr_decay),
+                #huber_loss = huber_loss,
+                horizon = horizon,
+                discount = discount,
+                target_update_weight = target_update_weight ,
+                target_sync_frequency  = target_sync_frequency,
+                exploration = dict(type = 'linear', unit = 'episodes', num_steps = int(num_episode), initial_value = epsilon, final_value = epsilon_min),
+                config = dict(seed = 1),
+                tracking = 'all',
+                parallel_interactions  = 1,
+                )
+            
+        if agent_type == "ppo":
+            agent = Agent.create(
+                agent='ppo',
+                states = environment.states(),
+                actions = environment.actions(),
+                max_episode_timesteps = environment.max_episode_timesteps(),
+                batch_size = batch_size,
+                network = network,
+                memory=memory,
+                update_frequency = update_frequency,
+                learning_rate = dict(type = 'exponential', unit = 'episodes', num_steps = int(num_episode), initial_value = learning_rate, decay_rate = lr_decay),
+                multi_step = multi_step,     
+                subsampling_fraction = 0.9,
+                discount = discount,
+
+                exploration = dict(type = 'linear', unit = 'episodes', num_steps = int(num_episode*0.9), initial_value = epsilon, final_value = epsilon_min),
+                config = dict(seed = 1),
+                tracking = 'all',
+                parallel_interactions  = 8,
+                )
+            
+        if agent_type == "tensorforce":
+            agent = Agent.create(
+                agent='tensorforce',
+                states = environment.states(),
+                actions = environment.actions(),
+                policy = dict(type = "parametrized_distributions", network = network),
+                max_episode_timesteps = environment.max_episode_timesteps(),
+                memory= dict(type = "recent" ),#,capacity=1000),
+                update = dict(unit = "episodes", batch_size = batch_size, frequency = update_frequency),
+                optimizer = dict(optimizer = "adam", learning_rate = learning_rate, multi_step = multi_step, subsampling_fraction = 0.9),
+                objective = dict(type = "policy_gradient", clipping_value = 0.1),
+                reward_estimation = dict(horizon = "episode", discount = 0.999, predict_horizon_values = "early"),
+                baseline = dict(type = "parametrized_distributions", network = network),
+                baseline_optimizer = dict(optimizer = "adam", learning_rate = learning_rate, multi_step = multi_step),
+                baseline_objective = dict(type = "state_value"),
+
+
+                exploration = dict(type = 'linear', unit = 'episodes', num_steps = int(num_episode*0.9), initial_value = epsilon, final_value = epsilon_min),
+                config = dict(seed = 1),
+                tracking = 'all',
+                parallel_interactions  = 1,
+                )
+            
+    
     
     print(agent.get_architecture())
     
     summaries = np.empty((nbr_job_max * nbr_test_per_max_job,1), dtype =  object)
     target_date_test = []
     
-    for i in range(num_episode):
+    for i in range(1,num_episode+1):
 
         # Initialize episode
         states = environment.reset()
         terminal = False
         reward_tot = 0
+    
         
         while not terminal:
             # Episode timestep
@@ -167,26 +221,38 @@ def train_model(wandb_activate = True,sweep = True, load = False):
             
             #memoire.append(np.hstack((old_state,actions,reward,terminal)))
         
-        print(tracked["agent/policy_optimizer/learning_rate/learning_rate"])
-        if wandb_activate and not load:
-            wandb.log(
-                {
-                    "score_minimum" : score_min,
-                    "exploration" : tracked["agent/exploration/exploration"],
-                    "learning_rate" : tracked["agent/policy_optimizer/learning_rate/learning_rate"],
-                    "policy-loss" : tracked["agent/policy-loss"],
-                    "policy-objective-loss" : tracked["agent/policy-objective-loss"],
-                    "update-return" : tracked["agent/update-return"],
-                    "reward" : reward_tot,
-                    
-                },
-                step =step
-            )
-            
-            
         score_mean.append(reward_tot)
         if score_min < reward_tot:
                 score_min = reward_tot
+        
+        if wandb_activate and not load:
+            if agent_type == "ddqn" or agent_type == "dueling_dqn":
+                wandb.log(
+                    {
+                        "score_minimum" : score_min,
+                        "exploration" : tracked["agent/exploration/exploration"],
+                        "learning_rate" : tracked["agent/policy_optimizer/learning_rate/learning_rate"],
+                        "policy-loss" : tracked["agent/policy-loss"],
+                        "policy-objective-loss" : tracked["agent/policy-objective-loss"],
+                        "update-return" : tracked["agent/update-return"],
+                        "reward" : reward_tot,
+                        
+                    },
+                    step =step
+                )
+            else:
+                wandb.log(
+                    {
+                        "score_minimum" : score_min,
+                        "exploration" : tracked["agent/exploration/exploration"],
+                        "reward" : reward_tot,
+                        
+                    },
+                    step =step
+                )
+            
+            
+        
                 
         print("episode: ", i, "  reward : ",reward_tot, "mean_reward : ", np.mean(score_mean), "score min : ", score_min)
         
@@ -197,7 +263,7 @@ def train_model(wandb_activate = True,sweep = True, load = False):
         if i % test_every == 0:
             
             
-            test_dict_target_dates,r = test_model(agent, nbr_test_per_max_job, nbr_job_max, nbr_operation_max, nbr_machines, nbr_operator, operator_vector_length)
+            test_dict_target_dates,r = test_model(agent, nbr_test_per_max_job, nbr_job_max, nbr_operation_max, nbr_machines, nbr_operator, operator_vector_length, echu_weights)
             
             
             if np.shape(summaries)[1] == 1:
@@ -256,6 +322,10 @@ def train_model(wandb_activate = True,sweep = True, load = False):
                     print("impossible to viusalize")
                 pass
             
+            #nbr_job_to_use = np.random.randint(nbr_job_max) + 1
+            #environment = Environment.create(environment=TF_environment(nbr_job_max, nbr_job_to_use, nbr_operation_max, 
+            #                                                    nbr_machines, nbr_operator, operator_vector_length,
+            #                                                    dict_target_date))
 
             #path_img = "model/" + run.project + "/" +  run.name +"/" + '{:010d}'.format(i) + ".png"
             
@@ -322,7 +392,7 @@ def train_model(wandb_activate = True,sweep = True, load = False):
     agent.close()
     environment.close()
     
-def test_model(agent , nbr_test_per_max_job, nbr_job_max, nbr_operation_max, nbr_machines, nbr_operator, operator_vector_length):
+def test_model(agent , nbr_test_per_max_job, nbr_job_max, nbr_operation_max, nbr_machines, nbr_operator, operator_vector_length, echu_weights):
     
     start_date = "2022-04-04 00:00:00"
 
@@ -338,7 +408,7 @@ def test_model(agent , nbr_test_per_max_job, nbr_job_max, nbr_operation_max, nbr
             #on crée l'environnement avec i+1 nbr job max to use
             environment = Environment.create(environment=TF_environment(nbr_job_max, i+1, nbr_operation_max, 
                                                                         nbr_machines, nbr_operator, operator_vector_length,
-                                                                        dict_target_date))
+                                                                        dict_target_date, echu_weights))
             states = environment.reset()
             internals = agent.initial_internals()
             terminal = False
@@ -429,37 +499,19 @@ if __name__ == '__main__':
                 "goal": "maximize",
             },
             "parameters": {
-                "batch_size": {
-                    "min" : 4,
-                    "max" : 1024,
-                },
-                "n_episode": {
-                    "min" : 500,
-                    "max" : 6000
-                    
-                },
-                "UPDATE_FREQ": {
-                    "min" : 2,
-                    "max" : 64,
-                },
+                "batch_size": 32,
+                "n_episode": 2000,
+                
+                "UPDATE_FREQ": 2,
                 "target_update_weight" : {
                     "min" : 0.01,
                     "max" : 1.0
                     
                     },
-                "NETW_UPDATE_FREQ": {
-                    "min" : 2,
-                    "max" : 100
-                },
-                "epsilon": {
-                    "min" : 0.5,
-                    "max" : 1.0
-                },
-                "epsilon_min": {
-                    "min" : 0.01,
-                    "max" : 0.4
-                    
-                },
+                "NETW_UPDATE_FREQ": 50,
+                "epsilon": 0.5,
+                "epsilon_min": 0.05,  
+                
                 "learning_rate": {
                     "min" : 0.00001,
                     "max" : 0.1

@@ -22,7 +22,7 @@ os.chdir("C:/Users/LDE/Prog/projet_master/digital_twins")
 class Production_line():
     
     def __init__(self, nbr_job_max, nbr_job_to_use, nbr_operation_max, nbr_machines, nbr_operator, operator_vector_length,
-                 dict_target_date):
+                 dict_target_date, echu_weights):
         
         
         self.nbr_job_max = nbr_job_max
@@ -42,6 +42,7 @@ class Production_line():
         self.target_date = []
         self.formulations = []
         
+        self.echu_weights = echu_weights
         
         for i, (key, value) in enumerate(dict_target_date.items()):
             if i < self.nbr_job_to_use:
@@ -194,7 +195,7 @@ class Production_line():
                 update = self.operator
                 time = self.time
                 
-                reward -= self.wip #a tester, on augmente la pénalité d'avancer dans le temps en fonction du nombre de wip
+                #reward -= self.wip #a tester, on augmente la pénalité d'avancer dans le temps en fonction du nombre de wip
                 if reward == 0:
                     reward-=1
                 
@@ -209,7 +210,7 @@ class Production_line():
                     
                 #update and check expiration time of all operations
                 nbr_echu = self.update_check_expiration_time()
-                reward -= 20*nbr_echu # a tester, pour éviter les doublons
+                reward -= self.echu_weights * nbr_echu # a tester, pour éviter les doublons
                 
                 #update the processing time of all operation and remove the op from
                 #machine if the op has ended
@@ -462,7 +463,6 @@ class Production_line():
                 
         plan_df = pd.DataFrame()
         for plan in planning:
-            print(plan,"\n")
             df = pd.DataFrame(plan, columns =['Job','Machine', 'Operation', 'Start','Duration','Finish'])
             plan_df = pd.concat([plan_df, df], axis=0)
         

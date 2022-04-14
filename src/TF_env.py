@@ -17,7 +17,7 @@ import time
 class TF_environment(Environment):
     
     def __init__(self, nbr_job_max, nbr_job_to_use, nbr_operation_max, nbr_machines, nbr_operator, operator_vector_length,
-                 dict_target_date):
+                 dict_target_date, echu_weights = 0):
         
         super().__init__()
         self.nbr_job_max = nbr_job_max
@@ -27,10 +27,12 @@ class TF_environment(Environment):
         self.nbr_operator = nbr_operator
         self.operator_vector_length = operator_vector_length
         self.dict_target_date = dict_target_date
+        self.echu_weights = echu_weights
         
         self.production_line = Production_line(self.nbr_job_max, self.nbr_job_to_use, self.nbr_operation_max, self.nbr_machines,
-                                               self.nbr_operator, self.operator_vector_length, self.dict_target_date)
+                                               self.nbr_operator, self.operator_vector_length, self.dict_target_date, self.echu_weights)
         self.max_step_per_episode = 200
+        self.i = 0
         
         
     def states(self):
@@ -47,9 +49,11 @@ class TF_environment(Environment):
         super().close()
         
     def reset(self):
+        self.i += 1
+        dict_target_date = utils.generate_test_scenarios("2022-04-04 00:00:00", self.nbr_job_max, seed = self.i)
         # Initial state and associated action mask
         self.production_line = Production_line(self.nbr_job_max, self.nbr_job_to_use, self.nbr_operation_max, self.nbr_machines,
-                                               self.nbr_operator, self.operator_vector_length, self.dict_target_date)
+                                               self.nbr_operator, self.operator_vector_length, self.dict_target_date, self.echu_weights)
         
         action_mask = self.production_line.get_mask()
         
