@@ -104,6 +104,7 @@ def train_model(wandb_activate = True,sweep = True, load = False):
     score_min = -10000
     
     dict_target_date = utils.generate_test_scenarios("2022-04-04 00:00:00", nbr_job_max, seed = 0)
+    #dict_target_date = {"2022-04-05 00:00:00" : 1}
     environment = Environment.create(environment=TF_environment(nbr_job_max, nbr_job_to_use, nbr_operation_max, 
                                                                 nbr_machines, nbr_operator, operator_vector_length,
                                                                 dict_target_date,echu_weights))
@@ -140,10 +141,10 @@ def train_model(wandb_activate = True,sweep = True, load = False):
                 discount = discount,
                 target_update_weight = target_update_weight ,
                 target_sync_frequency  = target_sync_frequency,
-                exploration = dict(type = 'linear', unit = 'episodes', num_steps = int(num_episode), initial_value = epsilon, final_value = epsilon_min),
+                exploration = dict(type = 'linear', unit = 'episodes', num_steps = int(num_episode*0.7), initial_value = epsilon, final_value = epsilon_min),
                 config = dict(seed = 1),
                 tracking = 'all',
-                parallel_interactions  = 1,
+                parallel_interactions  = 8,
                 )
             
         if agent_type == "ppo":
@@ -197,6 +198,8 @@ def train_model(wandb_activate = True,sweep = True, load = False):
     summaries = np.empty((nbr_job_max * nbr_test_per_max_job,1), dtype =  object)
     target_date_test = []
     
+    
+    
     for i in range(1,num_episode+1):
 
         # Initialize episode
@@ -213,13 +216,21 @@ def train_model(wandb_activate = True,sweep = True, load = False):
             old_state = states["state"]
             states, terminal, reward = environment.execute(actions=actions)
             
+            
             agent.observe(terminal=terminal, reward=reward)
+            
+        
+            
+            
+            
+            
+            
             reward_tot += reward
             tracked = agent.tracked_tensors()
             
             step+=1
             
-            #memoire.append(np.hstack((old_state,actions,reward,terminal)))
+            #memoire.append(np.hstack((old_state,actions,reward)))
         
         score_mean.append(reward_tot)
         if score_min < reward_tot:
@@ -392,7 +403,7 @@ def train_model(wandb_activate = True,sweep = True, load = False):
     agent.close()
     environment.close()
     
-def test_model(agent , nbr_test_per_max_job, nbr_job_max, nbr_operation_max, nbr_machines, nbr_operator, operator_vector_length, echu_weights):
+def test_model(agent , nbr_test_per_max_job, nbr_job_max, nbr_operation_max, nbr_machines, nbr_operator, operator_vector_length, echu_weights, display = False):
     
     start_date = "2022-04-04 00:00:00"
 
@@ -428,16 +439,25 @@ def test_model(agent , nbr_test_per_max_job, nbr_job_max, nbr_operation_max, nbr
             dict_target_dates[index,0] = dict_target_date
             index += 1
             
+            if display:
+                planning = environment.get_env().get_gant_formated()  
+                job_stats = environment.get_env().get_job_stats()
+                try :
+                    utils.visualize(planning,environment.get_env().historic_time,environment.get_env().historic_operator ,job_stats, "test/" + str(nbr_job_max) + "_" + str(i+1)+"_"+str(j+1))
+                except:
+                    print("impossible to viusalize")
+            
+            
     return dict_target_dates, reward_vector
             
     
 
 
-def use_model(model_path, model_name, target_date):
+def use_model(model_path, model_name, target_date, nbr_job_max):
     
-    environment = Environment.create(environment=TF_environment(9, len(target_date), 15, 
+    environment = Environment.create(environment=TF_environment(nbr_job_max, len(target_date), 15, 
                                                                 13, 12, 14,
-                                                                target_date))
+                                                                target_date, independent = True))
     
     agent = Agent.load(
             directory = model_path, 
@@ -549,21 +569,14 @@ if __name__ == '__main__':
     
     if args.use:
         print("use model")
-        directory = "model/8_job_ddqn_weekend/lunar-snowflake-2/", 
-        filename = "0000011000.hdf5",
+        directory = "model/3_job_ddqn_weekend/peachy-darkness-18/"
+        filename = "final.hdf5"
         
         target_date = {
-            "2021-08-24 00:00:00" : 6,
-            "2021-08-31 00:00:00" : 6,
-            "2021-09-07 00:00:00" : 1,
-            "2021-09-14 00:00:00" : 1,
-            "2021-09-21 00:00:00" : 3,
-            "2021-09-28 00:00:00" : 3,
-            "2021-10-04 00:00:00" : 1,
-            "2021-10-07 00:00:00" : 3,
-            "2021-10-13 00:00:00" : 1,
-            "2021-10-19 00:00:00" : 6,
+            
+            "2022-04-19 00:00:00" : 1,
+            "2022-04-23 00:00:00" : 1
         }
         
-        use_model(directory, filename, target_date)
+        use_model(directory, filename, target_date, 3)
         

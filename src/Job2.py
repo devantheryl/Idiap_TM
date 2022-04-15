@@ -163,10 +163,14 @@ class Job:
         
         lead_time = 0
         if self.ended:
+            
             planning = self.build_gant_formated()
             df = pd.DataFrame(planning, columns =['Job','Machine', 'Operation', 'Start','Duration','Finish'])
             df_planned = df[df["Machine"] != 0]
-            lead_time = (df_planned['Start'].max() - df_planned['Finish'].min()).days
+            try:
+                lead_time = (df_planned['Start'].max() - df_planned['Finish'].min()).days
+            except:
+                print("error in job.get_stats()")
             
         
         

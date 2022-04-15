@@ -164,6 +164,7 @@ class Production_line():
         #TODO
         action = self.actions_space[action_index]
         reward = 0
+        nbr_echu = 0
         
         #si l'action est légal, normalement elle l'est du au mask
         if self.check_legality(action):
@@ -269,7 +270,8 @@ class Production_line():
         
         #to do, implemtner check done
         done = self.check_done()
-            
+        if nbr_echu:
+            done = True            
                 
         return next_state,reward, done 
     
@@ -414,7 +416,7 @@ class Production_line():
         
         params_op = 4
         params_machine = 3
-        state_size = self.nbr_job_max * self.nbr_operation_max * params_op + self.nbr_job_max + self.nbr_machines * params_machine + self.operator_vector_length + 1#  +1 for morning afternoon
+        state_size = self.nbr_job_max * self.nbr_operation_max * params_op + self.nbr_job_max + self.nbr_machines * params_machine + self.operator_vector_length + 2#  +1 for morning afternoon
         
         return state_size
     
@@ -450,6 +452,7 @@ class Production_line():
         
         sum_state += (self.morning_afternoon,)
         
+        sum_state += (self.time.weekday(),)
         
         state[:] = sum_state 
         
