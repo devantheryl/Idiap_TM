@@ -17,7 +17,7 @@ import time
 class TF_environment(Environment):
     
     def __init__(self, nbr_job_max, nbr_job_to_use, nbr_operation_max, nbr_machines, nbr_operator, operator_vector_length,
-                 dict_target_date, echu_weights = 1000, independent =False):
+                 dict_target_date, echu_weights = 1000,no_target_weights = 10, independent =False):
         
         super().__init__()
         self.nbr_job_max = nbr_job_max
@@ -28,11 +28,13 @@ class TF_environment(Environment):
         self.operator_vector_length = operator_vector_length
         self.dict_target_date = dict_target_date
         self.echu_weights = echu_weights
+        self.no_target_weights = no_target_weights
         self.independent = independent
         self.production_line = Production_line(self.nbr_job_max, self.nbr_job_to_use, self.nbr_operation_max, self.nbr_machines,
-                                               self.nbr_operator, self.operator_vector_length, self.dict_target_date, self.echu_weights)
-        self.max_step_per_episode = 200
+                                               self.nbr_operator, self.operator_vector_length, self.dict_target_date, self.echu_weights, self.no_target_weights)
+        self.max_step_per_episode = 300
         self.i = 0
+        self.nbr_echu =0
         
         
     def states(self):
@@ -55,7 +57,7 @@ class TF_environment(Environment):
             self.dict_target_date = utils.generate_test_scenarios("2022-04-04 00:00:00", self.nbr_job_max, seed = self.i)
         # Initial state and associated action mask
         self.production_line = Production_line(self.nbr_job_max, self.nbr_job_to_use, self.nbr_operation_max, self.nbr_machines,
-                                               self.nbr_operator, self.operator_vector_length, self.dict_target_date, self.echu_weights)
+                                               self.nbr_operator, self.operator_vector_length, self.dict_target_date, self.echu_weights, self.no_target_weights)
         
         action_mask = self.production_line.get_mask()
         
@@ -66,7 +68,7 @@ class TF_environment(Environment):
     
     def execute(self,actions):
         # Compute terminal and reward
-        next_state,reward, done  = self.production_line.step(actions)
+        next_state,reward, done, self.nbr_echu  = self.production_line.step(actions)
         action_mask =self.production_line.get_mask()
 
         # Add action mask to states dictionary (mask item is "[NAME]_mask", here "action_mask")

@@ -66,6 +66,7 @@ def train_model(wandb_activate = True,sweep = True, load = False):
     
     nbr_test_per_max_job = configs["nbr_test_per_max_job"]
     echu_weights = configs["echu_weights"]
+    no_target_weights = configs["no_target_weights"]
     
     if wandb_activate:
         if sweep:
@@ -107,7 +108,7 @@ def train_model(wandb_activate = True,sweep = True, load = False):
     #dict_target_date = {"2022-04-05 00:00:00" : 1}
     environment = Environment.create(environment=TF_environment(nbr_job_max, nbr_job_to_use, nbr_operation_max, 
                                                                 nbr_machines, nbr_operator, operator_vector_length,
-                                                                dict_target_date,echu_weights))
+                                                                dict_target_date,echu_weights,no_target_weights))
     
     step = 0
     
@@ -145,6 +146,7 @@ def train_model(wandb_activate = True,sweep = True, load = False):
                 config = dict(seed = 1),
                 tracking = 'all',
                 parallel_interactions  = 8,
+                #reward_processing  = dict(type = "instance_normalization")
                 )
             
         if agent_type == "ppo":
@@ -167,29 +169,28 @@ def train_model(wandb_activate = True,sweep = True, load = False):
                 tracking = 'all',
                 parallel_interactions  = 8,
                 )
-            
-        if agent_type == "tensorforce":
+        if agent_type == "a2c" :
             agent = Agent.create(
-                agent='tensorforce',
+                agent=agent_type,
                 states = environment.states(),
                 actions = environment.actions(),
-                policy = dict(type = "parametrized_distributions", network = network),
                 max_episode_timesteps = environment.max_episode_timesteps(),
-                memory= dict(type = "recent" ),#,capacity=1000),
-                update = dict(unit = "episodes", batch_size = batch_size, frequency = update_frequency),
-                optimizer = dict(optimizer = "adam", learning_rate = learning_rate, multi_step = multi_step, subsampling_fraction = 0.9),
-                objective = dict(type = "policy_gradient", clipping_value = 0.1),
-                reward_estimation = dict(horizon = "episode", discount = 0.999, predict_horizon_values = "early"),
-                baseline = dict(type = "parametrized_distributions", network = network),
-                baseline_optimizer = dict(optimizer = "adam", learning_rate = learning_rate, multi_step = multi_step),
-                baseline_objective = dict(type = "state_value"),
-
-
-                exploration = dict(type = 'linear', unit = 'episodes', num_steps = int(num_episode*0.9), initial_value = epsilon, final_value = epsilon_min),
+                #memory=memory,
+                batch_size = batch_size,
+                network = network,
+                update_frequency = update_frequency,
+                learning_rate = dict(type = 'exponential', unit = 'episodes', num_steps = int(num_episode), initial_value = learning_rate, decay_rate = lr_decay),
+                #huber_loss = huber_loss,
+                horizon = "episode",
+                discount = discount,
+                critic = network,
+                exploration = dict(type = 'linear', unit = 'episodes', num_steps = int(num_episode*0.7), initial_value = epsilon, final_value = epsilon_min),
                 config = dict(seed = 1),
                 tracking = 'all',
-                parallel_interactions  = 1,
+                parallel_interactions  = 8,
                 )
+            
+        
             
     
     
@@ -218,13 +219,7 @@ def train_model(wandb_activate = True,sweep = True, load = False):
             
             
             agent.observe(terminal=terminal, reward=reward)
-            
-        
-            
-            
-            
-            
-            
+
             reward_tot += reward
             tracked = agent.tracked_tensors()
             
@@ -247,6 +242,8 @@ def train_model(wandb_activate = True,sweep = True, load = False):
                         "policy-objective-loss" : tracked["agent/policy-objective-loss"],
                         "update-return" : tracked["agent/update-return"],
                         "reward" : reward_tot,
+                        "nbr_echu" :  environment.get_env().number_echu,
+                        "nbr_no_target" : environment.get_env().number_no_target
                         
                     },
                     step =step
@@ -262,9 +259,7 @@ def train_model(wandb_activate = True,sweep = True, load = False):
                     step =step
                 )
             
-            
-        
-                
+
         print("episode: ", i, "  reward : ",reward_tot, "mean_reward : ", np.mean(score_mean), "score min : ", score_min)
         
         
@@ -274,7 +269,7 @@ def train_model(wandb_activate = True,sweep = True, load = False):
         if i % test_every == 0:
             
             
-            test_dict_target_dates,r = test_model(agent, nbr_test_per_max_job, nbr_job_max, nbr_operation_max, nbr_machines, nbr_operator, operator_vector_length, echu_weights)
+            test_dict_target_dates,r = test_model(agent, nbr_test_per_max_job, nbr_job_max, nbr_operation_max, nbr_machines, nbr_operator, operator_vector_length, echu_weights, no_target_weights)
             
             
             if np.shape(summaries)[1] == 1:
@@ -308,6 +303,7 @@ def train_model(wandb_activate = True,sweep = True, load = False):
                     utils.visualize(planning,environment.get_env().historic_time,environment.get_env().historic_operator ,job_stats, path_img)
                 except:
                     print("impossible to viusalize")
+                
                     
                 for key, value in job_stats.items():
                     wandb.log(
@@ -324,15 +320,13 @@ def train_model(wandb_activate = True,sweep = True, load = False):
                     },
                     step = step
                 )
-                
-                
             else:
-                try: 
+                try :
                     utils.visualize(planning,environment.get_env().historic_time,environment.get_env().historic_operator, job_stats)
                 except:
                     print("impossible to viusalize")
-                pass
-            
+                
+     
             #nbr_job_to_use = np.random.randint(nbr_job_max) + 1
             #environment = Environment.create(environment=TF_environment(nbr_job_max, nbr_job_to_use, nbr_operation_max, 
             #                                                    nbr_machines, nbr_operator, operator_vector_length,
@@ -344,6 +338,9 @@ def train_model(wandb_activate = True,sweep = True, load = False):
         
     
     #np.savetxt("test.csv",np.array(memoire),delimiter = ';')
+    
+    test_dict_target_dates,r = test_model(agent, nbr_test_per_max_job, nbr_job_max, nbr_operation_max, nbr_machines, nbr_operator, operator_vector_length, echu_weights, no_target_weights, True)
+    
     
     states = environment.reset()
     internals = agent.initial_internals()
@@ -403,7 +400,7 @@ def train_model(wandb_activate = True,sweep = True, load = False):
     agent.close()
     environment.close()
     
-def test_model(agent , nbr_test_per_max_job, nbr_job_max, nbr_operation_max, nbr_machines, nbr_operator, operator_vector_length, echu_weights, display = False):
+def test_model(agent , nbr_test_per_max_job, nbr_job_max, nbr_operation_max, nbr_machines, nbr_operator, operator_vector_length, echu_weights, no_target_weights, display = False):
     
     start_date = "2022-04-04 00:00:00"
 
@@ -419,7 +416,7 @@ def test_model(agent , nbr_test_per_max_job, nbr_job_max, nbr_operation_max, nbr
             #on crée l'environnement avec i+1 nbr job max to use
             environment = Environment.create(environment=TF_environment(nbr_job_max, i+1, nbr_operation_max, 
                                                                         nbr_machines, nbr_operator, operator_vector_length,
-                                                                        dict_target_date, echu_weights))
+                                                                        dict_target_date, echu_weights, no_target_weights))
             states = environment.reset()
             internals = agent.initial_internals()
             terminal = False
@@ -569,14 +566,15 @@ if __name__ == '__main__':
     
     if args.use:
         print("use model")
-        directory = "model/3_job_ddqn_weekend/peachy-darkness-18/"
+        directory = "model/5_job_ddqn_weekend/iconic-field-8"
         filename = "final.hdf5"
         
         target_date = {
             
             "2022-04-19 00:00:00" : 1,
-            "2022-04-23 00:00:00" : 1
+            
+
         }
         
-        use_model(directory, filename, target_date, 3)
+        use_model(directory, filename, target_date, 5)
         

@@ -22,7 +22,7 @@ os.chdir("C:/Users/LDE/Prog/projet_master/digital_twins")
 class Production_line():
     
     def __init__(self, nbr_job_max, nbr_job_to_use, nbr_operation_max, nbr_machines, nbr_operator, operator_vector_length,
-                 dict_target_date, echu_weights):
+                 dict_target_date, echu_weights, no_target_weights):
         
         
         self.nbr_job_max = nbr_job_max
@@ -43,6 +43,7 @@ class Production_line():
         self.formulations = []
         
         self.echu_weights = echu_weights
+        self.no_target_weights = no_target_weights
         
         for i, (key, value) in enumerate(dict_target_date.items()):
             if i < self.nbr_job_to_use:
@@ -55,6 +56,8 @@ class Production_line():
         self.morning_afternoon = 0 #0: morning, 1: afternoon
         
         
+        self.number_echu = 0
+        self.number_no_target = 0
         #params
         self.wip = 0
         
@@ -211,6 +214,7 @@ class Production_line():
                     
                 #update and check expiration time of all operations
                 nbr_echu = self.update_check_expiration_time()
+                self.number_echu += nbr_echu
                 reward -= self.echu_weights * nbr_echu # a tester, pour éviter les doublons
                 
                 #update the processing time of all operation and remove the op from
@@ -247,6 +251,7 @@ class Production_line():
                 self.jobs[job_to_schedule-1].operations[operation_to_schedule-1].end_time = self.time
                 self.jobs[job_to_schedule-1].operations[operation_to_schedule-1].processed_on = machine_to_schedule
                 
+                
                 #update the machine status
                 self.machines[machine_to_schedule-1].assign_operation(job_to_schedule,operation_to_schedule)
                 
@@ -259,7 +264,9 @@ class Production_line():
                 #si l'opération est la perry
                 if self.jobs[job_to_schedule-1].operations[operation_to_schedule-1].operation_number == 15:
                     if self.jobs[job_to_schedule-1].target_date != self.time:
-                        reward-=10 + utils.get_delta_time(self.time, self.jobs[job_to_schedule-1].target_date)
+                        reward-= self.no_target_weights + utils.get_delta_time(self.time, self.jobs[job_to_schedule-1].target_date)
+                        self.number_no_target +=1
+
                 
                 
                 
@@ -270,10 +277,11 @@ class Production_line():
         
         #to do, implemtner check done
         done = self.check_done()
-        if nbr_echu:
-            done = True            
+        if done:
+            reward += 10
+                  
                 
-        return next_state,reward, done 
+        return next_state,reward, done, nbr_echu
     
     def update_processing_time(self):
         
@@ -360,10 +368,12 @@ class Production_line():
                                 if self.time > job.target_date:
                                     executable = False
                                     
-                            #check op for the mel-ex part
-                            #if it is melange or extrusion
-                            #TODO
-                            #if operation.operation_number in []
+                            #TODO change this shit
+                            #pour eviter que l'extrusion soit mal plannifiée (probleme de doublon)
+                            if operation.operation_number == 8 or operation.operation_number == 7:
+                                if self.time.weekday() == 1:
+                                    executable = False
+                                
                             
                             if executable:
                                 executables.append(operation.operation_number)
