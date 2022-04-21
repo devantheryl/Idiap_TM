@@ -589,12 +589,8 @@
         "extrudeur_b2", 
         "combinaison_b",
         "millieu_b1" , 
-        "perry_b2", 
-        "sortie_lyo_b2", 
-        "capsulage_b1",
-        "IV_b", 
-        "envoi_irr_g", 
-        "retour_irr_g"
+        "perry_b2"
+        
     ]
 
 }

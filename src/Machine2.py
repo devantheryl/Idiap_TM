@@ -39,7 +39,7 @@ class Machine:
         return False
     
     def get_state(self):
-        return self.status/2, self.job/14, self.operation/15
+        return self.status/2,
     
     
     
