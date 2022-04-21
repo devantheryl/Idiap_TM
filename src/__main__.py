@@ -453,7 +453,7 @@ def test_model(agent , nbr_test_per_max_job, nbr_job_max, nbr_operation_max, nbr
 def use_model(model_path, model_name, target_date, nbr_job_max):
     
     environment = Environment.create(environment=TF_environment(nbr_job_max, len(target_date), 15, 
-                                                                13, 12, 14,
+                                                                8, 12, 7,
                                                                 target_date, independent = True))
     
     agent = Agent.load(
@@ -566,12 +566,15 @@ if __name__ == '__main__':
     
     if args.use:
         print("use model")
-        directory = "model/5_job_ddqn_weekend/iconic-field-8"
-        filename = "final.hdf5"
+        directory = "model/5_job_ddqn_weekend/young-sponge-13"
+        filename = "0001005561.hdf5"
         
         target_date = {
             
-            "2022-04-19 00:00:00" : 1,
+            "2022-04-04 00:00:00" : 3,
+            "2022-04-12 00:00:00" : 6,
+            "2022-04-19 00:00:00" : 6,
+            "2022-04-25 00:00:00" : 6
             
 
         }

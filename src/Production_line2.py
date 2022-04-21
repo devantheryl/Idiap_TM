@@ -199,7 +199,7 @@ class Production_line():
                 update = self.operator
                 time = self.time
                 
-                #reward -= self.wip #a tester, on augmente la pénalité d'avancer dans le temps en fonction du nombre de wip
+                reward -= self.wip #a tester, on augmente la pénalité d'avancer dans le temps en fonction du nombre de wip
                 if reward == 0:
                     reward-=1
                 
@@ -424,9 +424,10 @@ class Production_line():
     
     def get_state_size(self):
         
-        params_op = 2
+        params_op = 5
         params_machine = 1
-        state_size = self.nbr_job_max * self.nbr_operation_max * params_op + self.nbr_job_max + self.nbr_machines * params_machine + self.operator_vector_length + 2#  +1 for morning afternoon
+        params_prod_line = 5
+        state_size = self.nbr_job_max * self.nbr_operation_max * params_op + self.nbr_job_max + self.nbr_machines * params_machine + self.operator_vector_length + params_prod_line
         
         return state_size
     
@@ -453,7 +454,7 @@ class Production_line():
                 sum_state += (0,)
             
             
-
+            
                     
         for machine in self.machines:
             sum_state += machine.get_state()
@@ -463,6 +464,8 @@ class Production_line():
         sum_state += (self.morning_afternoon,)
         
         sum_state += (self.time.weekday(),)
+        
+        sum_state += (self.wip, self.number_no_target, self.number_echu,)
         
         state[:] = sum_state 
         
