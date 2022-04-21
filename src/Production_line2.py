@@ -424,7 +424,7 @@ class Production_line():
     
     def get_state_size(self):
         
-        params_op = 5
+        params_op = 2
         params_machine = 1
         params_prod_line = 5
         state_size = self.nbr_job_max * self.nbr_operation_max * params_op + self.nbr_job_max + self.nbr_machines * params_machine + self.operator_vector_length + params_prod_line
