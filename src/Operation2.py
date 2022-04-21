@@ -31,6 +31,8 @@ class Operation:
         self.executable = executable
         self.status = 0 #0:non-attribué, 1:en cours, 2:terminé, 3:used, 4:doens't exist
         
+        
+        
         #stats vars
         self.start_time = 0.0
         self.end_time = 0.0

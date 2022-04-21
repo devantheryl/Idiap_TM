@@ -45,6 +45,7 @@ class Production_line():
         self.echu_weights = echu_weights
         self.no_target_weights = no_target_weights
         
+        
         for i, (key, value) in enumerate(dict_target_date.items()):
             if i < self.nbr_job_to_use:
                 self.target_date.append(datetime.fromisoformat(key) + timedelta(days = 2))
@@ -314,19 +315,21 @@ class Production_line():
                     if operation != None:    
                         #si l'opération est terminée
                         if operation.status == 2:
-                            #si l'opération suivante n'a pas encore commencé
+                            
                             
                             for operation_used in operation.used_by:
+                                #si l'opérations suivantes n'a pas encore commencé
                                 if job.operations[operation_used-1].status == 0:
                             
-                                    #si l'opération est écheue
+                                    #si l'opération est échue
                                     if job.operations[operation_used-1].decrease_get_expiration_time(self.time) == 0:
                                         
                                         
                                     
-                                        #on recrée les deux opérations
+                                        #on recrée l'opération mère + toutes ses used_by
                                         job.create_operation(operation.operation_number)
-                                        job.create_operation(operation_used)
+                                        for o in operation.used_by:
+                                            job.create_operation(o.operation_number)
                                         
                                         nbr_echu += 1
                                         job.echu += [operation_used]
