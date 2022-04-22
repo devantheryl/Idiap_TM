@@ -188,8 +188,8 @@ def get_delta_time(current_time, target_time):
     
 
 def generate_test_scenarios(start_date, nbr_job, seed):
-    day_stat = [0.36,0.44,0.12,0.08]
-    formu_stat = [0.29,0.29,0.42]
+    day_stat = [0.3,0.3,0.3,0.1]
+    formu_stat = [0.25,0.25,0.5]
     
     target_dates = {}
     start_date = datetime.fromisoformat(start_date)

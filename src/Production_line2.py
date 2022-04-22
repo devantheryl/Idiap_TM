@@ -325,14 +325,19 @@ class Production_line():
                                     if job.operations[operation_used-1].decrease_get_expiration_time(self.time) == 0:
                                         
                                         
-                                    
+                                        
+                                        
                                         #on recrée l'opération mère + toutes ses used_by
                                         job.create_operation(operation.operation_number)
                                         for o in operation.used_by:
-                                            job.create_operation(o.operation_number)
-                                        
+                                            job.create_operation(o)
+                                            
                                         nbr_echu += 1
                                         job.echu += [operation_used]
+                                        
+                                        break
+                                        
+                                        
         return nbr_echu
     
                      
