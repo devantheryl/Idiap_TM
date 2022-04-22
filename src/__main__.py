@@ -146,7 +146,7 @@ def train_model(wandb_activate = True,sweep = True, load = False):
                 config = dict(seed = 1),
                 tracking = 'all',
                 parallel_interactions  = 8,
-                #reward_processing  = dict(type = "instance_normalization")
+                reward_processing  = dict(type = "instance_normalization")
                 )
             
         if agent_type == "ppo":
