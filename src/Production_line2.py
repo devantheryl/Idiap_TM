@@ -432,7 +432,7 @@ class Production_line():
     
     def get_state_size(self):
         
-        params_op = 5
+        params_op = 1
         params_machine = 1
         params_prod_line = 5
         state_size = self.nbr_job_max * self.nbr_operation_max * params_op + self.nbr_job_max + self.nbr_machines * params_machine + self.operator_vector_length + params_prod_line
@@ -449,17 +449,17 @@ class Production_line():
                         sum_state += operation.get_state()
                     else:
                         #default state
-                        sum_state += (1,0,0,0,0) # 1 = 4/4
+                        sum_state += (-1) # 1 = 4/4
                         
                 #target_date delta time        
                 sum_state += (utils.get_delta_time(self.time, job.target_date) /180,)
                 
             else:
                 for i in range (self.nbr_operation_max):
-                    sum_state += (1,0,0,0,0) # 1 = 4/4
+                    sum_state += (-1) # 1 = 4/4
                     
                 #target_date delta time  default value
-                sum_state += (0,)
+                sum_state += (-1,)
             
             
             
