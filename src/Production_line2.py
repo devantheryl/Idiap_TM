@@ -449,17 +449,17 @@ class Production_line():
                         sum_state += operation.get_state()
                     else:
                         #default state
-                        sum_state += (-1,-1,-1,-1,-1) # 1 = 4/4
+                        sum_state += (1,0,0,0,0) # 1 = 4/4
                         
                 #target_date delta time        
                 sum_state += (utils.get_delta_time(self.time, job.target_date) /180,)
                 
             else:
                 for i in range (self.nbr_operation_max):
-                    sum_state += (-1,-1,-1,-1,-1) # 1 = 4/4
+                    sum_state += (1,0,0,0,0) # 1 = 4/4
                     
                 #target_date delta time  default value
-                sum_state += (-1,)
+                sum_state += (0,)
             
             
             

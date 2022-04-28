@@ -188,7 +188,7 @@ def get_delta_time(current_time, target_time):
     
 
 def generate_test_scenarios(start_date, nbr_job, seed):
-    day_stat = [0.3,0.3,0.3,0.1]
+    day_stat = [0.25,0.25,0.25,0.25]
     formu_stat = [0.25,0.25,0.5]
     
     target_dates = {}
