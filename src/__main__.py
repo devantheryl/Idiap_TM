@@ -565,16 +565,16 @@ if __name__ == '__main__':
     
     if args.use:
         print("use model")
-        directory = "model/5_job_ddqn_weekend/wobbly-snowflake-20"
+        directory = "model/5_job_ddqn_weekend/toasty-lake-27"
         filename = "final.hdf5"
         
         target_date = {
             
             "2022-04-04 00:00:00" : 3,
-            "2022-04-12 00:00:00" : 6,
+            "2022-04-12 00:00:00" : 1,
             "2022-04-19 00:00:00" : 6,
-            "2022-04-25 00:00:00" : 3,
-            "2022-05-09 00:00:00" : 6,
+            "2022-04-25 00:00:00" : 6,
+            "2022-05-02 00:00:00" : 3,
             
 
         }

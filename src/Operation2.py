@@ -29,7 +29,7 @@ class Operation:
         self.begin_day = begin_day #1 : must begin in the morning, 0 : don't care
         self.QC_delay = QC_delay
         self.executable = executable
-        self.status = 0 #0:non-attribué, 1:en cours, 2:terminé, 3:used, 4:doens't exist
+        self.status = 0 #0:non-attribué, 1:en cours, 2:terminé, 3:used, -1:doens't exist
         
         
         
@@ -60,7 +60,7 @@ class Operation:
         return self.expiration_time
     
     def get_state(self):
-        return self.expiration_time/60#, self.begin_day, self.executable, self.processing_time/4
+        return self.status/3, self.expiration_time/60, self.begin_day, self.executable, self.processing_time/4
     
     
     @property
