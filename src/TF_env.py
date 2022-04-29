@@ -55,6 +55,7 @@ class TF_environment(Environment):
         if not self.independent:
             self.i += 1
             self.dict_target_date = utils.generate_test_scenarios("2022-04-04 00:00:00", self.nbr_job_max, seed = self.i)
+            
         # Initial state and associated action mask
         self.production_line = Production_line(self.nbr_job_max, self.nbr_job_to_use, self.nbr_operation_max, self.nbr_machines,
                                                self.nbr_operator, self.operator_vector_length, self.dict_target_date, self.echu_weights, self.no_target_weights)

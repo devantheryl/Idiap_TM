@@ -40,27 +40,17 @@
             
             {
                 "type" : "dense",
-                "size" : 1024,
+                "size" : 128,
                 "activation" : "relu"
             },
             {
                 "type" : "dense",
-                "size" : 1024,
+                "size" : 128,
                 "activation" : "relu"
             },
             {
                 "type" : "dense",
-                "size" : 1024,
-                "activation" : "relu"
-            },
-            {
-                "type" : "dense",
-                "size" : 1024,
-                "activation" : "relu"
-            },
-            {
-                "type" : "dense",
-                "size" : 1024,
+                "size" : 128,
                 "activation" : "relu"
             }
             
