@@ -180,7 +180,7 @@ def get_delta_time(current_time, target_time):
         temp = target_time
         while(1):
             if temp == current_time:
-                return i
+                return -i
             temp = get_new_time(temp,-1)
             i+=1
         

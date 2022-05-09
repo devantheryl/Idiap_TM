@@ -142,10 +142,10 @@ def train_model(wandb_activate = True,sweep = True, load = False):
                 discount = discount,
                 target_update_weight = target_update_weight ,
                 target_sync_frequency  = target_sync_frequency,
-                exploration = dict(type = 'linear', unit = 'episodes', num_steps = int(num_episode*0.7), initial_value = epsilon, final_value = epsilon_min),
+                exploration = dict(type = 'linear', unit = 'episodes', num_steps = int(num_episode), initial_value = epsilon, final_value = epsilon_min),
                 config = dict(seed = 1),
                 tracking = 'all',
-                parallel_interactions  = 8
+                parallel_interactions  = 16
                 )
             
         if agent_type == "ppo":

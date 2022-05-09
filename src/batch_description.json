@@ -524,7 +524,7 @@
             "number" : 14,
             "processable_on" : [7],
             "processing_time" : 1,
-            "expiration_time" : 14,
+            "expiration_time" : 60,
             "dependencies" : [15],
             "operator" : 2,
             "used_by" : [11,12],

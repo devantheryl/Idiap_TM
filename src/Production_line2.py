@@ -141,6 +141,7 @@ class Production_line():
         #assign the job to a random available place in the grid
         if len(available_index):
             i = sample(available_index,1)[0]
+            job.job_number = i+1
             self.jobs[i] = job
             return True
         
@@ -205,8 +206,6 @@ class Production_line():
                     reward-=1
                 
                 
-                
-                
                 #incremente lead_time for all job
                 for job in self.jobs:
                     if job != None:
@@ -226,24 +225,13 @@ class Production_line():
                     if op == 1:
                         self.wip-=1
                 
-                
-                
-                #if abs(self.time-self.init_time).days > 7 and self.job_launched == False:
-                    #reward-=1000#aussi à tester
             
             else:
                 self.job_launched = True
                 #le job est lancé au broyage polymère
                 if (operation_to_schedule == 15) and self.jobs[job_to_schedule-1].started ==False:
                     self.jobs[job_to_schedule-1].started = True
-                    self.wip +=1
-                
-                #le job se fini au retour IRR
-                if operation_to_schedule == 1:
-                    self.jobs[job_to_schedule-1].ended = True
-                    if self.wip == 0:
-                        self.job_launched = False
-                        self.init_time = self.time
+                    self.wip +=1 
                 
                 reward += 1
                 
@@ -265,7 +253,7 @@ class Production_line():
                 #si l'opération est la perry
                 if self.jobs[job_to_schedule-1].operations[operation_to_schedule-1].operation_number == 15:
                     if self.jobs[job_to_schedule-1].target_date != self.time:
-                        reward-= self.no_target_weights + utils.get_delta_time(self.time, self.jobs[job_to_schedule-1].target_date)
+                        reward-= self.no_target_weights + abs(utils.get_delta_time(self.time, self.jobs[job_to_schedule-1].target_date))
                         self.number_no_target +=1
 
                 
@@ -276,9 +264,14 @@ class Production_line():
         
         next_state = self.get_state()
         
-        #to do, implemtner check done
-        done = self.check_done()
+        done, jobs_done  = self.check_done()
+        
+        if jobs_done != None:
+            self.jobs[jobs_done-1].remove_all_operation()
+            self.jobs[jobs_done-1].ended = True
+            reward += 10
         if done:
+            print("done")
             reward += 10
                   
                 
@@ -315,28 +308,21 @@ class Production_line():
                     if operation != None:    
                         #si l'opération est terminée
                         if operation.status == 2:
-                            
-                            
+                                          
                             for operation_used in operation.used_by:
                                 #si l'opérations suivantes n'a pas encore commencé
                                 if job.operations[operation_used-1].status == 0:
                             
                                     #si l'opération est échue
                                     if job.operations[operation_used-1].decrease_get_expiration_time(self.time) == 0:
-                                        
-                                        
-                                        
-                                        
-                                        #on recrée l'opération mère + toutes ses used_by
-                                        job.create_operation(operation.operation_number)
-                                        for o in operation.used_by:
-                                            job.create_operation(o)
-                                            
+
+                                        #on recrée toutes les opérations
+                                        job.create_all_operations()
+    
                                         nbr_echu += 1
                                         job.echu += [operation_used]
                                         
-                                        break
-                                        
+                                        break           
                                         
         return nbr_echu
     
@@ -395,13 +381,20 @@ class Production_line():
     def check_done(self):
         
         done = True
+        jobs_done = None
         for job in self.jobs:
-            if job != None:  
+            job_done = True
+            if job != None and job.ended == False:  
                 for operation in job.operations:
                     if operation != None:    
                         if not (operation.status == 2 or operation.status == 3):
                             done = False
-        return done
+                            job_done = False
+                if job_done:
+                    jobs_done = job.job_number
+                    
+                        
+        return done, jobs_done
                                 
         
     
@@ -432,7 +425,7 @@ class Production_line():
     
     def get_state_size(self):
         
-        params_op = 4
+        params_op = 3
         params_machine = 1
         params_prod_line = 5
         state_size = self.nbr_job_max * self.nbr_operation_max * params_op + self.nbr_job_max + self.nbr_machines * params_machine + self.operator_vector_length + params_prod_line
@@ -449,14 +442,14 @@ class Production_line():
                         sum_state += operation.get_state()
                     else:
                         #default state
-                        sum_state += (-1,-1,-1,-1) # 1 = 4/4
+                        sum_state += (-1,0,-1) # 1 = 4/4
                         
                 #target_date delta time        
                 sum_state += (utils.get_delta_time(self.time, job.target_date) /180,)
                 
             else:
                 for i in range (self.nbr_operation_max):
-                    sum_state += (-1,-1,-1,-1) # 1 = 4/4
+                    sum_state += (-1,0,-1) # 1 = 4/4
                     
                 #target_date delta time  default value
                 sum_state += (-1,)
@@ -467,9 +460,9 @@ class Production_line():
         for machine in self.machines:
             sum_state += machine.get_state()
             
-        sum_state += tuple(self.operator/12)
+        sum_state += tuple((self.operator-6)/6)
         
-        sum_state += (self.morning_afternoon,)
+        sum_state += (self.morning_afternoon-0.5,)
         
         sum_state += (self.time.weekday(),)
         

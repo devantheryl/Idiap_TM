@@ -46,7 +46,7 @@ class Job:
         self.operation_planning = []
         
         #game plate 
-        self.operations = np.full(max_operation,None)
+        self.operations = np.full(self.max_operation,None)
         
         self.create_all_operations()
         
@@ -141,6 +141,9 @@ class Job:
                 
     def increment_lead_time(self, increment=1):
         self.lead_time += increment
+        
+    def remove_all_operation(self):
+        self.operations = np.full(self.max_operation,None)
     
         
     def build_gant_formated(self):
