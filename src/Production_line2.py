@@ -84,6 +84,20 @@ class Production_line():
             job = Job("TEST" + str(i),i+1,self.formulations[i],20000, self.nbr_operation_max, self.target_date[i], self.time)
             self.add_job(job)
         
+        
+        #TOTEST, PLAN PERRY WTHOUT THE AGENT 
+        for i, job in enumerate(self.jobs):
+            #jour de perry, on la planifie d'office
+            if job != None:
+                if job.target_date == self.time:
+                    self.jobs[i].started = True
+                    self.jobs[i].operations[15-1].status = 1
+                    self.jobs[i].operations[15-1].end_time = self.time
+                    self.jobs[i].operations[15-1].processed_on = 8
+                         
+                    #update the machine status
+                    self.machines[8-1].assign_operation(i+1,15)
+        
         self.update_check_executable()
         
         
@@ -166,7 +180,7 @@ class Production_line():
         """
         
         
-        #TODO
+        #TODO 
         action = self.actions_space[action_index]
         reward = 0
         nbr_echu = 0
@@ -215,7 +229,7 @@ class Production_line():
                 #update and check expiration time of all operations
                 nbr_echu = self.update_check_expiration_time()
                 self.number_echu += nbr_echu
-                reward -= self.echu_weights * nbr_echu # a tester, pour éviter les doublons
+                reward -= self.echu_weights*nbr_echu # a tester, pour éviter les doublons
                 
                 #update the processing time of all operation and remove the op from
                 #machine if the op has ended
@@ -224,7 +238,21 @@ class Production_line():
                 for op in ended_operations :
                     if op == 1:
                         self.wip-=1
-                
+                        
+                        
+                #TOTEST, PLAN PERRY WTHOUT THE AGENT 
+                for i, job in enumerate(self.jobs):
+                    if job != None:
+                        #jour de perry, on la planifie d'office
+                        if job.target_date == self.time:
+                            self.jobs[i].started = True
+                            self.jobs[i].operations[15-1].status = 1
+                            self.jobs[i].operations[15-1].end_time = self.time
+                            self.jobs[i].operations[15-1].processed_on = 8
+                                 
+                            #update the machine status
+                            self.machines[8-1].assign_operation(i+1,15)
+                            
             
             else:
                 self.job_launched = True
@@ -272,7 +300,10 @@ class Production_line():
             reward += 10
         if done:
             print("done")
-            reward += 10
+            #reward += 10
+            
+        if self.number_echu >0:
+            done = True
                   
                 
         return next_state,reward, done, nbr_echu
@@ -287,7 +318,7 @@ class Production_line():
                         #on vérifie que l'opération soit plannifiée
                         if operation.status == 1:
                             #si l'opration est terminée
-                            if operation.forward() == 2:
+                            if operation.forward() == -1:
                                 operation.start_time = self.time
                                 ended_operations.append(operation.operation_number)
                                 machine = operation.processed_on
@@ -307,7 +338,7 @@ class Production_line():
                 for operation in job.operations:
                     if operation != None:    
                         #si l'opération est terminée
-                        if operation.status == 2:
+                        if operation.status == -1:
                                           
                             for operation_used in operation.used_by:
                                 #si l'opérations suivantes n'a pas encore commencé
@@ -337,7 +368,7 @@ class Production_line():
                             executable = True
                             for dependencie in operation.dependencies:
                                 #si l'opération précédente n'est pas terminée
-                                if job.operations[dependencie-1].status != 2:
+                                if job.operations[dependencie-1].status != -1:
                                     executable = False
                             
                             
@@ -387,7 +418,7 @@ class Production_line():
             if job != None and job.ended == False:  
                 for operation in job.operations:
                     if operation != None:    
-                        if not (operation.status == 2 or operation.status == 3):
+                        if not (operation.status == -1):
                             done = False
                             job_done = False
                 if job_done:
@@ -442,17 +473,17 @@ class Production_line():
                         sum_state += operation.get_state()
                     else:
                         #default state
-                        sum_state += (-1,0,-1) # 1 = 4/4
+                        sum_state += (0,0,0) # 1 = 4/4
                         
                 #target_date delta time        
                 sum_state += (utils.get_delta_time(self.time, job.target_date) /180,)
                 
             else:
                 for i in range (self.nbr_operation_max):
-                    sum_state += (-1,0,-1) # 1 = 4/4
+                    sum_state += (0,0,0) # 1 = 4/4
                     
                 #target_date delta time  default value
-                sum_state += (-1,)
+                sum_state += (0,)
             
             
             
@@ -462,11 +493,11 @@ class Production_line():
             
         sum_state += tuple((self.operator-6)/6)
         
-        sum_state += (self.morning_afternoon-0.5,)
+        sum_state += (self.morning_afternoon,)
         
-        sum_state += (self.time.weekday(),)
+        sum_state += ((self.time.weekday()-3)/3,)
         
-        sum_state += (self.wip, self.number_no_target, self.number_echu,)
+        sum_state += (self.wip/self.nbr_job_max)
         
         state[:] = sum_state 
         
@@ -520,6 +551,14 @@ class Production_line():
             #TODO ajouter les jours férier + vacances
             else:
                 self.operator[i] = self.nbr_operator
+                for target in self.target_date:
+                    #perry dure 4 temps
+                    for target_i in range(4):
+                        perry_date = utils.get_new_time(target, -target_i-1)
+                        if perry_date == current_date:
+                            
+                            self.operator[i] -= 8
+                
                 
             if current_date.hour == 12:
                 current_date -= timedelta(hours = 12)
@@ -536,7 +575,14 @@ class Production_line():
         #TODO ajouter les jours férier + vacances
         else:
             self.operator[-1] = self.nbr_operator
-        
+            for target in self.target_date:
+                #perry dure 4 temps
+                for target_i in range(4):
+                    perry_date = utils.get_new_time(target, -target_i-1)
+                    if perry_date == new_date:
+                        
+                        self.operator[-1] -= -8
+                        
             
                 
         
