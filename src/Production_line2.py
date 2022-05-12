@@ -94,7 +94,7 @@ class Production_line():
                     self.jobs[i].operations[15-1].status = 1
                     self.jobs[i].operations[15-1].end_time = self.time
                     self.jobs[i].operations[15-1].processed_on = 8
-                         
+                    self.wip +=1
                     #update the machine status
                     self.machines[8-1].assign_operation(i+1,15)
         
@@ -184,7 +184,9 @@ class Production_line():
         action = self.actions_space[action_index]
         reward = 0
         nbr_echu = 0
-        
+        test = self.check_legality(action)
+        if test == False:
+            print("problem")
         #si l'action est légal, normalement elle l'est du au mask
         if self.check_legality(action):
             job_to_schedule = action[0]
@@ -216,6 +218,7 @@ class Production_line():
                 time = self.time
                 
                 reward -= self.wip #a tester, on augmente la pénalité d'avancer dans le temps en fonction du nombre de wip
+                
                 if reward == 0:
                     reward-=1
                 
@@ -231,13 +234,12 @@ class Production_line():
                 self.number_echu += nbr_echu
                 reward -= self.echu_weights*nbr_echu # a tester, pour éviter les doublons
                 
+                
                 #update the processing time of all operation and remove the op from
                 #machine if the op has ended
                 #on libère aussi les opérateurs
                 ended_operations = self.update_processing_time()
-                for op in ended_operations :
-                    if op == 1:
-                        self.wip-=1
+                
                         
                         
                 #TOTEST, PLAN PERRY WTHOUT THE AGENT 
@@ -249,7 +251,7 @@ class Production_line():
                             self.jobs[i].operations[15-1].status = 1
                             self.jobs[i].operations[15-1].end_time = self.time
                             self.jobs[i].operations[15-1].processed_on = 8
-                                 
+                            self.wip+=1
                             #update the machine status
                             self.machines[8-1].assign_operation(i+1,15)
                             
@@ -293,10 +295,12 @@ class Production_line():
         next_state = self.get_state()
         
         done, jobs_done  = self.check_done()
+    
         
         if jobs_done != None:
             self.jobs[jobs_done-1].remove_all_operation()
             self.jobs[jobs_done-1].ended = True
+            self.wip -=1
             reward += 10
         if done:
             print("done")
@@ -388,9 +392,17 @@ class Production_line():
                                 if self.operator[i] < operation.operator:
                                     executable = False
                             
-                                
+                            
+                            #TODO change the static rule
                             if operation.operation_number == 15:
                                 if self.time > job.target_date:
+                                    executable = False
+                                
+                            #TODO change the static rule
+                            #eviter que qu'un mélange d'un autre lot se produise pendant une extrusion
+                            if operation.operation_number == 7 or operation.operation_number == 8:
+                                #on check que le mélangeur soit idle
+                                if self.machines[3].status != 0:
                                     executable = False
                                     
                             #TODO change this shit
@@ -432,7 +444,7 @@ class Production_line():
     def check_legality(self,action):
         
         if action == "forward":
-            return 1
+            return True
         job_to_schedule = int(action[0])
         operation_to_schedule = int(action[1])
         machine_to_schedule = int(action[2])
@@ -458,7 +470,7 @@ class Production_line():
         
         params_op = 3
         params_machine = 1
-        params_prod_line = 5
+        params_prod_line = 3
         state_size = self.nbr_job_max * self.nbr_operation_max * params_op + self.nbr_job_max + self.nbr_machines * params_machine + self.operator_vector_length + params_prod_line
         
         return state_size
@@ -497,7 +509,7 @@ class Production_line():
         
         sum_state += ((self.time.weekday()-3)/3,)
         
-        sum_state += (self.wip/self.nbr_job_max)
+        sum_state += (self.wip/self.nbr_job_max,)
         
         state[:] = sum_state 
         
@@ -581,7 +593,7 @@ class Production_line():
                     perry_date = utils.get_new_time(target, -target_i-1)
                     if perry_date == new_date:
                         
-                        self.operator[-1] -= -8
+                        self.operator[-1] -= 8
                         
             
                 
