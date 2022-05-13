@@ -1,6 +1,6 @@
 {
-    "nbr_job_max" : 3,
-    "nbr_job_to_use" : 3,
+    "nbr_job_max" : 5,
+    "nbr_job_to_use" : 5,
     "nbr_operation_max" : 15,
     "nbr_machines" : 8,
     "nbr_operator" : 12,
@@ -10,7 +10,7 @@
     "agent_type" : "ddqn",
     
     "batch_size" : 4096,
-    "n_episode" : 15000,
+    "n_episode" : 20000,
     "n_epsiode_test" : 1,
     "UPDATE_FREQ" : 2,
     "target_update_weight" : 1.0,

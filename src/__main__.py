@@ -183,7 +183,7 @@ def train_model(wandb_activate = True,sweep = True, load = False):
                 horizon = "episode",
                 discount = discount,
                 critic = network,
-                exploration = dict(type = 'linear', unit = 'episodes', num_steps = int(num_episode*0.7), initial_value = epsilon, final_value = epsilon_min),
+                exploration = dict(type = 'linear', unit = 'episodes', num_steps = int(num_episode), initial_value = epsilon, final_value = epsilon_min),
                 config = dict(seed = 1),
                 tracking = 'all',
                 parallel_interactions  = 8,
@@ -452,7 +452,7 @@ def test_model(agent , nbr_test_per_max_job, nbr_job_max, nbr_operation_max, nbr
 def use_model(model_path, model_name, target_date, nbr_job_max):
     
     environment = Environment.create(environment=TF_environment(nbr_job_max, len(target_date), 15, 
-                                                                8, 12, 7,
+                                                                8, 12, 28,
                                                                 target_date, independent = True))
     
     agent = Agent.load(
@@ -565,7 +565,7 @@ if __name__ == '__main__':
     
     if args.use:
         print("use model")
-        directory = "model/5_job_ddqn_weekend/toasty-lake-27"
+        directory = "model/5_job_ddqn_weekend/fine-capybara-38"
         filename = "final.hdf5"
         
         target_date = {
@@ -576,7 +576,7 @@ if __name__ == '__main__':
             "2022-04-27 00:00:00" : 1,
             "2022-05-03 00:00:00" : 3,
             
-
+            
         }
         
         use_model(directory, filename, target_date, 5)
