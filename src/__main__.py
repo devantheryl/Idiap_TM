@@ -75,8 +75,8 @@ def train_model(wandb_activate = True,sweep = True, load = False):
             if load:
                 run = wandb.init(
     
-                  project="2_job_ddqn_weekend",
-                  id = "3fao6600",
+                  project="5_job_ddqn_weekend",
+                  id = "14iprn20",
                   resume = "must",
                   entity="devantheryl",
                   notes="without reward echu",
@@ -115,14 +115,14 @@ def train_model(wandb_activate = True,sweep = True, load = False):
     
     if load:
         agent = Agent.load(
-            directory = "model/8_job_ddqn_weekend/lunar-snowflake-2/", 
-            filename = "0000011000.hdf5", 
+            directory = "model/5_job_ddqn_weekend/fine-capybara-38",
+            filename = "final.hdf5", 
             environment = environment,
-            #learning_rate = 0.0001,
+            learning_rate = 0.0001,
             #tracking = 'all',
-            #exploration = 0.9,
+            exploration = 0.1,
         )
-        step = 3043659
+        step = 2188424
     else: 
         
         lr_decay = learning_rate_min/learning_rate
@@ -257,6 +257,16 @@ def train_model(wandb_activate = True,sweep = True, load = False):
                     },
                     step =step
                 )
+        if wandb_activate and  load:
+            wandb.log(
+            {
+                "score_minimum" : score_min,
+                "nbr_echu" :  environment.get_env().number_echu,
+                "nbr_no_target" : environment.get_env().number_no_target,
+                "reward" : reward_tot,
+                
+            },
+            step =step)
             
 
         print("episode: ", i, "  reward : ",reward_tot, "mean_reward : ", np.mean(score_mean), "score min : ", score_min)
@@ -574,10 +584,10 @@ if __name__ == '__main__':
             "2022-04-11 00:00:00" : 6,
             "2022-04-18 00:00:00" : 6,
             "2022-04-27 00:00:00" : 1,
-            "2022-05-03 00:00:00" : 3,
+            
             
             
         }
         
-        use_model(directory, filename, target_date, 5)
+        use_model(directory, filename, target_date, 4)
         

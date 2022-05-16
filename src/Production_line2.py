@@ -241,7 +241,7 @@ class Production_line():
                 ended_operations = self.update_processing_time()
                 
                         
-                        
+                
                 #TOTEST, PLAN PERRY WTHOUT THE AGENT 
                 for i, job in enumerate(self.jobs):
                     if job != None:

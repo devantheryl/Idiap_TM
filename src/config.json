@@ -9,15 +9,15 @@
     
     "agent_type" : "ddqn",
     
-    "batch_size" : 4096,
-    "n_episode" : 20000,
+    "batch_size" : 1024,
+    "n_episode" : 40000,
     "n_epsiode_test" : 1,
     "UPDATE_FREQ" : 2,
     "target_update_weight" : 1.0,
     "NETW_UPDATE_FREQ" : 200,
     "memory" : 500000,
     "epsilon" : 0.5,
-    "epsilon_min" : 0.05,
+    "epsilon_min" : 0.2,
     
     "learning_rate" : 0.001,
     "learning_rate_min" : 0.00001,
@@ -41,17 +41,17 @@
             
             {
                 "type" : "dense",
-                "size" : 256,
+                "size" : 512,
                 "activation" : "relu"
             },
             {
                 "type" : "dense",
-                "size" : 256,
+                "size" : 512,
                 "activation" : "relu"
             },
             {
                 "type" : "dense",
-                "size" : 256,
+                "size" : 512,
                 "activation" : "relu"
             }
             
