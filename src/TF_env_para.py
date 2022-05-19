@@ -21,7 +21,7 @@ class TF_environment(Environment):
         super().__init__()
         self.i = 0
         self.production_line = Production_line()
-        self.max_step_per_episode = 350
+        self.max_step_per_episode = 200
         
         
     def states(self):

@@ -269,7 +269,7 @@ def train_model(wandb_activate = True,sweep = True, load = False):
             step =step)
             
 
-        print("episode: ", i, "  reward : ",reward_tot, "mean_reward : ", np.mean(score_mean), "score min : ", score_min)
+        print("episode: ", i, "  reward : ",reward_tot, "mean_reward : ", np.mean(score_mean), "score max : ", score_min)
         
         
         if i % save_every == 0 and wandb_activate:

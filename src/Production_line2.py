@@ -230,11 +230,15 @@ class Production_line():
                             job.increment_lead_time()
                     
                 #update and check expiration time of all operations
-                nbr_echu = self.update_check_expiration_time()
+                nbr_echu, job_ended = self.update_check_expiration_time()
                 self.number_echu += nbr_echu
                 reward -= self.echu_weights*nbr_echu # a tester, pour éviter les doublons
                 
-                
+                for job in job_ended:
+                    
+                    self.jobs[job-1].remove_all_operation()
+                    self.jobs[job-1].ended = True
+                    self.wip -=1
                 #update the processing time of all operation and remove the op from
                 #machine if the op has ended
                 #on libère aussi les opérateurs
@@ -301,13 +305,13 @@ class Production_line():
             self.jobs[jobs_done-1].remove_all_operation()
             self.jobs[jobs_done-1].ended = True
             self.wip -=1
-            reward += 10
+            reward += 40
         if done:
             print("done")
             #reward += 10
             
-        if self.number_echu >0:
-            done = True
+        #if self.number_echu >0:
+            #done = True
                   
                 
         return next_state,reward, done, nbr_echu
@@ -337,6 +341,7 @@ class Production_line():
     def update_check_expiration_time(self):
         
         nbr_echu = 0
+        job_ended = []
         for job in self.jobs:
             if job != None:  
                 for operation in job.operations:
@@ -351,15 +356,15 @@ class Production_line():
                                     #si l'opération est échue
                                     if job.operations[operation_used-1].decrease_get_expiration_time(self.time) == 0:
 
-                                        #on recrée toutes les opérations
-                                        job.create_all_operations()
+                                        job_ended.append(job.job_number)
+                                        
     
                                         nbr_echu += 1
                                         job.echu += [operation_used]
                                         
                                         break           
                                         
-        return nbr_echu
+        return nbr_echu, job_ended
     
                      
     def update_check_executable(self):
