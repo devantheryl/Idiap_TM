@@ -529,7 +529,7 @@
             "operator" : 2,
             "used_by" : [11,12],
             "begin_day" : 0, 
-            "QC_delay" : 1
+            "QC_delay" : 0
         },
         "operation9" : {
             "type" : "operation",

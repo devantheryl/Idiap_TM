@@ -39,10 +39,7 @@ class Operation:
         self.processed_on = 0
         
     def forward(self):
-        
-        ended_op = False
-        expirated_op = False
-        executable_op = False
+    
             
         #op en cours
         if self.status == 1:

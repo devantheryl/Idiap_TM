@@ -10,9 +10,10 @@ import wandb
 
 from src.TF_env3 import TF_environment
 from tensorforce import Environment, Runner, Agent
+from pandas.tseries.offsets import DateOffset
 
 
-import src.utils as utils
+import utils as utils
 os.environ["WANDB_AGENT_MAX_INITIAL_FAILURES"]= "30"
 
 REQUIRED_PYTHON = "3.8.5"
@@ -98,11 +99,12 @@ def train_model(wandb_activate = True,sweep = True, load = False):
     score_min = -10000
     
     target = "2022-04-04 00:00:00"
+    target = pd.to_datetime(target)
     formulation = 1
     job_name = "TEST0"
     #dict_target_date = {"2022-04-05 00:00:00" : 1}
     environment = Environment.create(environment = TF_environment(target, formulation, job_name, nbr_operation_max, nbr_machines, nbr_operator, 
-                                                                  operator_vector_length,None, echu_weights = 1000, independent =False))
+                                                                  operator_vector_length,None, echu_weights = echu_weights, independent =False))
 
     
     step = 0
@@ -141,81 +143,60 @@ def train_model(wandb_activate = True,sweep = True, load = False):
                 config = dict(seed = 1),
                 tracking = 'all',
                 parallel_interactions  = 16
-                )
-            
-        if agent_type == "ppo":
-            agent = Agent.create(
-                agent='ppo',
-                states = environment.states(),
-                actions = environment.actions(),
-                max_episode_timesteps = environment.max_episode_timesteps(),
-                batch_size = batch_size,
-                network = network,
-                memory=memory,
-                update_frequency = update_frequency,
-                learning_rate = dict(type = 'exponential', unit = 'episodes', num_steps = int(num_episode), initial_value = learning_rate, decay_rate = lr_decay),
-                multi_step = multi_step,     
-                subsampling_fraction = 0.9,
-                discount = discount,
+            )
 
-                exploration = dict(type = 'linear', unit = 'episodes', num_steps = int(num_episode*0.9), initial_value = epsilon, final_value = epsilon_min),
-                config = dict(seed = 1),
-                tracking = 'all',
-                parallel_interactions  = 8,
-                )
-        if agent_type == "a2c" :
-            agent = Agent.create(
-                agent=agent_type,
-                states = environment.states(),
-                actions = environment.actions(),
-                max_episode_timesteps = environment.max_episode_timesteps(),
-                #memory=memory,
-                batch_size = batch_size,
-                network = network,
-                update_frequency = update_frequency,
-                learning_rate = dict(type = 'exponential', unit = 'episodes', num_steps = int(num_episode), initial_value = learning_rate, decay_rate = lr_decay),
-                #huber_loss = huber_loss,
-                horizon = "episode",
-                discount = discount,
-                critic = network,
-                exploration = dict(type = 'linear', unit = 'episodes', num_steps = int(num_episode), initial_value = epsilon, final_value = epsilon_min),
-                config = dict(seed = 1),
-                tracking = 'all',
-                parallel_interactions  = 8,
-                )
-            
-        
-            
-    
     
     print(agent.get_architecture())
 
-    
-    
-    
-    for i in range(1,num_episode+1):
-
-        # Initialize episode
-        states = environment.reset()
-        terminal = False
+    planning_tot = None
+    for i in range(1,num_episode+1): 
+        
         reward_tot = 0
+        futur_state = None
+        for j in range(3):
+            # Initialize episode
+            print(target)
+            environment.job_name = "JOB" + str(j)
+            environment.target = target
+            environment.formulation = formulation 
+            environment.futur_state = futur_state
+            states = environment.reset()
+            reward_batch = 0
+            terminal = False
+            
+            while not terminal:
+                # Episode timestep
     
-        
-        while not terminal:
-            # Episode timestep
-
-            actions = agent.act(states=states, independent = False)
+                actions = agent.act(states=states, independent = False)
+                
+                
+                states, terminal, reward = environment.execute(actions=actions)
+                
+                agent.observe(terminal=terminal, reward=reward)
+    
+                reward_batch += reward
+                tracked = agent.tracked_tensors()
+                
+                step+=1
+                
             
-            states, terminal, reward = environment.execute(actions=actions)
+            futur_state = environment.get_env().state_full
+            reward_tot += reward_batch
+            
+            if target.dayofweek == 0:
+                rdm_day = np.random.choice([7,8,9,10], 1)[0]
+            if target.dayofweek == 1:
+                rdm_day = np.random.choice([6,7,8,9], 1)[0]
+            if target.dayofweek == 2:
+                rdm_day = np.random.choice([5,6,7,8], 1)[0]
+            if target.dayofweek == 3:
+                rdm_day = np.random.choice([4,5,6,7], 1)[0]
+                
+            target += DateOffset(days = int(rdm_day))
+            formulation = np.random.choice([1,3,6],1)[0]
             
             
-            agent.observe(terminal=terminal, reward=reward)
-
-            reward_tot += reward
-            tracked = agent.tracked_tensors()
             
-            step+=1
-        
         score_mean.append(reward_tot)
         if score_min < reward_tot:
                 score_min = reward_tot
@@ -267,26 +248,59 @@ def train_model(wandb_activate = True,sweep = True, load = False):
                 
         if i % test_every == 0:
             
-            
-            test_dict_target_dates,r = test_model(agent, nbr_test_per_max_job, nbr_job_max, nbr_operation_max, nbr_machines, nbr_operator, operator_vector_length, echu_weights, no_target_weights)
-                
             #test for 1 episode
-            states = environment.reset()
-            internals = agent.initial_internals()
-            terminal = False
+            historic_time_tot = []
+            historic_operator_tot = []
+            planning_tot = None
             reward_tot = 0
+            futur_state = None
+            
+            
+            for j in range(3):
+                # Initialize episode
+                print(target)
+                environment.job_name = "JOB" + str(j)
+                environment.target = target
+                environment.formulation = formulation 
+                environment.futur_state = futur_state
+                states = environment.reset()
+                internals = agent.initial_internals()
+                terminal = False
+                reward_batch = 0
+                
+                while not terminal:
+                    # Episode timestep
+                    actions, internals = agent.act(states=states, internals = internals, independent=True)
+                    states, terminal, reward = environment.execute(actions=actions)
         
-            while not terminal:
-                # Episode timestep
-                actions, internals = agent.act(states=states, internals = internals, independent=True)
-                states, terminal, reward = environment.execute(actions=actions)
+                    reward_batch += reward
+                    
+                futur_state = environment.get_env().state_full
+                reward_tot += reward_batch
+                
+                if target.dayofweek == 0:
+                    rdm_day = np.random.choice([7,8,9,10], 1)[0]
+                if target.dayofweek == 1:
+                    rdm_day = np.random.choice([6,7,8,9], 1)[0]
+                if target.dayofweek == 2:
+                    rdm_day = np.random.choice([5,6,7,8], 1)[0]
+                if target.dayofweek == 3:
+                    rdm_day = np.random.choice([4,5,6,7], 1)[0]
+                    
+                target += DateOffset(days = int(rdm_day))
+                formulation = np.random.choice([1,3,6],1)[0]
                 
                 
-                reward_tot += reward
+                planning = environment.get_env().get_gant_formated()
+                job_stats = environment.get_env().get_job_stats()
+                planning_tot  = pd.concat([planning_tot,planning])
+            
+                
+            historic_time_tot = (futur_state.index.to_series()).tolist()
+            historic_operator_tot = futur_state["operator"].tolist()
                 
             print("test at epsiode : ", str(i), "  reward : ", str(reward_tot))
-            planning = environment.get_env().get_gant_formated()
-            job_stats = environment.get_env().get_job_stats()
+
             
             if wandb_activate:
                 path_img = "model/" + run.project + "/" +  run.name +"/" + '{:010d}'.format(step) + ".png"
@@ -313,24 +327,13 @@ def train_model(wandb_activate = True,sweep = True, load = False):
                 )
             else:
                 try :
-                    utils.visualize(planning,environment.get_env().historic_time,environment.get_env().historic_operator, job_stats)
+                    utils.visualize(planning_tot,historic_time_tot,historic_operator_tot, job_stats)
                 except:
                     print("impossible to viusalize")
                 
-     
-            #nbr_job_to_use = np.random.randint(nbr_job_max) + 1
-            #environment = Environment.create(environment=TF_environment(nbr_job_max, nbr_job_to_use, nbr_operation_max, 
-            #                                                    nbr_machines, nbr_operator, operator_vector_length,
-            #                                                    dict_target_date))
-
-            #path_img = "model/" + run.project + "/" +  run.name +"/" + '{:010d}'.format(i) + ".png"
-            
-            #agent.save("model/" + run.project + "/" +  run.name +"/", '{:010d}'.format(i), format = "hdf5")
-        
     
-    #np.savetxt("test.csv",np.array(memoire),delimiter = ';')
     
-    test_dict_target_dates,r = test_model(agent, nbr_test_per_max_job, nbr_job_max, nbr_operation_max, nbr_machines, nbr_operator, operator_vector_length, echu_weights, no_target_weights, True)
+    
     
     
     states = environment.reset()
@@ -388,53 +391,7 @@ def train_model(wandb_activate = True,sweep = True, load = False):
                  
     agent.close()
     environment.close()
-    
-def test_model(agent , nbr_test_per_max_job, nbr_job_max, nbr_operation_max, nbr_machines, nbr_operator, operator_vector_length, echu_weights, no_target_weights, display = False):
-    
-    start_date = "2022-04-04 00:00:00"
 
-    reward_vector = np.empty((nbr_job_max*nbr_test_per_max_job,1))
-    dict_target_dates = np.empty((nbr_job_max*nbr_test_per_max_job,1), dtype = dict)
-    
-    index = 0
-    for i in range(nbr_job_max):
-        for j in range(nbr_test_per_max_job):
-            #on genere i+1 target date avec leur formulation
-            dict_target_date = utils.generate_test_scenarios(start_date, i+1, j)
-            
-            #on crée l'environnement avec i+1 nbr job max to use
-            environment = Environment.create(environment=TF_environment(nbr_job_max, i+1, nbr_operation_max, 
-                                                                        nbr_machines, nbr_operator, operator_vector_length,
-                                                                        dict_target_date, echu_weights, no_target_weights))
-            states = environment.reset()
-            internals = agent.initial_internals()
-            terminal = False
-            reward_tot = 0
-        
-            while not terminal:
-                # Episode timestep
-                actions, internals = agent.act(states=states, internals = internals, independent=True)
-                states, terminal, reward = environment.execute(actions=actions)
-                
-                
-                reward_tot += reward
-                
-            
-            print(reward_tot, " for test ",index, "  with ", i+1, " job")
-            reward_vector[index,0] = reward_tot
-            dict_target_dates[index,0] = dict_target_date
-            index += 1
-            
-            if display:
-                planning = environment.get_env().get_gant_formated()  
-                job_stats = environment.get_env().get_job_stats()
-                try :
-                    utils.visualize(planning,environment.get_env().historic_time,environment.get_env().historic_operator ,job_stats, "test/" + str(nbr_job_max) + "_" + str(i+1)+"_"+str(j+1))
-                except:
-                    print("impossible to viusalize")
-            
-            
-    return dict_target_dates, reward_vector
             
     
 

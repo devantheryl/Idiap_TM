@@ -4,13 +4,13 @@
     "nbr_operation_max" : 15,
     "nbr_machines" : 8,
     "nbr_operator" : 12,
-    "operator_vector_length" : 12,
+    "operator_vector_length" : 28,
     
     
     "agent_type" : "ddqn",
     
     "batch_size" : 4096,
-    "n_episode" : 50000,
+    "n_episode" : 2000,
     "n_epsiode_test" : 1,
     "UPDATE_FREQ" : 2,
     "target_update_weight" : 1.0,
@@ -28,7 +28,7 @@
     
     "multi_step" : 10,
     
-    "test_every" : 200,
+    "test_every" : 10,
     "save_every" : 5000,
     
     "nbr_test_per_max_job" : 4,

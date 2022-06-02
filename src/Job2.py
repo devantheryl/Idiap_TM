@@ -169,7 +169,7 @@ class Job:
             
             planning = self.build_gant_formated()
             df = pd.DataFrame(planning, columns =['Job','Machine', 'Operation', 'Start','Duration','Finish'])
-            df_planned = df[df["Machine"] != 0]
+            df_planned = df[df["Duration"] != 0]
             try:
                 lead_time = (df_planned['Start'].max() - df_planned['Finish'].min()).days
             except:

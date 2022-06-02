@@ -118,7 +118,7 @@ def visualize(results ,historical_time, historical_operator, job_stats, path = "
     
     ax3 = ax[1].twinx()
     ax3.set_ylabel("operator")
-    ax3.step(historical_time,historical_operator, alpha = 1.0, where = 'pre')
+    ax3.step(historical_time,historical_operator, alpha = 1.0, where = 'post')
     
     
     for idx, s in enumerate([jobs, machines]):

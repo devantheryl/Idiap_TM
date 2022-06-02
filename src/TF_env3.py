@@ -11,13 +11,13 @@ import wandb
 import numpy as np
 from tensorforce import Environment, Runner, Agent
 from src.Prod_line_3 import Production_line
-import src.utils as utils
+import utils as utils
 import time
 
 class TF_environment(Environment):
     
     def __init__(self,target, formulation, job_name, nbr_operation_max, nbr_machines, nbr_operator, futur_length,
-                 futur_state, echu_weights = 1000, independent =False):
+                 futur_state, echu_weights = 20, independent =False):
         
         super().__init__()
 

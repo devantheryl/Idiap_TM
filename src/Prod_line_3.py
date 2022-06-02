@@ -14,7 +14,7 @@ from pandas.tseries.offsets import DateOffset
 import json
 import os
 from datetime import datetime, timedelta, date
-import src.utils as utils
+import utils as utils
 from random import sample
 
 #to set the current working directory
@@ -26,8 +26,7 @@ class Production_line():
                  futur_state, echu_weights):
         
         
-        target = pd.to_datetime(target)
-            
+        
             
         self.nbr_operation_max = nbr_operation_max
         self.nbr_machines = nbr_machines
@@ -35,7 +34,7 @@ class Production_line():
         self.futur_length = futur_length
         
         self.formulation = formulation
-    
+        
         
         self.historic_operator = []
         self.historic_time = []
@@ -45,15 +44,10 @@ class Production_line():
         self.target_date = []
         self.formulations = []
         
-        self.echu_weights = echu_weights
-
-
-
-        
+        self.echu_weights = echu_weights  
         
         self.number_echu = 0
         #params
-        self.wip = 0
         
         #list to keep the jobs objects
         self.job = Job(job_name,1, formulation, 20000, nbr_operation_max,target,target ,melange_number =0)
@@ -68,12 +62,13 @@ class Production_line():
         self.state_size = self.get_state_size()
         
         #assuming that the new batch begin with noting in the prod_line yet. TODO change this for more generic beahvior
-        self.current_state = self.create_timeseries(target)
+        self.state_full = self.create_timeseries(target)
+        self.state_full = self.merge_state(self.state_full, futur_state)
                         
-        self.time = self.current_state.index[0]
+        self.time = self.state_full.index[0]
+        
         self.init_time = self.time 
         self.morning_afternoon = 1 #0: morning, 1: afternoon
-        
         self.reset()
     
     def reset(self):
@@ -82,14 +77,19 @@ class Production_line():
         self.job.operations[15-1].status = 1
         self.job.operations[15-1].end_time = self.time
         self.job.operations[15-1].processed_on = 8
-        self.wip +=1
         #update the machine status
         self.machines[8-1].assign_operation(1,15)
-    
-        for machine in self.machines:
-            self.current_state.loc[self.time]["m" + str(machine.number)] = machine.status
-        self.current_state.loc[self.time]["operator"] = self.nbr_operator
+        
+        #decrease the number of operator remaining
+        op_duration = self.job.operations[15-1].processing_time -1
+        end_op = self.time - DateOffset(hours = 12*op_duration)
+        machine_name = "m"+ str(self.machines[8-1].number)
+
+        self.state_full.loc[self.time:end_op,"operator"]  -= self.job.operations[15-1].operator
+        self.state_full.loc[self.time:end_op,machine_name] = self.machines[8-1].status
+        
         self.update_check_executable()
+        
         
     def step(self, action_index):
         """
@@ -111,9 +111,8 @@ class Production_line():
         #TODO 
         action = self.actions_space[action_index]
         reward = 0
-        nbr_echu = 0
-        test = self.check_legality(action)
-        if test == False:
+        
+        if self.check_legality(action) == False:
             print("problem")
         #si l'action est légal, normalement elle l'est du au mask
         if self.check_legality(action):
@@ -123,120 +122,82 @@ class Production_line():
             
             #print(self.operator[-1])
             #print(self.time.weekday())
-            
-            
+                 
             if action == "forward":
+                         
+                self.historic_operator.append(self.state_full.loc[self.time]["operator"])             
                 
-                
-                
-                
-                self.historic_operator.append(self.current_state.loc[self.time]["operator"])
-                
+                previous_time = self.time
                 self.time -= DateOffset(hours= 12)
-                    
+                futur_time = self.time -DateOffset(hours = 12*(self.futur_length-1))
+                
                 self.historic_time.append(self.time)
                 
-                #update the operator
-                self.update_operator_vector()
-                update = self.operator
-                time = self.time
+                #add new day to df
+                if futur_time not in self.state_full.index:
+                    self.state_full = self.add_timestep(self.state_full)
                 
-                reward -= self.wip #a tester, on augmente la pénalité d'avancer dans le temps en fonction du nombre de wip
+                #update and check expiration time of all operations
+                self.number_echu = self.update_check_expiration_time(previous_time)
                 
-                if reward == 0:
-                    reward-=1
-                
+                reward-=1
                 
                 #incremente lead_time for all job
-                self.job.increment_lead_time()
-                            
-                    
-                #update and check expiration time of all operations
-                nbr_echu, job_ended = self.update_check_expiration_time()
-                self.number_echu += nbr_echu
-                reward -= self.echu_weights*nbr_echu # a tester, pour éviter les doublons
+                self.job.increment_lead_time()                          
+
+                reward -= self.echu_weights * self.number_echu # a tester, pour éviter les doublons
                 
-                for job in job_ended:
+                if self.number_echu:
                     
-                    self.jobs[job-1].remove_all_operation()
-                    self.jobs[job-1].ended = True
-                    self.wip -=1
+                    self.job.remove_all_operation()
+                    self.job.ended = True
                 #update the processing time of all operation and remove the op from
                 #machine if the op has ended
                 #on libère aussi les opérateurs
-                ended_operations = self.update_processing_time()
-                
-                        
-                
-                #TOTEST, PLAN PERRY WTHOUT THE AGENT 
-                for i, job in enumerate(self.jobs):
-                    if job != None:
-                        #jour de perry, on la planifie d'office
-                        if job.target_date == self.time:
-                            self.jobs[i].started = True
-                            self.jobs[i].operations[15-1].status = 1
-                            self.jobs[i].operations[15-1].end_time = self.time
-                            self.jobs[i].operations[15-1].processed_on = 8
-                            self.wip+=1
-                            #update the machine status
-                            self.machines[8-1].assign_operation(i+1,15)
-                            
+                ended_operations = self.update_processing_time()                                      
             
             else:
-                self.job_launched = True
-                #le job est lancé au broyage polymère
-                if (operation_to_schedule == 15) and self.jobs[job_to_schedule-1].started ==False:
-                    self.jobs[job_to_schedule-1].started = True
-                    self.wip +=1 
                 
                 reward += 1
                 
                 #on set l'opération à "en cours", set the start time and the machine
-                self.jobs[job_to_schedule-1].operations[operation_to_schedule-1].status = 1
-                self.jobs[job_to_schedule-1].operations[operation_to_schedule-1].end_time = self.time
-                self.jobs[job_to_schedule-1].operations[operation_to_schedule-1].processed_on = machine_to_schedule
+                self.job.operations[operation_to_schedule-1].status = 1
+                self.job.operations[operation_to_schedule-1].end_time = self.time
+                self.job.operations[operation_to_schedule-1].processed_on = machine_to_schedule
                 
                 
                 #update the machine status
                 self.machines[machine_to_schedule-1].assign_operation(job_to_schedule,operation_to_schedule)
                 
                 #decrease the number of operator remaining
-                op_duration = self.jobs[job_to_schedule-1].operations[operation_to_schedule-1].processing_time
-                
-                self.operator[0:op_duration] -= self.jobs[job_to_schedule-1].operations[operation_to_schedule-1].operator
-                
-                
-                #si l'opération est la perry
-                if self.jobs[job_to_schedule-1].operations[operation_to_schedule-1].operation_number == 15:
-                    if self.jobs[job_to_schedule-1].target_date != self.time:
-                        reward-= self.no_target_weights + abs(utils.get_delta_time(self.time, self.jobs[job_to_schedule-1].target_date))
-                        self.number_no_target +=1
+                op_duration = self.job.operations[operation_to_schedule-1].processing_time-1
+                end_op = self.time - DateOffset(hours = 12*op_duration)
+                machine_name = "m"+ str(self.machines[machine_to_schedule-1].number)
 
-                
-                
+
+                self.state_full.loc[self.time:end_op,"operator"]  -= self.job.operations[operation_to_schedule-1].operator
+                self.state_full.loc[self.time:end_op,machine_name] = self.machines[machine_to_schedule-1].status
                 
         #update and check newly executable operations
         executables = self.update_check_executable()
         
+        
+        
         next_state = self.get_state()
         
-        done, jobs_done  = self.check_done()
-    
+        done = self.check_done() 
         
-        if jobs_done != None:
-            self.jobs[jobs_done-1].remove_all_operation()
-            self.jobs[jobs_done-1].ended = True
-            self.wip -=1
-            reward += 40
-        if done:
+        if done and self.number_echu == 0:
+            self.job.remove_all_operation()
+            self.job.ended = True
+            reward += 20
             print("done")
             #reward += 10
             
         #if self.number_echu >0:
-            #done = True
-                  
+            #done = True                  
                 
-        return next_state,reward, done, nbr_echu
+        return next_state,reward, done, self.number_echu
     
     
         
@@ -257,10 +218,9 @@ class Production_line():
         df["operator"] = 0
         for index, row in df.iterrows():
             if index.dayofweek < 5:
-                print(index)
+
                 df.loc[index,"operator"] = self.nbr_operator
-                
-            
+                          
         
         df["m1"] = 0
         df["m2"] = 0
@@ -271,11 +231,31 @@ class Production_line():
         df["m7"] = 0
         df["m8"] = 0
         
-        print("init df : ", df)
         
         return df
         
+    def merge_state(self, current, futur):
+        
+        df_tot = pd.concat([futur,current])    
+        df_tot = df_tot.resample('12H', offset = '-1m').mean().iloc[::-1]
+        
+        for index, row in df_tot[df_tot["operator"].isna()].iterrows():
+            if index.dayofweek < 5:
+                df_tot.loc[index,"operator"] = 12
+            else:
+                df_tot.loc[index,"operator"] = 0
             
+            df_tot.loc[index,"m1"] = 0
+            df_tot.loc[index,"m2"] = 0
+            df_tot.loc[index,"m3"] = 0
+            df_tot.loc[index,"m4"] = 0
+            df_tot.loc[index,"m5"] = 0
+            df_tot.loc[index,"m6"] = 0
+            df_tot.loc[index,"m7"] = 0
+            df_tot.loc[index,"m8"] = 0
+            
+        return df_tot
+    
     def create_machines(self):
         """
         create all the Machine objects
@@ -314,18 +294,18 @@ class Production_line():
     def update_processing_time(self):
         
         ended_operations = []
-        for job in self.jobs:
-            if job != None:
-                for operation in job.operations:
-                    if operation != None:
-                        #on vérifie que l'opération soit plannifiée
-                        if operation.status == 1:
-                            #si l'opration est terminée
-                            if operation.forward() == -1:
-                                operation.start_time = self.time
-                                ended_operations.append(operation.operation_number)
-                                machine = operation.processed_on
-                                self.machines[machine-1].remove_operation()
+        
+           
+        for operation in self.job.operations:
+            if operation != None:
+                #on vérifie que l'opération soit plannifiée
+                if operation.status == 1:
+                    #si l'opration est terminée
+                    if operation.forward() == -1:
+                        operation.start_time = self.time
+                        ended_operations.append(operation.operation_number)
+                        machine = operation.processed_on
+                        self.machines[machine-1].remove_operation()
                                 
                                 #self.operator += operation.operator
                                 
@@ -333,10 +313,9 @@ class Production_line():
                                 
         return ended_operations
            
-    def update_check_expiration_time(self):
+    def update_check_expiration_time(self,time):
         
         nbr_echu = 0
-        ended = False
         
         for operation in self.job.operations:
             if operation != None:    
@@ -348,7 +327,7 @@ class Production_line():
                         if self.job.operations[operation_used-1].status == 0:
                     
                             #si l'opération est échue
-                            if self.job.operations[operation_used-1].decrease_get_expiration_time(self.time) == 0:
+                            if self.job.operations[operation_used-1].decrease_get_expiration_time(time) == 0:
 
                                 job_ended = True
                                 
@@ -358,7 +337,7 @@ class Production_line():
                                 
                                 break           
                                         
-        return nbr_echu, ended
+        return nbr_echu
     
                      
     def update_check_executable(self):
@@ -378,23 +357,26 @@ class Production_line():
                     
                     #L'opération doit commencer le matin
                     if operation.begin_day == 1:
-                        begin_time = utils.get_new_time(self.time, -duration)
-                        if begin_time.time().hour == 12:
+                        begin_time = self.time -DateOffset(hours = 12*(duration))
+                        if begin_time.time().hour == 11:
                             executable = False
                         
                     if operation.QC_delay >0:
                         executable = False
                     
-                    
-                    for i in range(duration):
-                        if self.current_state.iloc[i]["operator"] < operation.operator:
+                    end_op = self.time - DateOffset(hours = 12*(duration-1))
+                    state = self.state_full.loc[self.time:end_op]
+                    #iter over the time of manufacturing for an operation
+                    for i,row in state.iterrows():
+                        if row["operator"] < operation.operator:
                             executable = False
+                            
+                        #check if machine is free for the whole process time
+                        for machine_number in operation.processable_on:
+                            machine_name = "m" + str(machine_number)
+                            if row[machine_name] != 0:
+                                executable = False
                     
-                    
-                    #TODO change the static rule
-                    if operation.operation_number == 15:
-                        if self.time > self.job.target_date:
-                            executable = False
                         
                     #TODO change the static rule
                     #eviter que qu'un mélange d'un autre lot se produise pendant une extrusion
@@ -406,7 +388,7 @@ class Production_line():
                     #TODO change this shit
                     #pour eviter que l'extrusion soit mal plannifiée (probleme de doublon)
                     if operation.operation_number == 8 or operation.operation_number == 7:
-                        if self.time.weekday() == 1:
+                        if self.time.weekday() == 0:
                             executable = False
                         
                     
@@ -422,9 +404,6 @@ class Production_line():
     def check_done(self):
         
         done = True
-
-        
-        job_done = True
           
         for operation in self.job.operations:
             if operation != None:    
@@ -469,7 +448,7 @@ class Production_line():
         return state_size
     
     def get_state(self):
-        state = np.ndarray((self.state_size))
+        
         sum_state = np.array([])
         
         for operation in self.job.operations:
@@ -479,18 +458,23 @@ class Production_line():
                 #default state
                 sum_state = np.concatenate((sum_state, np.array([0,0])))
                               
-        #TODO add futur state to state    
-        print(self.current_state.to_numpy()) 
-        for row in self.current_state.to_numpy():
+        #add futur state to state 
+        current_time = self.time
+        futur_time = current_time - DateOffset(hours = 12*(self.futur_length-1))
+        current_state = self.state_full.loc[current_time:futur_time]
+        
+        for row in current_state.to_numpy():
             sum_state = np.concatenate((sum_state,row))
         
         sum_state = np.concatenate((sum_state, np.array([self.morning_afternoon,(self.time.weekday()-3)/3])))
         
-        print(sum_state) 
-        
+
+        if self.state_size != len(sum_state):
+            t = 0
+            t+=2
         assert(self.state_size == len(sum_state))
         
-        return state
+        return sum_state
     
     def get_gant_formated(self):
         planning = []
@@ -523,12 +507,18 @@ class Production_line():
         
         #TODO summarize all the stats and kpis of the prod line
     
-                        
-            
-                
+    def add_timestep(self,df):
+        idx = df.tail(1).index[0] -  pd.Timedelta(hours=12)
+        df.loc[idx] = [0,0,0,0,0,0,0,0,0]
+        df = df.resample('12H', offset = '-1m').mean().iloc[::-1]
         
-    
-       
+        if df.index[-1].dayofweek<5:
+            df.loc[idx]["operator"] = 12
+        
+        return df            
+            
+        
+
    
         
         
