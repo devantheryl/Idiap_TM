@@ -18,7 +18,7 @@ import utils as utils
 from random import sample
 
 #to set the current working directory
-os.chdir("C:/Users/LDE/Prog/projet_master/digital_twins")
+os.chdir("C:/Users/krus/Prog/Idiap_TM")
 
 class Production_line():
     
@@ -62,7 +62,7 @@ class Production_line():
         self.state_size = self.get_state_size()
         
         #assuming that the new batch begin with noting in the prod_line yet. TODO change this for more generic beahvior
-        self.state_full = self.create_timeseries(target)
+        self.state_full = self.create_timeseries(target,futur_state)
         self.state_full = self.merge_state(self.state_full, futur_state)
                         
         self.time = self.state_full.index[0]
@@ -147,14 +147,17 @@ class Production_line():
 
                 reward -= self.echu_weights * self.number_echu # a tester, pour éviter les doublons
                 
+                #update the processing time of all operation and remove the op from
+                #machine if the op has ended
+                ended_operations = self.update_processing_time() 
+                
                 if self.number_echu:
                     
                     self.job.remove_all_operation()
                     self.job.ended = True
-                #update the processing time of all operation and remove the op from
-                #machine if the op has ended
-                #on libère aussi les opérateurs
-                ended_operations = self.update_processing_time()                                      
+                
+                
+                                                     
             
             else:
                 
@@ -202,10 +205,15 @@ class Production_line():
     
         
        
-    def create_timeseries(self,target):
+    def create_timeseries(self,target, futur_state):
         
         end = target + DateOffset(days = 2)
-        start = end - DateOffset(days = self.futur_length/2)
+        
+        if futur_state is None:
+            start = end - DateOffset(days = self.futur_length/2)
+        else:
+            start = target
+            
         date_rng = pd.date_range(start=start, end=end, freq='12H',inclusive = "right")
         date_rng = reversed(date_rng)
         df = pd.DataFrame(date_rng, columns=['date'])
@@ -370,12 +378,19 @@ class Production_line():
                     for i,row in state.iterrows():
                         if row["operator"] < operation.operator:
                             executable = False
+                        
+                        
                             
-                        #check if machine is free for the whole process time
-                        for machine_number in operation.processable_on:
-                            machine_name = "m" + str(machine_number)
+                    #check if machine is free for the whole process time
+                    machine_free = np.full((len(operation.processable_on), duration), True)
+                    for i,machine_number in enumerate(operation.processable_on):
+                        machine_name = "m" + str(machine_number)
+                        
+                        for j,(index,row) in enumerate(state.iterrows()):
                             if row[machine_name] != 0:
-                                executable = False
+                                machine_free[i,j] = False
+                    if np.all(machine_free, axis=1).any() == False:
+                        executable = False
                     
                         
                     #TODO change the static rule
@@ -464,6 +479,8 @@ class Production_line():
         current_state = self.state_full.loc[current_time:futur_time]
         
         for row in current_state.to_numpy():
+            row_copy = np.copy(row)
+            row_copy[0] = row_copy[0]/self.nbr_operator
             sum_state = np.concatenate((sum_state,row))
         
         sum_state = np.concatenate((sum_state, np.array([self.morning_afternoon,(self.time.weekday()-3)/3])))

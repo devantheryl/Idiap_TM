@@ -133,6 +133,7 @@ def train_model(wandb_activate = True,sweep = True, load = False):
         futur_state = None
         target = "2022-04-04 00:00:00"
         target = pd.to_datetime(target)
+        planning_tot = None
         for j in range(nbr_job_to_use):
             # Initialize episode
             environment.job_name = "JOB" + str(j)
@@ -158,18 +159,26 @@ def train_model(wandb_activate = True,sweep = True, load = False):
                 
                 step+=1
                 
-            
             futur_state = environment.get_env().state_full
             reward_tot += reward_batch
+                
+            
+                
+            ################DEBUG#############################
+            planning = environment.get_env().get_gant_formated()
+            planning_tot  = pd.concat([planning_tot,planning])
+            historic_time_tot = (futur_state.index.to_series()).tolist()
+            historic_operator_tot = futur_state["operator"].tolist()
+            ##################################################
             
             if target.dayofweek == 0:
                 rdm_day = np.random.choice([7,8,9,10], 1)[0]
             if target.dayofweek == 1:
-                rdm_day = np.random.choice([6,7,8,9], 1)[0]
+                rdm_day = np.random.choice([6,7,8], 1)[0]
             if target.dayofweek == 2:
-                rdm_day = np.random.choice([5,6,7,8], 1)[0]
+                rdm_day = np.random.choice([5,6,7], 1)[0]
             if target.dayofweek == 3:
-                rdm_day = np.random.choice([4,5,6,7], 1)[0]
+                rdm_day = np.random.choice([4,5,6], 1)[0]
                 
             target += DateOffset(days = int(rdm_day))
             formulation = np.random.choice([1,3,6],1,p =[0.25,0.25,0.5])[0]
@@ -246,13 +255,13 @@ def train_model(wandb_activate = True,sweep = True, load = False):
                 reward_tot += reward_batch
                 
                 if target.dayofweek == 0:
-                    rdm_day = np.random.choice([7,8,9,10], 1)[0]
+                    rdm_day = np.random.choice([7,8,9,3], 1)[0]
                 if target.dayofweek == 1:
-                    rdm_day = np.random.choice([6,7,8,9], 1)[0]
+                    rdm_day = np.random.choice([6,7,8], 1)[0]
                 if target.dayofweek == 2:
-                    rdm_day = np.random.choice([5,6,7,8], 1)[0]
+                    rdm_day = np.random.choice([5,6,7], 1)[0]
                 if target.dayofweek == 3:
-                    rdm_day = np.random.choice([4,5,6,7], 1)[0]
+                    rdm_day = np.random.choice([4,5,6], 1)[0]
                     
                 target += DateOffset(days = int(rdm_day))
                 formulation = np.random.choice([1,3,6],1,p =[0.25,0.25,0.5])[0]

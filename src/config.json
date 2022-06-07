@@ -27,7 +27,7 @@
     
     "multi_step" : 10,
     
-    "test_every" : 200,
+    "test_every" : 10,
     "save_every" : 5000,
     
     "echu_weights" : 20,
