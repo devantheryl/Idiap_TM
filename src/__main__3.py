@@ -20,23 +20,17 @@ REQUIRED_PYTHON = "3.8.5"
 
 
 def train_model(wandb_activate = True,sweep = True, load = False):
-    
-    memoire = []
-    
-    
+        
     with open("src/config.json") as json_file:
             configs = json.load(json_file)
     
     
     agent_type = configs["agent_type"]
-    
-    nbr_job_max = configs["nbr_job_max"]
     nbr_job_to_use = configs["nbr_job_to_use"]
     nbr_operation_max = configs["nbr_operation_max"]
     nbr_machines = configs["nbr_machines"]
     nbr_operator = configs["nbr_operator"]
     operator_vector_length = configs["operator_vector_length"]
-    dict_target_date = configs["target_date"]
     
     num_episode = configs["n_episode"]
     memory = configs["memory"]
@@ -58,9 +52,7 @@ def train_model(wandb_activate = True,sweep = True, load = False):
     test_every = configs["test_every"]
     save_every = configs["save_every"]
     
-    nbr_test_per_max_job = configs["nbr_test_per_max_job"]
     echu_weights = configs["echu_weights"]
-    no_target_weights = configs["no_target_weights"]
     
     if wandb_activate:
         if sweep:
@@ -80,9 +72,9 @@ def train_model(wandb_activate = True,sweep = True, load = False):
                 
                 run = wandb.init(
     
-                  project=str(nbr_job_max)+"_job_" + agent_type+ "_weekend",
+                  project="reccurent" + "_job_" + agent_type+ "_weekend",
                   entity="devantheryl",
-                  notes = "",
+                  notes = "only 6 formu",
                   config=configs,
                 )
         
@@ -92,11 +84,10 @@ def train_model(wandb_activate = True,sweep = True, load = False):
         print(run.name)
         print(run.project)
         
-        
-    
-    
-    score_mean = deque(maxlen = 300)
-    score_min = -10000
+    score_mean_tot = deque(maxlen = 300)
+    score_mean_batch = deque(maxlen = 300)
+    score_max_batch = -1000
+    score_max_tot = -1000
     
     target = "2022-04-04 00:00:00"
     target = pd.to_datetime(target)
@@ -105,57 +96,45 @@ def train_model(wandb_activate = True,sweep = True, load = False):
     #dict_target_date = {"2022-04-05 00:00:00" : 1}
     environment = Environment.create(environment = TF_environment(target, formulation, job_name, nbr_operation_max, nbr_machines, nbr_operator, 
                                                                   operator_vector_length,None, echu_weights = echu_weights, independent =False))
-
     
-    step = 0
-    
-    
-    if load:
-        agent = Agent.load(
-            directory = "model/5_job_ddqn_weekend/fine-capybara-38",
-            filename = "final.hdf5", 
-            environment = environment,
-            learning_rate = 0.0001,
-            #tracking = 'all',
-            exploration = 0.1,
+    #AGENT CREATION
+    lr_decay = learning_rate_min/learning_rate
+    if agent_type == "ddqn" or agent_type == "dueling_dqn":
+        agent = Agent.create(
+            agent=agent_type,
+            states = environment.states(),
+            actions = environment.actions(),
+            max_episode_timesteps = environment.max_episode_timesteps(),
+            memory=memory,
+            batch_size = batch_size,
+            network = network,
+            update_frequency = update_frequency,
+            learning_rate = dict(type = 'exponential', unit = 'episodes', num_steps = int(num_episode*nbr_job_to_use), initial_value = learning_rate, decay_rate = lr_decay),
+            #huber_loss = huber_loss,
+            horizon = horizon,
+            discount = discount,
+            target_update_weight = target_update_weight ,
+            target_sync_frequency  = target_sync_frequency,
+            exploration = dict(type = 'linear', unit = 'episodes', num_steps = int(num_episode*nbr_job_to_use), initial_value = epsilon, final_value = epsilon_min),
+            config = dict(seed = 1),
+            tracking = 'all',
+            parallel_interactions  = 16
         )
-        step = 2188424
-    else: 
-        
-        lr_decay = learning_rate_min/learning_rate
-        if agent_type == "ddqn" or agent_type == "dueling_dqn":
-            agent = Agent.create(
-                agent=agent_type,
-                states = environment.states(),
-                actions = environment.actions(),
-                max_episode_timesteps = environment.max_episode_timesteps(),
-                memory=memory,
-                batch_size = batch_size,
-                network = network,
-                update_frequency = update_frequency,
-                learning_rate = dict(type = 'exponential', unit = 'episodes', num_steps = int(num_episode), initial_value = learning_rate, decay_rate = lr_decay),
-                #huber_loss = huber_loss,
-                horizon = horizon,
-                discount = discount,
-                target_update_weight = target_update_weight ,
-                target_sync_frequency  = target_sync_frequency,
-                exploration = dict(type = 'linear', unit = 'episodes', num_steps = int(num_episode), initial_value = epsilon, final_value = epsilon_min),
-                config = dict(seed = 1),
-                tracking = 'all',
-                parallel_interactions  = 16
-            )
-
-    
     print(agent.get_architecture())
 
+
+    #BEGIN OF THE TRAINING PHASE
     planning_tot = None
+    step = 0
+    
     for i in range(1,num_episode+1): 
         
         reward_tot = 0
         futur_state = None
-        for j in range(3):
+        target = "2022-04-04 00:00:00"
+        target = pd.to_datetime(target)
+        for j in range(nbr_job_to_use):
             # Initialize episode
-            print(target)
             environment.job_name = "JOB" + str(j)
             environment.target = target
             environment.formulation = formulation 
@@ -175,7 +154,7 @@ def train_model(wandb_activate = True,sweep = True, load = False):
                 agent.observe(terminal=terminal, reward=reward)
     
                 reward_batch += reward
-                tracked = agent.tracked_tensors()
+                tracked = agent.tracked_tensors()      
                 
                 step+=1
                 
@@ -193,54 +172,44 @@ def train_model(wandb_activate = True,sweep = True, load = False):
                 rdm_day = np.random.choice([4,5,6,7], 1)[0]
                 
             target += DateOffset(days = int(rdm_day))
-            formulation = np.random.choice([1,3,6],1)[0]
+            formulation = np.random.choice([1,3,6],1,p =[0.25,0.25,0.5])[0]
             
+            #LOG all value for 1 batch episode
+            if wandb_activate:
             
-            
-        score_mean.append(reward_tot)
-        if score_min < reward_tot:
-                score_min = reward_tot
-        
-        if wandb_activate and not load:
-            if agent_type == "ddqn" or agent_type == "dueling_dqn":
                 wandb.log(
                     {
-                        "score_minimum" : score_min,
                         "exploration" : tracked["agent/exploration/exploration"],
                         "learning_rate" : tracked["agent/policy_optimizer/learning_rate/learning_rate"],
                         "policy-loss" : tracked["agent/policy-loss"],
-                        "policy-objective-loss" : tracked["agent/policy-objective-loss"],
                         "update-return" : tracked["agent/update-return"],
-                        "reward" : reward_tot,
-                        "nbr_echu" :  environment.get_env().number_echu,
-                        "nbr_no_target" : environment.get_env().number_no_target
-                        
+                        "reward_batch" : reward_batch,
+                        "lead_time" : environment.get_env().job.lead_time
                     },
                     step =step
                 )
-            else:
-                wandb.log(
-                    {
-                        "score_minimum" : score_min,
-                        "exploration" : tracked["agent/exploration/exploration"],
-                        "reward" : reward_tot,
-                        
-                    },
-                    step =step
-                )
-        if wandb_activate and  load:
-            wandb.log(
-            {
-                "score_minimum" : score_min,
-                "nbr_echu" :  environment.get_env().number_echu,
-                "nbr_no_target" : environment.get_env().number_no_target,
-                "reward" : reward_tot,
-                
-            },
-            step =step)
+            if score_max_batch < reward_batch:
+                score_max_batch = reward_batch
+            score_mean_batch.append(reward_batch)
+            print("episode: ", (i-1)*nbr_job_to_use+(j+1), "  reward_batch : ",reward_batch, "mean_reward_batch: ", np.mean(score_mean_batch), "score max batch : ", score_max_batch)
             
-
-        print("episode: ", i, "  reward : ",reward_tot, "mean_reward : ", np.mean(score_mean), "score max : ", score_min)
+            
+        score_mean_tot.append(reward_tot)
+        if score_max_tot < reward_tot:
+                score_max_tot = reward_tot  
+        print("reward_tot : ",reward_tot, "mean_reward_tot : ", np.mean(score_mean_tot), "score max tot : ", score_max_tot)
+                
+        if wandb_activate:
+            
+            wandb.log(
+                {
+                    "score_max" : score_max_tot,
+                    "reward_tot" : reward_tot,
+                },
+                step =step
+            )
+        
+        
         
         
         if i % save_every == 0 and wandb_activate:
@@ -249,16 +218,14 @@ def train_model(wandb_activate = True,sweep = True, load = False):
         if i % test_every == 0:
             
             #test for 1 episode
-            historic_time_tot = []
-            historic_operator_tot = []
             planning_tot = None
             reward_tot = 0
             futur_state = None
             
             
-            for j in range(3):
+            for j in range(nbr_job_to_use):
                 # Initialize episode
-                print(target)
+                print(target, formulation)
                 environment.job_name = "JOB" + str(j)
                 environment.target = target
                 environment.formulation = formulation 
@@ -288,11 +255,10 @@ def train_model(wandb_activate = True,sweep = True, load = False):
                     rdm_day = np.random.choice([4,5,6,7], 1)[0]
                     
                 target += DateOffset(days = int(rdm_day))
-                formulation = np.random.choice([1,3,6],1)[0]
+                formulation = np.random.choice([1,3,6],1,p =[0.25,0.25,0.5])[0]
                 
                 
                 planning = environment.get_env().get_gant_formated()
-                job_stats = environment.get_env().get_job_stats()
                 planning_tot  = pd.concat([planning_tot,planning])
             
                 
@@ -305,19 +271,9 @@ def train_model(wandb_activate = True,sweep = True, load = False):
             if wandb_activate:
                 path_img = "model/" + run.project + "/" +  run.name +"/" + '{:010d}'.format(step) + ".png"
                 try: 
-                    utils.visualize(planning,environment.get_env().historic_time,environment.get_env().historic_operator ,job_stats, path_img)
+                    utils.visualize(planning_tot,historic_time_tot,historic_operator_tot, path_img)
                 except:
                     print("impossible to viusalize")
-                
-                    
-                for key, value in job_stats.items():
-                    wandb.log(
-                        {
-                            key + "_lead_time" : value[0],
-                            key + "_nbr_echu" : value[1]                
-                        },
-                        step= step
-                    )
 
                 wandb.log(
                     {
@@ -327,68 +283,14 @@ def train_model(wandb_activate = True,sweep = True, load = False):
                 )
             else:
                 try :
-                    utils.visualize(planning_tot,historic_time_tot,historic_operator_tot, job_stats)
+                    utils.visualize(planning_tot,historic_time_tot,historic_operator_tot)
                 except:
                     print("impossible to viusalize")
-                
-    
-    
-    
-    
-    
-    states = environment.reset()
-    internals = agent.initial_internals()
-    terminal = False
-    reward_tot = 0
-
-    while not terminal:
-        # Episode timestep
-        actions, internals = agent.act(states=states, internals = internals, independent=True)
-        states, terminal, reward = environment.execute(actions=actions)
-        
-        step+=1
-        reward_tot += reward
-        
-    print("final result : ", reward_tot)        
-    
-    tracked = agent.tracked_tensors()
-    planning = environment.get_env().get_gant_formated()  
-    job_stats = environment.get_env().get_job_stats()
-        
+                    
     if wandb_activate:
-        path_img = "model/" + run.project + "/" +  run.name +"/" +"final" + ".png"
-        try :
-            utils.visualize(planning,environment.get_env().historic_time,environment.get_env().historic_operator ,job_stats, path_img)
-        except:
-            print("impossible to viusalize")
-        agent.save("model/" + run.project + "/" +  run.name +"/", "final", format = "hdf5")
-                
-        for key, value in job_stats.items():
-            wandb.log(
-                {
-                    key + "_lead_time" : value[0],
-                    key + "_nbr_echu" : value[1]                
-                },
-                step = step
-            )
         
-        wandb.log(
-            {
-                "score_minimum" : score_min,
-                "evaluation_return" : reward_tot
-            },
-            step = step
-        )
         run.finish()
-        
-    else:
-        try :
-            utils.visualize(planning,environment.get_env().historic_time,environment.get_env().historic_operator, job_stats)
-        except:
-            print("impossible to viusalize")
-
-       
-                 
+  
     agent.close()
     environment.close()
 
@@ -452,63 +354,6 @@ if __name__ == '__main__':
         
     if args.sweep:
         print("sweep model")
-        sweep_configs = {
-            "name" : "removing limitation on deltatime reward, +1 if forward wip =0",
-            "project" : "sweep_2_jobs",
-            "entity" : "devantheryl",
-            "method": "bayes",
-            "metric": {
-                "name": "evaluation_return",
-                "goal": "maximize",
-            },
-            "parameters": {
-                "batch_size": 32,
-                "n_episode": 2000,
-                
-                "UPDATE_FREQ": 2,
-                "target_update_weight" : {
-                    "min" : 0.01,
-                    "max" : 1.0
-                    
-                    },
-                "NETW_UPDATE_FREQ": 50,
-                "epsilon": 0.5,
-                "epsilon_min": 0.05,  
-                
-                "learning_rate": {
-                    "min" : 0.00001,
-                    "max" : 0.1
-                },
-                "huber_loss": {
-                    "min" : 0.1,
-                    "max" : 10.0
-                    
-                },
-                "horizon": {
-                    "min" : 1,
-                    "max" : 500
-                },
-                "discount": {
-                    "min" : 0.1,
-                    "max" : 1.0
-                    
-                },
-                "entropy_regularization":{
-                    "min" : 0,
-                    "max" : 100
-                    },
-                "nbr_neurone_first_layer": {
-                    "min" : 200,
-                    "max" : 2000
-                },
-                "nbr_neurone_second_layer": {
-                    "min" : 200,
-                    "max" : 2000
-                },
-            }
-        }
-        sweep_id = wandb.sweep(sweep=sweep_configs, project="sweeps_2_job_test_reward_shaping_dueling_dqn")
-        wandb.agent(sweep_id=sweep_id, function=train_model, count=50)
     
     if args.use:
         print("use model")
@@ -521,8 +366,7 @@ if __name__ == '__main__':
             "2022-04-11 00:00:00" : 6,
             "2022-04-18 00:00:00" : 6,
             "2022-04-27 00:00:00" : 1,
-            
-            
+
             
         }
         

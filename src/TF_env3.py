@@ -34,7 +34,7 @@ class TF_environment(Environment):
         self.independent = independent
         self.production_line = Production_line(self.target, self.formulation, self.job_name, self.nbr_operation_max, self.nbr_machines,
                                                self.nbr_operator,self.futur_length, self.futur_state,  self.echu_weights)
-        self.max_step_per_episode = 250
+        self.max_step_per_episode = 100
         self.i = 0
         self.nbr_echu =0
         

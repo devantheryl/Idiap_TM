@@ -190,8 +190,8 @@ class Production_line():
         if done and self.number_echu == 0:
             self.job.remove_all_operation()
             self.job.ended = True
-            reward += 20
-            print("done")
+            reward += 30
+            #print("done")
             #reward += 10
             
         #if self.number_echu >0:
@@ -469,9 +469,6 @@ class Production_line():
         sum_state = np.concatenate((sum_state, np.array([self.morning_afternoon,(self.time.weekday()-3)/3])))
         
 
-        if self.state_size != len(sum_state):
-            t = 0
-            t+=2
         assert(self.state_size == len(sum_state))
         
         return sum_state
@@ -493,16 +490,6 @@ class Production_line():
             
         return plan_df
     
-    def get_job_stats(self):
-        
-        stats = {}
-        #for batch
-        
-        stat = self.job.get_stats()
-        stats[self.job.job_name] = stat
-                
-                
-        return stats
         
         
         #TODO summarize all the stats and kpis of the prod line

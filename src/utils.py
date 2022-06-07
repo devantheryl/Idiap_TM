@@ -15,7 +15,7 @@ from datetime import datetime, timedelta, date
 import matplotlib.dates as mdates
 import numpy as np
 
-def visualize(results ,historical_time, historical_operator, job_stats, path = ""):
+def visualize(results ,historical_time, historical_operator, path = ""):
     
     operation_machine = {
                      (0) : "echu",
@@ -54,10 +54,11 @@ def visualize(results ,historical_time, historical_operator, job_stats, path = "
         
         op = row["Operation"]
         machine = row["Machine"]
-        if machine != '0':
+        duration = row["Duration"]
+        if duration != 0:
             op_machine.append(operation_machine[int(op),int(machine)])
         else:
-            op_machine.append(operation_machine[int(machine)])
+            op_machine.append(operation_machine[0])
     
     schedule["op_machine"] = op_machine
     
