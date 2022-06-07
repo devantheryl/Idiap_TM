@@ -18,7 +18,7 @@ import utils as utils
 from random import sample
 
 #to set the current working directory
-os.chdir("C:/Users/krus/Prog/Idiap_TM")
+os.chdir("C:/Users/LDE/Prog/projet_master/digital_twins")
 
 class Production_line():
     
@@ -439,8 +439,20 @@ class Production_line():
         
         
         operation = self.job.operations[operation_to_schedule-1]
+        
         if operation != None:
-            if operation.status == 0 and operation.executable and self.machines[machine_to_schedule-1].status == 0:
+            duration = operation.processing_time
+            
+            #check if machine is free for the whole process time
+            machine_name = "m" + str(machine_to_schedule)
+            end_op = self.time - DateOffset(hours = 12*(duration-1))
+            state = self.state_full.loc[self.time:end_op]
+            machine_free = True
+            for index,row in state.iterrows():
+                if row[machine_name] != 0:
+                    machine_free = False
+                 
+            if operation.status == 0 and operation.executable and machine_free:
                 return True
                 
         return False

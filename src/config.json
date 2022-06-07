@@ -8,8 +8,8 @@
     
     "agent_type" : "ddqn",
     
-    "batch_size" : 4096,
-    "n_episode" : 1000,
+    "batch_size" : 8192,
+    "n_episode" : 7000,
     "n_epsiode_test" : 1,
     "UPDATE_FREQ" : 2,
     "target_update_weight" : 1.0,
