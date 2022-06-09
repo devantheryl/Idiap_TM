@@ -22,7 +22,7 @@ os.chdir("C:/Users/LDE/Prog/projet_master/digital_twins")
 
 class Production_line():
     
-    def __init__(self, target, formulation,job_name, nbr_operation_max, nbr_machines, nbr_operator, futur_length,
+    def __init__(self, target, formulation,echelle,job_name, nbr_operation_max, nbr_machines, nbr_operator, futur_length,
                  futur_state, echu_weights, forward_weights, ordo_weights, job_finished_weigths):
         
         
@@ -76,21 +76,7 @@ class Production_line():
     
     def reset(self):
         
-        self.job.started = True
-        self.job.operations[15-1].status = 1
-        self.job.operations[15-1].end_time = self.time
-        self.job.operations[15-1].processed_on = 8
-        #update the machine status
-        self.machines[8-1].assign_operation(1,15)
-        
-        #decrease the number of operator remaining
-        op_duration = self.job.operations[15-1].processing_time -1
-        end_op = self.time - DateOffset(hours = 12*op_duration)
-        machine_name = "m"+ str(self.machines[8-1].number)
-
-        self.state_full.loc[self.time:end_op,"operator"]  -= self.job.operations[15-1].operator
-        self.state_full.loc[self.time:end_op,machine_name] = self.machines[8-1].status
-        
+        self.job.started = True     
         self.update_check_executable()
         
         
@@ -206,7 +192,8 @@ class Production_line():
        
     def create_timeseries(self,target, futur_state):
         
-        end = target + DateOffset(days = 2)
+        perry_duration = int(self.job.operations[15-1].processing_time/2)
+        end = target + DateOffset(days = perry_duration)
         
         if futur_state is None:
             start = end - DateOffset(days = self.futur_length/2)
@@ -489,7 +476,7 @@ class Production_line():
                 sum_state = np.concatenate((sum_state, operation.get_state()))
             else:
                 #default state
-                sum_state = np.concatenate((sum_state, np.array([0,0])))
+                sum_state = np.concatenate((sum_state, np.array([-1,-1])))
                               
         #add futur state to state 
         current_time = self.time

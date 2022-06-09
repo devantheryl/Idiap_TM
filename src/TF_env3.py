@@ -16,13 +16,14 @@ import time
 
 class TF_environment(Environment):
     
-    def __init__(self,target, formulation, job_name, nbr_operation_max, nbr_machines, nbr_operator, futur_length,
+    def __init__(self,target, formulation,echelle, job_name, nbr_operation_max, nbr_machines, nbr_operator, futur_length,
                  futur_state, echu_weights, forward_weights, ordo_weights, job_finished_weigths, independent =False):
         
         super().__init__()
 
         self.target = target
         self.formulation = formulation
+        self.echelle = echelle
         self.job_name = job_name
         self.nbr_operation_max = nbr_operation_max
         self.nbr_machines = nbr_machines
@@ -35,7 +36,7 @@ class TF_environment(Environment):
         self.ordo_weights = ordo_weights
         self.job_finished_weigths = job_finished_weigths
         self.independent = independent
-        self.production_line = Production_line(self.target, self.formulation, self.job_name, self.nbr_operation_max, self.nbr_machines,
+        self.production_line = Production_line(self.target, self.formulation,self.echelle, self.job_name, self.nbr_operation_max, self.nbr_machines,
                                                self.nbr_operator,self.futur_length, self.futur_state,  self.echu_weights, self.forward_weights,
                                                self.ordo_weights, self.job_finished_weigths)
         self.max_step_per_episode = 100
@@ -60,7 +61,7 @@ class TF_environment(Environment):
         
             
         # Initial state and associated action mask
-        self.production_line = Production_line(self.target, self.formulation, self.job_name, self.nbr_operation_max, self.nbr_machines,
+        self.production_line = Production_line(self.target, self.formulation,self.echelle, self.job_name, self.nbr_operation_max, self.nbr_machines,
                                                self.nbr_operator,self.futur_length, self.futur_state,  self.echu_weights, self.forward_weights,
                                                self.ordo_weights, self.job_finished_weigths)
         

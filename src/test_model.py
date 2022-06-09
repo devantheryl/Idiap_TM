@@ -55,6 +55,7 @@ def local_test():
     
     target = targets[0]
     formulation = formulations[0]
+    echelle = echelles[0]
     job_name = job_names[0]
     nbr_operation_max = 15
     nbr_machines = 8
@@ -66,7 +67,7 @@ def local_test():
     echu_weights = 20
     independent = True
     
-    environment = Environment.create(environment = TF_environment(target, formulation, job_name, nbr_operation_max, nbr_machines, nbr_operator, 
+    environment = Environment.create(environment = TF_environment(target, formulation,echelle, job_name, nbr_operation_max, nbr_machines, nbr_operator, 
                                                                       operator_vector_length,None, echu_weights = echu_weights, independent =True))
     
     agent = Agent.load(
@@ -84,11 +85,13 @@ def local_test():
         # Initialize episode
         target = targets[j]
         formulation = formulations[j]
+        echelle = echelles[j]
         job_name = job_names[j]
         
         environment.job_name = job_name
         environment.target = target
         environment.formulation = formulation 
+        environment.echelle = echelle
         environment.futur_state = futur_state
         states = environment.reset()
         reward_batch = 0
@@ -162,11 +165,13 @@ def evaluate_model(agent, environment, operator_vector_length, echu_weights):
         # Initialize episode
         target = targets[j]
         formulation = formulations[j]
+        echelle = echelles[j]
         job_name = job_names[j]
         
         environment.job_name = job_name
         environment.target = target
-        environment.formulation = formulation 
+        environment.formulation = formulation
+        environment.echelle = echelle
         environment.futur_state = futur_state
         states = environment.reset()
         reward_batch = 0

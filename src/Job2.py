@@ -68,12 +68,18 @@ class Job:
             
         if self.formulation == 1 and self.job_size == 20000:
             batch_info = batch_description["Batch_3.75_20000_REVERSE"]
+        if self.formulation == 1 and self.job_size == 6600:
+            batch_info = batch_description["Batch_3.75_6600_REVERSE"]
             
         if self.formulation == 3 and self.job_size == 20000:
             batch_info = batch_description["Batch_11.25_20000_REVERSE"]    
+        if self.formulation == 3 and self.job_size == 6600:
+            batch_info = batch_description["Batch_11.25_6600_REVERSE"] 
             
         if self.formulation == 6 and self.job_size == 20000:
-            batch_info = batch_description["Batch_22.50_20000_REVERSE"]    
+            batch_info = batch_description["Batch_22.50_20000_REVERSE"]
+        if self.formulation == 6 and self.job_size == 6600:
+            batch_info = batch_description["Batch_22.50_6600_REVERSE"] 
         
         for key, value in batch_info.items():
             op_type = value["type"]
@@ -105,12 +111,18 @@ class Job:
         
         if self.formulation == 1 and self.job_size == 20000:
             batch_info = batch_description["Batch_3.75_20000_REVERSE"]
+        if self.formulation == 1 and self.job_size == 6600:
+            batch_info = batch_description["Batch_3.75_6600_REVERSE"]
             
         if self.formulation == 3 and self.job_size == 20000:
             batch_info = batch_description["Batch_11.25_20000_REVERSE"]    
+        if self.formulation == 3 and self.job_size == 6600:
+            batch_info = batch_description["Batch_11.25_6600_REVERSE"] 
             
         if self.formulation == 6 and self.job_size == 20000:
-            batch_info = batch_description["Batch_22.50_20000_REVERSE"] 
+            batch_info = batch_description["Batch_22.50_20000_REVERSE"]
+        if self.formulation == 6 and self.job_size == 6600:
+            batch_info = batch_description["Batch_22.50_6600_REVERSE"]  
             
         for key, value in batch_info.items():
             if value["number"] == operation_number:
