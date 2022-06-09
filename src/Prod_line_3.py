@@ -23,7 +23,7 @@ os.chdir("C:/Users/LDE/Prog/projet_master/digital_twins")
 class Production_line():
     
     def __init__(self, target, formulation,job_name, nbr_operation_max, nbr_machines, nbr_operator, futur_length,
-                 futur_state, echu_weights):
+                 futur_state, echu_weights, forward_weights, ordo_weights, job_finished_weigths):
         
         
         
@@ -44,7 +44,10 @@ class Production_line():
         self.target_date = []
         self.formulations = []
         
-        self.echu_weights = echu_weights  
+        self.echu_weights = echu_weights
+        self.forward_weights = forward_weights
+        self.ordo_weights = ordo_weights
+        self.job_finished_weigths = job_finished_weigths
         
         self.number_echu = 0
         #params
@@ -140,12 +143,12 @@ class Production_line():
                 #update and check expiration time of all operations
                 self.number_echu = self.update_check_expiration_time(previous_time)
                 
-                reward-=1
+                reward += self.forward_weights
                 
                 #incremente lead_time for all job
                 self.job.increment_lead_time()                          
 
-                reward -= self.echu_weights * self.number_echu # a tester, pour éviter les doublons
+                reward += self.echu_weights * self.number_echu # a tester, pour éviter les doublons
                 
                 #update the processing time of all operation and remove the op from
                 #machine if the op has ended
@@ -161,7 +164,7 @@ class Production_line():
             
             else:
                 
-                reward += 1
+                reward += self.ordo_weights
                 
                 #on set l'opération à "en cours", set the start time and the machine
                 self.job.operations[operation_to_schedule-1].status = 1
@@ -193,14 +196,10 @@ class Production_line():
         if done and self.number_echu == 0:
             self.job.remove_all_operation()
             self.job.ended = True
-            reward += 30
-            #print("done")
-            #reward += 10
-            
-        #if self.number_echu >0:
-            #done = True                  
+            reward += self.job_finished_weigths
+               
                 
-        return next_state,reward, done, self.number_echu
+        return next_state,reward/4, done, self.number_echu
     
     
         
@@ -451,8 +450,15 @@ class Production_line():
             for index,row in state.iterrows():
                 if row[machine_name] != 0:
                     machine_free = False
+                    
+            #eviter que qu'un mélange d'un autre lot se produise pendant une extrusion
+            melangeur_free = True
+            if operation.operation_number == 7 or operation.operation_number == 8:
+                #on check que le mélangeur soit idle
+                if self.machines[3].status != 0:
+                    melangeur_free = False
                  
-            if operation.status == 0 and operation.executable and machine_free:
+            if operation.status == 0 and operation.executable and machine_free and melangeur_free:
                 return True
                 
         return False

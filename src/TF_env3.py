@@ -17,7 +17,7 @@ import time
 class TF_environment(Environment):
     
     def __init__(self,target, formulation, job_name, nbr_operation_max, nbr_machines, nbr_operator, futur_length,
-                 futur_state, echu_weights = 20, independent =False):
+                 futur_state, echu_weights, forward_weights, ordo_weights, job_finished_weigths, independent =False):
         
         super().__init__()
 
@@ -31,9 +31,13 @@ class TF_environment(Environment):
         self.futur_state = futur_state
 
         self.echu_weights = echu_weights
+        self.forward_weights = forward_weights
+        self.ordo_weights = ordo_weights
+        self.job_finished_weigths = job_finished_weigths
         self.independent = independent
         self.production_line = Production_line(self.target, self.formulation, self.job_name, self.nbr_operation_max, self.nbr_machines,
-                                               self.nbr_operator,self.futur_length, self.futur_state,  self.echu_weights)
+                                               self.nbr_operator,self.futur_length, self.futur_state,  self.echu_weights, self.forward_weights,
+                                               self.ordo_weights, self.job_finished_weigths)
         self.max_step_per_episode = 100
         self.i = 0
         self.nbr_echu =0
@@ -57,7 +61,8 @@ class TF_environment(Environment):
             
         # Initial state and associated action mask
         self.production_line = Production_line(self.target, self.formulation, self.job_name, self.nbr_operation_max, self.nbr_machines,
-                                               self.nbr_operator,self.futur_length, self.futur_state,  self.echu_weights)
+                                               self.nbr_operator,self.futur_length, self.futur_state,  self.echu_weights, self.forward_weights,
+                                               self.ordo_weights, self.job_finished_weigths)
         
         action_mask = self.production_line.get_mask()
         

@@ -9,6 +9,7 @@ from collections import deque
 import wandb
 
 from src.TF_env3 import TF_environment
+from src.test_model import evaluate_model
 from tensorforce import Environment, Runner, Agent
 from pandas.tseries.offsets import DateOffset
 
@@ -53,6 +54,9 @@ def train_model(wandb_activate = True,sweep = True, load = False):
     save_every = configs["save_every"]
     
     echu_weights = configs["echu_weights"]
+    forward_weights = configs["forward_weights"]
+    ordo_weights = configs["ordo_weights"]
+    job_finished_weigths = configs["job_finished_weigths"]
     
     if wandb_activate:
         if sweep:
@@ -95,7 +99,9 @@ def train_model(wandb_activate = True,sweep = True, load = False):
     job_name = "TEST0"
     #dict_target_date = {"2022-04-05 00:00:00" : 1}
     environment = Environment.create(environment = TF_environment(target, formulation, job_name, nbr_operation_max, nbr_machines, nbr_operator, 
-                                                                  operator_vector_length,None, echu_weights = echu_weights, independent =False))
+                                                                  operator_vector_length,None, echu_weights = echu_weights,
+                                                                  forward_weights = forward_weights, ordo_weights = ordo_weights,
+                                                                  job_finished_weigths = job_finished_weigths, independent =False))
     
     #AGENT CREATION
     lr_decay = learning_rate_min/learning_rate
@@ -172,13 +178,13 @@ def train_model(wandb_activate = True,sweep = True, load = False):
             ##################################################
             
             if target.dayofweek == 0:
-                rdm_day = np.random.choice([7,8,9,10], 1)[0]
+                rdm_day = np.random.choice([7,8,9,3], 1)[0]
             if target.dayofweek == 1:
                 rdm_day = np.random.choice([6,7,8], 1)[0]
             if target.dayofweek == 2:
                 rdm_day = np.random.choice([5,6,7], 1)[0]
             if target.dayofweek == 3:
-                rdm_day = np.random.choice([4,5,6], 1)[0]
+                rdm_day = np.random.choice([5,6], 1)[0]
                 
             target += DateOffset(days = int(rdm_day))
             formulation = np.random.choice([1,3,6],1,p =[0.25,0.25,0.5])[0]
@@ -226,75 +232,33 @@ def train_model(wandb_activate = True,sweep = True, load = False):
                 
         if i % test_every == 0:
             
-            #test for 1 episode
-            planning_tot = None
-            reward_tot = 0
-            futur_state = None
-            
-            
-            for j in range(nbr_job_to_use):
-                # Initialize episode
-                print(target, formulation)
-                environment.job_name = "JOB" + str(j)
-                environment.target = target
-                environment.formulation = formulation 
-                environment.futur_state = futur_state
-                states = environment.reset()
-                internals = agent.initial_internals()
-                terminal = False
-                reward_batch = 0
-                
-                while not terminal:
-                    # Episode timestep
-                    actions, internals = agent.act(states=states, internals = internals, independent=True)
-                    states, terminal, reward = environment.execute(actions=actions)
-        
-                    reward_batch += reward
-                    
-                futur_state = environment.get_env().state_full
-                reward_tot += reward_batch
-                
-                if target.dayofweek == 0:
-                    rdm_day = np.random.choice([7,8,9,3], 1)[0]
-                if target.dayofweek == 1:
-                    rdm_day = np.random.choice([6,7,8], 1)[0]
-                if target.dayofweek == 2:
-                    rdm_day = np.random.choice([5,6,7], 1)[0]
-                if target.dayofweek == 3:
-                    rdm_day = np.random.choice([4,5,6], 1)[0]
-                    
-                target += DateOffset(days = int(rdm_day))
-                formulation = np.random.choice([1,3,6],1,p =[0.25,0.25,0.5])[0]
-                
-                
-                planning = environment.get_env().get_gant_formated()
-                planning_tot  = pd.concat([planning_tot,planning])
-            
-                
-            historic_time_tot = (futur_state.index.to_series()).tolist()
-            historic_operator_tot = futur_state["operator"].tolist()
-                
-            print("test at epsiode : ", str(i), "  reward : ", str(reward_tot))
+            nbr_done, completion_rate, min_delta, max_delta, mean_delta, std_delta, sum_delta, reward_tot = evaluate_model(agent, environment, operator_vector_length, echu_weights)
 
             
             if wandb_activate:
-                path_img = "model/" + run.project + "/" +  run.name +"/" + '{:010d}'.format(step) + ".png"
-                try: 
-                    utils.visualize(planning_tot,historic_time_tot,historic_operator_tot, path_img)
-                except:
-                    print("impossible to viusalize")
+
+                
 
                 wandb.log(
                     {
-                        "evaluation_return" : reward_tot     
+                        "nbr_done" : nbr_done,
+                        "completion_rate" : completion_rate, 
+                        "min_delta" : min_delta, 
+                        "max_delta": max_delta, 
+                        "mean_delta" : mean_delta, 
+                        "std_delta" : std_delta, 
+                        "sum_delta" : sum_delta, 
+                        "reward_tot" : reward_tot
                     },
                     step = step
                 )
-            else:
-                try :
-                    utils.visualize(planning_tot,historic_time_tot,historic_operator_tot)
-                except:
-                    print("impossible to viusalize")
+            print("number done : ", nbr_done)
+            print("completion_rate : ", completion_rate)
+            print("min_delta : ", min_delta)
+            print("max_delta : ", max_delta)
+            print("mean_delta : ", mean_delta)
+            print("std_delta : ", std_delta)
+            print("sum_delta : ", sum_delta)
                     
     if wandb_activate:
         
