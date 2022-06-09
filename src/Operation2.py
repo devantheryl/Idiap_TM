@@ -57,7 +57,7 @@ class Operation:
         return self.expiration_time
     
     def get_state(self):
-        return np.array([self.status, (self.expiration_time-30)/30])
+        return np.array([self.status, (self.expiration_time/60)])
     
     
     @property

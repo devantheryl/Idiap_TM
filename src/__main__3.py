@@ -96,9 +96,10 @@ def train_model(wandb_activate = True,sweep = True, load = False):
     target = "2022-04-04 00:00:00"
     target = pd.to_datetime(target)
     formulation = 1
+    echelle = 20000
     job_name = "TEST0"
     #dict_target_date = {"2022-04-05 00:00:00" : 1}
-    environment = Environment.create(environment = TF_environment(target, formulation, job_name, nbr_operation_max, nbr_machines, nbr_operator, 
+    environment = Environment.create(environment = TF_environment(target, formulation,echelle, job_name, nbr_operation_max, nbr_machines, nbr_operator, 
                                                                   operator_vector_length,None, echu_weights = echu_weights,
                                                                   forward_weights = forward_weights, ordo_weights = ordo_weights,
                                                                   job_finished_weigths = job_finished_weigths, independent =False))
@@ -126,6 +127,25 @@ def train_model(wandb_activate = True,sweep = True, load = False):
             tracking = 'all',
             parallel_interactions  = 16
         )
+    if agent_type == "a2c":
+        agent = Agent.create(
+            agent=agent_type,
+            states = environment.states(),
+            actions = environment.actions(),
+            max_episode_timesteps = environment.max_episode_timesteps(),
+            batch_size = batch_size,
+            network = network,
+            update_frequency = update_frequency,
+            learning_rate = dict(type = 'exponential', unit = 'episodes', num_steps = int(num_episode*nbr_job_to_use), initial_value = learning_rate, decay_rate = lr_decay),
+            #huber_loss = huber_loss,
+            horizon = horizon,
+            discount = discount,
+            critic = network,
+            exploration = dict(type = 'linear', unit = 'episodes', num_steps = int(num_episode*nbr_job_to_use), initial_value = epsilon, final_value = epsilon_min),
+            config = dict(seed = 1),
+            tracking = 'all',
+            parallel_interactions  = 16
+        )
     print(agent.get_architecture())
 
 
@@ -145,6 +165,7 @@ def train_model(wandb_activate = True,sweep = True, load = False):
             environment.job_name = "JOB" + str(j)
             environment.target = target
             environment.formulation = formulation 
+            environment.echelle = echelle
             environment.futur_state = futur_state
             states = environment.reset()
             reward_batch = 0
@@ -188,21 +209,42 @@ def train_model(wandb_activate = True,sweep = True, load = False):
                 
             target += DateOffset(days = int(rdm_day))
             formulation = np.random.choice([1,3,6],1,p =[0.25,0.25,0.5])[0]
+            echelle = np.random.choice([20000,6600], p = [0.9,0.1])
             
             #LOG all value for 1 batch episode
             if wandb_activate:
-            
-                wandb.log(
-                    {
-                        "exploration" : tracked["agent/exploration/exploration"],
-                        "learning_rate" : tracked["agent/policy_optimizer/learning_rate/learning_rate"],
-                        "policy-loss" : tracked["agent/policy-loss"],
-                        "update-return" : tracked["agent/update-return"],
-                        "reward_batch" : reward_batch,
-                        "lead_time" : environment.get_env().job.lead_time
-                    },
-                    step =step
-                )
+                if agent_type == "ddqn":
+                    wandb.log(
+                        {
+                            "exploration" : tracked["agent/exploration/exploration"],
+                            "learning_rate" : tracked["agent/policy_optimizer/learning_rate/learning_rate"],
+                            "policy-loss" : tracked["agent/policy-loss"],
+                            "update-return" : tracked["agent/update-return"],
+                            "reward_batch" : reward_batch,
+                            "lead_time" : environment.get_env().job.lead_time
+                        },
+                        step =step
+                    )
+                if agent_type == "a2c":
+                    wandb.log(
+                        {
+                            "baseline-loss" : tracked["agent/baseline-loss"],
+                            "baseline-objective-loss" : tracked["agent/baseline-objective-loss"],
+                            "baseline-regularization-loss" : tracked["agent/baseline-regularization-loss"],
+                            "entropy" : tracked["agent/entropy"],
+                            "exploration" : tracked["agent/exploration/exploration"],
+                            "agent/kl-divergence" : tracked["agent/kl-divergence"],
+                            "policy-loss" : tracked["agent/policy-loss"],
+                            "policy-objective-loss" : tracked["agent/policy-objective-loss"],
+                            "policy-regularization-loss" : tracked["agent/policy-regularization-loss"],                 
+                            "learning_rate" : tracked["agent/policy_optimizer/learning_rate/learning_rate"],
+                            "update-advantage" : tracked["agent/update-advantage"],
+                            "update-return" : tracked["agent/update-return"],
+                            "reward_batch" : reward_batch,
+                            "lead_time" : environment.get_env().job.lead_time
+                        },
+                        step =step
+                    )
             if score_max_batch < reward_batch:
                 score_max_batch = reward_batch
             score_mean_batch.append(reward_batch)
@@ -236,9 +278,6 @@ def train_model(wandb_activate = True,sweep = True, load = False):
 
             
             if wandb_activate:
-
-                
-
                 wandb.log(
                     {
                         "nbr_done" : nbr_done,
@@ -263,7 +302,8 @@ def train_model(wandb_activate = True,sweep = True, load = False):
     if wandb_activate:
         
         run.finish()
-  
+        agent.save("model/" + run.project + "/" +  run.name +"/", "final", format = "hdf5")
+        
     agent.close()
     environment.close()
 
