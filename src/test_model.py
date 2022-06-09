@@ -192,6 +192,15 @@ def evaluate_model(agent, environment, operator_vector_length, echu_weights):
         df.at[j, "done"] = environment.get_env().number_echu == 0
         df.at[j, "rewards"] = reward_batch
         
+        planning = environment.get_env().get_gant_formated()
+        planning_tot  = pd.concat([planning_tot,planning])
+    
+        
+    historic_time_tot = (futur_state.index.to_series()).tolist()
+    historic_operator_tot = futur_state["operator"].tolist()
+    
+    #utils.visualize(planning_tot,historic_time_tot,historic_operator_tot)
+        
     
     df["delta_lead_time"] = df["lead-time broyage->remplissage"] - df["lead_time_test"]
     df_done = df[df["done"] == True]
