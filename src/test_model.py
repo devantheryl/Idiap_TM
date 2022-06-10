@@ -108,7 +108,7 @@ def local_test():
         futur_state = environment.get_env().state_full
         reward_tot += reward_batch
         
-        df.at[j,"lead_time_test"] = environment.get_env().job.lead_time
+        df.at[j,"lead_time_test"] = environment.get_env().job.lead_time/2
         df.at[j, "done"] = environment.get_env().number_echu == 0
         df.at[j, "rewards"] = reward_batch
         
@@ -188,7 +188,7 @@ def evaluate_model(agent, environment, operator_vector_length, echu_weights):
         futur_state = environment.get_env().state_full
         reward_tot += reward_batch
         
-        df.at[j,"lead_time_test"] = environment.get_env().job.lead_time
+        df.at[j,"lead_time_test"] = environment.get_env().job.lead_time/2
         df.at[j, "done"] = environment.get_env().number_echu == 0
         df.at[j, "rewards"] = reward_batch
         

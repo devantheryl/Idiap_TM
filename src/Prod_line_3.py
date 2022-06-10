@@ -185,7 +185,7 @@ class Production_line():
             reward += self.job_finished_weigths
                
                 
-        return next_state,reward/4, done, self.number_echu
+        return next_state,reward, done, self.number_echu
     
     
         
@@ -386,7 +386,7 @@ class Production_line():
                         if self.machines[3].status != 0:
                             executable = False
                             
-                    #TODO change this shit
+                    #TODO change this 
                     #pour eviter que l'extrusion soit mal plannifiée (probleme de doublon)
                     if operation.operation_number == 8 or operation.operation_number == 7:
                         if self.time.weekday() == 0:
@@ -438,12 +438,12 @@ class Production_line():
                 if row[machine_name] != 0:
                     machine_free = False
                     
-            #eviter que qu'un mélange d'un autre lot se produise pendant une extrusion
-            melangeur_free = True
-            if operation.operation_number == 7 or operation.operation_number == 8:
-                #on check que le mélangeur soit idle
-                if self.machines[3].status != 0:
-                    melangeur_free = False
+                #eviter que qu'un mélange d'un autre lot se produise pendant une extrusion
+                melangeur_free = True
+                if operation.operation_number == 7 or operation.operation_number == 8:
+                    #on check que le mélangeur soit idle
+                    if row["m4"] != 0:
+                        melangeur_free = False
                  
             if operation.status == 0 and operation.executable and machine_free and melangeur_free:
                 return True

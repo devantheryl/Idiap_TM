@@ -68,7 +68,7 @@ def visualize(results ,historical_time, historical_operator, path = ""):
     uniq, index = np.unique(np.array(operation_machine_sorted), return_index=True)
     machines = uniq[index.argsort()]
     schedule = schedule[schedule["op_machine"] != "echu"]
-    makespan = (schedule['Start'].max() - schedule['Finish'].min()).days
+    #makespan = (schedule['Start'].max() - schedule['Finish'].min()).days
     end_date = schedule['Finish'].max()
     
     
@@ -79,7 +79,7 @@ def visualize(results ,historical_time, historical_operator, path = ""):
     schedule.sort_values(by=['Job', 'Start'])
     schedule.set_index(['Job', 'op_machine'], inplace=True,append = True)
     
-    fig, ax = plt.subplots(2,1, figsize=(30, (len(jobs)+len(machines))))
+    fig, ax = plt.subplots(2,1, figsize=(300, (len(jobs)+len(machines))/10))
     
     for jdx, j in enumerate(jobs, 1):
         for mdx, m in enumerate(machines, 1):
@@ -126,7 +126,7 @@ def visualize(results ,historical_time, historical_operator, path = ""):
         ax[idx].set_ylim(0.5, 0.5+len(s))
         ax[idx].set_yticks(range(1, 1+len(s)))
         ax[idx].set_yticklabels(s)
-        ax[idx].text(end_date, ax[idx].get_ylim()[0], "{0:0.1f}".format(makespan), ha='center', va='bottom')
+        #ax[idx].text(end_date, ax[idx].get_ylim()[0], "{0:0.1f}".format(makespan), ha='center', va='bottom')
         ax[idx].plot([end_date]*2, ax[idx].get_ylim(), 'r--')
         ax[idx].set_xlabel('Time')
         ax[idx].grid(True)

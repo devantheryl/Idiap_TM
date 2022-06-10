@@ -37,7 +37,7 @@ class Job:
         
         
         #stats params
-        self.lead_time = 0
+        self.lead_time = 0 #lead time in timestep
         self.started = False
         self.ended = False
         self.echu = []
@@ -247,7 +247,7 @@ class Job:
         
     @property
     def lead_time(self):
-        return self.__lead_time
+        return self.__lead_time /2
     @lead_time.setter
     def lead_time(self, value):
         self.__lead_time = value  

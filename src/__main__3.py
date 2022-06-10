@@ -137,7 +137,7 @@ def train_model(wandb_activate = True,sweep = True, load = False):
             network = network,
             update_frequency = update_frequency,
             learning_rate = dict(type = 'exponential', unit = 'episodes', num_steps = int(num_episode*nbr_job_to_use), initial_value = learning_rate, decay_rate = lr_decay),
-            #huber_loss = huber_loss,
+            l2_regularization = huber_loss,
             horizon = horizon,
             discount = discount,
             critic = network,
