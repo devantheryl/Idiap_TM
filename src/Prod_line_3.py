@@ -18,7 +18,7 @@ import utils as utils
 from random import sample
 
 #to set the current working directory
-os.chdir("C:/Users/LDE/Prog/projet_master/digital_twins")
+os.chdir("C:/Users/krus/Prog/Idiap_TM")
 
 class Production_line():
     

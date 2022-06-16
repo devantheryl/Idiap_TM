@@ -20,7 +20,7 @@ from tensorforce import Environment, Runner, Agent
 from pandas.tseries.offsets import DateOffset
 
 
-import utils as utils
+import src.utils as utils
 os.environ["WANDB_AGENT_MAX_INITIAL_FAILURES"]= "30"
 
 REQUIRED_PYTHON = "3.8.5"
@@ -28,8 +28,8 @@ REQUIRED_PYTHON = "3.8.5"
 
 def local_test():
     #MODEL TO USE
-    directory = "model/reccurent_job_ddqn_weekend/jumping-rain-18"
-    filename = "0000868334.hdf5"
+    directory = "model/reccurent_job_ddqn_weekend/distinctive-jazz-27"
+    filename = "final.hdf5"
     
     
     #LOAD THE TEST FILE
@@ -64,11 +64,17 @@ def local_test():
     
     #model params
     operator_vector_length = 28
-    echu_weights = 20
+    echu_weights = 0
+    ordo_weights = 4
+    job_finished_weigths = 0
+    forward_weights = -1
     independent = True
     
     environment = Environment.create(environment = TF_environment(target, formulation,echelle, job_name, nbr_operation_max, nbr_machines, nbr_operator, 
-                                                                      operator_vector_length,None, echu_weights = echu_weights, independent =True))
+                                                                  operator_vector_length,None, echu_weights = echu_weights,
+                                                                  forward_weights = forward_weights, ordo_weights = ordo_weights,
+                                                                  job_finished_weigths = job_finished_weigths, independent =False))
+    
     
     agent = Agent.load(
             directory = directory, 
@@ -112,6 +118,15 @@ def local_test():
         df.at[j, "done"] = environment.get_env().number_echu == 0
         df.at[j, "rewards"] = reward_batch
         
+        planning = environment.get_env().get_gant_formated()
+        planning_tot  = pd.concat([planning_tot,planning])
+    
+        
+    historic_time_tot = (futur_state.index.to_series()).tolist()
+    historic_operator_tot = futur_state["operator"].tolist()
+    
+    utils.visualize(planning_tot,historic_time_tot,historic_operator_tot)
+        
     df["delta_lead_time"] = df["lead-time broyage->remplissage"] - df["lead_time_test"]
     df_done = df[df["done"] == True]
     
@@ -134,9 +149,11 @@ def local_test():
     df.to_csv("test_model.csv", sep = ";", columns = df.columns, header = True)
 
 
+
+
 def evaluate_model(agent, environment, operator_vector_length, echu_weights):
     #LOAD THE TEST FILE
-    df = pd.read_excel("data/test_set.xlsx")
+    df = pd.read_excel("data/test_set_simple.xlsx")
     
     formulations = np.array(df["FORMULATION"].tolist())
     targets = np.array(df["DATE DEBUT REMPLISSAGE"].tolist())
@@ -214,3 +231,9 @@ def evaluate_model(agent, environment, operator_vector_length, echu_weights):
     sum_delta = df_done["delta_lead_time"].sum()
     
     return nbr_done, completion_rate, min_delta, max_delta, mean_delta, std_delta, sum_delta, reward_tot
+
+
+
+
+
+local_test()

@@ -152,26 +152,7 @@ def train_model(wandb_activate = True,sweep = True, load = False):
     #BEGIN OF THE TRAINING PHASE
     planning_tot = None
     step = 0
-    #LOAD THE TEST FILE
-    df = pd.read_excel("data/test_set.xlsx")
     
-    formulations = np.array(df["FORMULATION"].tolist())
-    targets = np.array(df["DATE DEBUT REMPLISSAGE"].tolist())
-    lead_times = np.array(df["lead-time broyage->remplissage"].tolist())
-    echelles = np.array(df["ECHELLE"].tolist())
-    job_names = np.array(df["CODE TRANSIT."].tolist())
-    
-    formulations = np.array(formulations)
-    formulations = np.where(formulations == 3.75, 1, formulations)
-    formulations = np.where(formulations == 11.25, 3, formulations)
-    formulations = np.where(formulations == 22.5, 6, formulations)
-    formulations = formulations.astype(int)
-    
-    df["lead_time_test"] = 0
-    df["done"] = False
-    df["rewards"] = -100
-    
-    nbr_job_to_use = len(targets)
     
     for i in range(1,num_episode+1): 
         
@@ -182,23 +163,14 @@ def train_model(wandb_activate = True,sweep = True, load = False):
         planning_tot = None
         for j in range(nbr_job_to_use):
             
-            target = targets[j]
-            formulation = formulations[j]
-            echelle = echelles[j]
-            job_name = job_names[j]
-            
-            environment.job_name = job_name
-            environment.target = target
-            environment.formulation = formulation
-            environment.echelle = echelle
             
             # Initialize episode
-            """
+            
             environment.job_name = "JOB" + str(j)
             environment.target = target
             environment.formulation = formulation 
             environment.echelle = echelle
-            """
+            
             
             environment.futur_state = futur_state
             states = environment.reset()
