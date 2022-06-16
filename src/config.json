@@ -1,5 +1,5 @@
 {
-    "nbr_job_to_use": 6,
+    "nbr_job_to_use": 4,
     "nbr_operation_max" : 15,
     "nbr_machines" : 8,
     "nbr_operator" : 12,
@@ -8,18 +8,18 @@
     
     "agent_type" : "ddqn",
     
-    "batch_size" : 1024,
-    "n_episode" : 1200,
+    "batch_size" : 8198,
+    "n_episode" : 500,
     "n_epsiode_test" : 1,
     "UPDATE_FREQ" : 2,
     "target_update_weight" : 1.0,
     "NETW_UPDATE_FREQ" : 200,
-    "memory" : 500000,
+    "memory" : 2000000,
     "epsilon" : 0.5,
     "epsilon_min" : 0.2,
     
-    "learning_rate" : 0.004,
-    "learning_rate_min" : 0.0001,
+    "learning_rate" : 0.002,
+    "learning_rate_min" : 0.00001,
     "huber_loss" : 1.0,
     "horizon" : 50,
     "discount" : 0.999,
@@ -27,17 +27,22 @@
     
     "multi_step" : 10,
     
-    "test_every" : 100,
+    "test_every" : 10,
     "save_every" : 5000,
     
-    "forward_weights" : -1,
-    "ordo_weights" : 4,
-    "echu_weights" : 0,
-    "job_finished_weigths" : 0,
+    "forward_weights" : -0.1,
+    "ordo_weights" : 0.4,
+    "echu_weights" : -1,
+    "job_finished_weigths" : 1,
     
     
     "network" : [
             
+            {
+                "type" : "dense",
+                "size" : 1024,
+                "activation" : "relu"
+            },
             {
                 "type" : "dense",
                 "size" : 512,
@@ -50,9 +55,15 @@
             },
             {
                 "type" : "dense",
-                "size" : 256,
+                "size" : 128,
+                "activation" : "relu"
+            },
+            {
+                "type" : "dense",
+                "size" : 64,
                 "activation" : "relu"
             }
+            
     ]
     
         

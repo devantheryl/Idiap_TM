@@ -247,7 +247,7 @@ class Job:
         
     @property
     def lead_time(self):
-        return self.__lead_time /2
+        return self.__lead_time
     @lead_time.setter
     def lead_time(self, value):
         self.__lead_time = value  
