@@ -1,15 +1,15 @@
 {
-    "nbr_job_to_use": 6,
+    "nbr_job_to_use": 4,
     "nbr_operation_max" : 15,
     "nbr_machines" : 8,
     "nbr_operator" : 12,
-    "operator_vector_length" : 14,
+    "operator_vector_length" : 7,
     
     
     "agent_type" : "ddqn",
     
     "batch_size" : 8198,
-    "n_episode" : 5000,
+    "n_episode" : 1000,
     "n_epsiode_test" : 1,
     "UPDATE_FREQ" : 2,
     "target_update_weight" : 1.0,
@@ -18,7 +18,7 @@
     "epsilon" : 0.5,
     "epsilon_min" : 0.2,
     
-    "learning_rate" : 0.002,
+    "learning_rate" : 0.001,
     "learning_rate_min" : 0.0005,
     "huber_loss" : 1.0,
     "horizon" : 50,
@@ -30,10 +30,10 @@
     "test_every" : 10,
     "save_every" : 5000,
     
-    "forward_weights" : -0.1,
+    "forward_weights" : -0.01,
     "ordo_weights" : 1,
     "echu_weights" : -10,
-    "job_finished_weigths" : 0,
+    "job_finished_weigths" : 10,
     
     
     "network" : [
@@ -50,7 +50,7 @@
             },
             {
                 "type" : "dense",
-                "size" : 128,
+                "size" : 256,
                 "activation" : "relu"
             }
             

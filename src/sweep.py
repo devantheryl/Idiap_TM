@@ -26,46 +26,15 @@ def train_model(wandb_activate = True,sweep = True, load = False):
             configs = json.load(json_file)
     
     
-    agent_type = configs["agent_type"]
-    nbr_job_to_use = configs["nbr_job_to_use"]
-    nbr_operation_max = configs["nbr_operation_max"]
-    nbr_machines = configs["nbr_machines"]
-    nbr_operator = configs["nbr_operator"]
-    operator_vector_length = configs["operator_vector_length"]
-    
-    num_episode = configs["n_episode"]
-    memory = configs["memory"]
-    batch_size = configs["batch_size"]
-    network = configs["network"]
-    update_frequency = configs["UPDATE_FREQ"]
-    learning_rate = configs["learning_rate"]
-    learning_rate_min = configs["learning_rate_min"]
-    huber_loss = configs["huber_loss"]
-    horizon = configs["horizon"]
-    discount = configs["discount"]
-    target_update_weight  = configs["target_update_weight"]
-    target_sync_frequency  = configs["NETW_UPDATE_FREQ"]
-    epsilon = configs["epsilon"]
-    epsilon_min = configs["epsilon_min"]
-    
-    multi_step = configs["multi_step"]
-    
-    test_every = configs["test_every"]
-    save_every = configs["save_every"]
-    
-    echu_weights = configs["echu_weights"]
-    forward_weights = configs["forward_weights"]
-    ordo_weights = configs["ordo_weights"]
-    job_finished_weigths = configs["job_finished_weigths"]
-    
+    agent_type = "ddqn"
     if wandb_activate:
         if sweep:
-            run = wandb.init(config = configs)    
+            run = wandb.init()    
         else:
             if load:
                 run = wandb.init(
     
-                  project="5_job_ddqn_weekend",
+                  project="Evaluation_DQN",
                   id = "14iprn20",
                   resume = "must",
                   entity="devantheryl",
@@ -76,17 +45,57 @@ def train_model(wandb_activate = True,sweep = True, load = False):
                 
                 run = wandb.init(
     
-                  project="reccurent" + "_job_" + agent_type+ "_weekend_test",
+                  project="reccurent" + "_job_" + agent_type+ "_weekend__sweep",
                   entity="devantheryl",
                   notes = "only 6 formu",
                   config=configs,
                 )
         
-        
+        config = wandb.config
         os.makedirs("model/" + run.project, exist_ok=True)
         os.makedirs("model/" + run.project + "/" + run.name, exist_ok = True)
         print(run.name)
         print(run.project)
+        
+        
+
+        nbr_operation_max = 15
+        nbr_machines = 8
+        nbr_operator = 12
+        
+        memory = 500000
+        batch_size = 256
+        update_frequency = 2
+        
+        nbr_job_to_use = config.nbr_job_to_use
+        num_episode = int(700/nbr_job_to_use)
+        operator_vector_length = config.ressource_states_len
+        echu_weights = config.echu_weights
+        forward_weights = config.forward_weights
+        ordo_weights = config.ordo_weights
+        job_finished_weigths = config.job_finished_weigths
+        
+        nbr_neurones = config.nbr_neurones
+        nbr_layers = config.nbr_layers
+        activation_function = config.activation_function
+        
+        learning_rate = config.learning_rate
+        horizon = config.horizon
+        discount = config.discount
+        target_sync_frequency  = config.target_sync_frequency
+        epsilon = config.epsilon
+        epsilon_min = config.epsilon_min
+        
+        
+        test_every = 1000
+        save_every = 10000
+        network = []
+        for i in range(nbr_layers):
+            network.append(dict(type = "dense", size = nbr_neurones, activation = activation_function))
+                    
+        
+        
+        
         
     score_mean_tot = deque(maxlen = 300)
     score_mean_batch = deque(maxlen = 300)
@@ -105,7 +114,7 @@ def train_model(wandb_activate = True,sweep = True, load = False):
                                                                   job_finished_weigths = job_finished_weigths, independent =False))
     
     #AGENT CREATION
-    lr_decay = learning_rate_min/learning_rate
+
     if agent_type == "ddqn" or agent_type == "dueling_dqn":
         agent = Agent.create(
             agent=agent_type,
@@ -116,11 +125,11 @@ def train_model(wandb_activate = True,sweep = True, load = False):
             batch_size = batch_size,
             network = network,
             update_frequency = update_frequency,
-            learning_rate = dict(type = 'exponential', unit = 'episodes', num_steps = int(num_episode*nbr_job_to_use), initial_value = learning_rate, decay_rate = lr_decay),
+            learning_rate = learning_rate,
             #huber_loss = huber_loss,
             horizon = horizon,
             discount = discount,
-            target_update_weight = target_update_weight ,
+            target_update_weight = 1.0 ,
             target_sync_frequency  = target_sync_frequency,
             exploration = dict(type = 'linear', unit = 'episodes', num_steps = int(num_episode*nbr_job_to_use), initial_value = epsilon, final_value = epsilon_min),
             config = dict(seed = 1),
@@ -136,8 +145,8 @@ def train_model(wandb_activate = True,sweep = True, load = False):
             batch_size = batch_size,
             network = network,
             update_frequency = update_frequency,
-            learning_rate = dict(type = 'exponential', unit = 'episodes', num_steps = int(num_episode*nbr_job_to_use), initial_value = learning_rate, decay_rate = lr_decay),
-            l2_regularization = huber_loss,
+            learning_rate = learning_rate,
+            #l2_regularization = huber_loss,
             horizon = horizon,
             discount = discount,
             critic = network,
@@ -223,7 +232,6 @@ def train_model(wandb_activate = True,sweep = True, load = False):
                     wandb.log(
                         {
                             "exploration" : tracked["agent/exploration/exploration"],
-                            "learning_rate" : tracked["agent/policy_optimizer/learning_rate/learning_rate"],
                             "policy-loss" : tracked["agent/policy-loss"],
                             "update-return" : tracked["agent/update-return"],
                             "reward_batch" : reward_batch,
@@ -273,42 +281,37 @@ def train_model(wandb_activate = True,sweep = True, load = False):
             )
         
         
-        
-        
-        if i % save_every == 0 and wandb_activate:
-            agent.save("model/" + run.project + "/" +  run.name +"/", '{:010d}'.format(step), format = "hdf5")
                 
-        if i % test_every == 0:
+        
             
-            nbr_done, completion_rate, min_delta, max_delta, mean_delta, std_delta, sum_delta, reward_tot = evaluate_model(agent, environment, operator_vector_length, echu_weights)
+    nbr_done, completion_rate, min_delta, max_delta, mean_delta, std_delta, sum_delta, reward_tot = evaluate_model(agent, environment, operator_vector_length, echu_weights)
 
-            
-            if wandb_activate:
-                wandb.log(
-                    {
-                        "nbr_done" : nbr_done,
-                        "completion_rate" : completion_rate, 
-                        "min_delta" : min_delta, 
-                        "max_delta": max_delta, 
-                        "mean_delta" : mean_delta, 
-                        "std_delta" : std_delta, 
-                        "sum_delta" : sum_delta, 
-                        "reward_tot" : reward_tot
-                    },
-                    step = step
-                )
-            print("number done : ", nbr_done)
-            print("completion_rate : ", completion_rate)
-            print("min_delta : ", min_delta)
-            print("max_delta : ", max_delta)
-            print("mean_delta : ", mean_delta)
-            print("std_delta : ", std_delta)
-            print("sum_delta : ", sum_delta)
+    
+    if wandb_activate:
+        wandb.log(
+            {
+                "nbr_done" : nbr_done,
+                "completion_rate" : completion_rate, 
+                "min_delta" : min_delta, 
+                "max_delta": max_delta, 
+                "mean_delta" : mean_delta, 
+                "std_delta" : std_delta, 
+                "sum_delta" : sum_delta, 
+                "reward_tot" : reward_tot
+            },
+            step = step
+        )
+    print("number done : ", nbr_done)
+    print("completion_rate : ", completion_rate)
+    print("min_delta : ", min_delta)
+    print("max_delta : ", max_delta)
+    print("mean_delta : ", mean_delta)
+    print("std_delta : ", std_delta)
+    print("sum_delta : ", sum_delta)
                     
     if wandb_activate:
         
         run.finish()
-        agent.save("model/" + run.project + "/" +  run.name +"/", "final", format = "hdf5")
         
     agent.close()
     environment.close()
@@ -372,25 +375,77 @@ if __name__ == '__main__':
         train_model(args.wandb_activate,False,args.load)
         
     if args.sweep:
-        print("sweep model")
-    
-
-        
-    
-    if args.use:
-        print("use model")
-        directory = "model/5_job_ddqn_weekend/fine-capybara-38"
-        filename = "final.hdf5"
-        
-        target_date = {
-            
-            "2022-04-05 00:00:00" : 6,
-            "2022-04-11 00:00:00" : 6,
-            "2022-04-18 00:00:00" : 6,
-            "2022-04-27 00:00:00" : 1,
-
-            
+        sweep_configs = {
+            "name" : "my_sweep",
+            "project" : "sweep_4_job",
+            "entity" : "devantheryl",
+            "method": "bayes",
+            "metric": {
+                "name": "completion_rate",
+                "goal": "maximize",
+            },
+            "parameters": {
+                "nbr_job_to_use": {
+                    "min": 1,
+                    "max" : 8
+                },
+                "ressource_states_len": {
+                    "min": 2,
+                    "max" : 28
+                },
+                "echu_weights": {
+                    "min": -100,
+                    "max" : 0
+                },
+                "forward_weights": {
+                    "min": -1,
+                    "max" : 0
+                },
+                "ordo_weights": {
+                    "min": 0,
+                    "max" : 10
+                },
+                "job_finished_weigths": {
+                    "min": 0,
+                    "max" : 100
+                },
+                "nbr_neurones": {
+                    "min": 32,
+                    "max" : 512
+                },
+                "nbr_layers": {
+                    "min": 1,
+                    "max" : 5
+                },
+                "activation_function": {
+                    "values" : ["relu", "tanh", "sigmoid"]
+                },
+                "learning_rate": {
+                    "min": 0.00001,
+                    "max" : 0.01
+                },
+                "horizon": {
+                    "min": 1,
+                    "max" : 100
+                },
+                "discount": {
+                    "min": 0.1,
+                    "max" : 0.9999
+                },
+                "target_sync_frequency": {
+                    "min": 20,
+                    "max" : 400
+                },
+                "epsilon": {
+                    "min": 0.5,
+                    "max" : 0.99
+                },
+                "epsilon_min": {
+                    "min": 0.05,
+                    "max" : 0.4
+                },
+            }
         }
-        
-        use_model(directory, filename, target_date, 4)
+        sweep_id = wandb.sweep(sweep=sweep_configs, project="DQN_hyperparametersTuning")
+        wandb.agent(sweep_id=sweep_id, function=train_model, count=200)
         

@@ -153,7 +153,7 @@ def local_test():
 
 def evaluate_model(agent, environment, operator_vector_length, echu_weights):
     #LOAD THE TEST FILE
-    df = pd.read_excel("data/test_set_simple.xlsx")
+    df = pd.read_excel("data/test_set.xlsx")
     
     formulations = np.array(df["FORMULATION"].tolist())
     targets = np.array(df["DATE DEBUT REMPLISSAGE"].tolist())
@@ -230,10 +230,11 @@ def evaluate_model(agent, environment, operator_vector_length, echu_weights):
     std_delta = df_done["delta_lead_time"].std()
     sum_delta = df_done["delta_lead_time"].sum()
     
+    df.to_csv("test_model.csv", sep = ";", columns = df.columns, header = True)
+    
     return nbr_done, completion_rate, min_delta, max_delta, mean_delta, std_delta, sum_delta, reward_tot
 
 
 
 
 
-local_test()
