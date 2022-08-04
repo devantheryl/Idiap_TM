@@ -14,11 +14,11 @@ from pandas.tseries.offsets import DateOffset
 import json
 import os
 from datetime import datetime, timedelta, date
-import utils as utils
+
 from random import sample
 
 #to set the current working directory
-os.chdir("C:/Users/krus/Prog/Idiap_TM")
+os.chdir("C:/Users/LDE/Prog/projet_master/digital_twins")
 
 class Production_line():
     
@@ -200,7 +200,7 @@ class Production_line():
         else:
             start = target
             
-        date_rng = pd.date_range(start=start, end=end, freq='12H',inclusive = "right")
+        date_rng = pd.date_range(start=start, end=end, freq='12H', )
         date_rng = reversed(date_rng)
         df = pd.DataFrame(date_rng, columns=['date'])
         df['datetime'] = pd.to_datetime(df['date'])
@@ -490,8 +490,9 @@ class Production_line():
         
         sum_state = np.concatenate((sum_state, np.array([self.morning_afternoon,(self.time.weekday()-3)/3])))
         
-
+    
         assert(self.state_size == len(sum_state))
+        
         
         return sum_state
     

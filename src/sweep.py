@@ -26,7 +26,7 @@ def train_model(wandb_activate = True,sweep = True, load = False):
             configs = json.load(json_file)
     
     
-    agent_type = "ddqn"
+    agent_type = "a2c"
     if wandb_activate:
         if sweep:
             run = wandb.init()    
@@ -34,7 +34,7 @@ def train_model(wandb_activate = True,sweep = True, load = False):
             if load:
                 run = wandb.init(
     
-                  project="Evaluation_DQN",
+                  project="Evaluation_actor_critic",
                   id = "14iprn20",
                   resume = "must",
                   entity="devantheryl",
@@ -82,7 +82,8 @@ def train_model(wandb_activate = True,sweep = True, load = False):
         learning_rate = config.learning_rate
         horizon = config.horizon
         discount = config.discount
-        target_sync_frequency  = config.target_sync_frequency
+        #target_sync_frequency  = config.target_sync_frequency
+        entropy_regularization  = config.entropy_regularization 
         epsilon = config.epsilon
         epsilon_min = config.epsilon_min
         
@@ -130,7 +131,7 @@ def train_model(wandb_activate = True,sweep = True, load = False):
             horizon = horizon,
             discount = discount,
             target_update_weight = 1.0 ,
-            target_sync_frequency  = target_sync_frequency,
+            #target_sync_frequency  = target_sync_frequency,
             exploration = dict(type = 'linear', unit = 'episodes', num_steps = int(num_episode*nbr_job_to_use), initial_value = epsilon, final_value = epsilon_min),
             config = dict(seed = 1),
             tracking = 'all',
@@ -146,7 +147,7 @@ def train_model(wandb_activate = True,sweep = True, load = False):
             network = network,
             update_frequency = update_frequency,
             learning_rate = learning_rate,
-            #l2_regularization = huber_loss,
+            entropy_regularization  = entropy_regularization ,
             horizon = horizon,
             discount = discount,
             critic = network,
@@ -251,7 +252,6 @@ def train_model(wandb_activate = True,sweep = True, load = False):
                             "policy-loss" : tracked["agent/policy-loss"],
                             "policy-objective-loss" : tracked["agent/policy-objective-loss"],
                             "policy-regularization-loss" : tracked["agent/policy-regularization-loss"],                 
-                            "learning_rate" : tracked["agent/policy_optimizer/learning_rate/learning_rate"],
                             "update-advantage" : tracked["agent/update-advantage"],
                             "update-return" : tracked["agent/update-return"],
                             "reward_batch" : reward_batch,
@@ -432,9 +432,9 @@ if __name__ == '__main__':
                     "min": 0.1,
                     "max" : 0.9999
                 },
-                "target_sync_frequency": {
-                    "min": 20,
-                    "max" : 400
+                "entropy_regularization": {
+                    "min": 0.0,
+                    "max" : 2.0
                 },
                 "epsilon": {
                     "min": 0.5,
@@ -446,6 +446,6 @@ if __name__ == '__main__':
                 },
             }
         }
-        sweep_id = wandb.sweep(sweep=sweep_configs, project="DQN_hyperparametersTuning")
+        sweep_id = wandb.sweep(sweep=sweep_configs, project="actor_critic_hyperparametersTuning")
         wandb.agent(sweep_id=sweep_id, function=train_model, count=200)
         

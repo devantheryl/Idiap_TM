@@ -7,11 +7,10 @@ Created on Thu Jan 13 11:51:35 2022
 import json
 import os
 from collections import deque
-import wandb
 import numpy as np
 from tensorforce import Environment, Runner, Agent
 from src.Prod_line_3 import Production_line
-import utils as utils
+
 import time
 
 class TF_environment(Environment):

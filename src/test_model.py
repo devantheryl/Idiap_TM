@@ -28,12 +28,19 @@ REQUIRED_PYTHON = "3.8.5"
 
 def local_test():
     #MODEL TO USE
-    directory = "model/reccurent_job_ddqn_weekend/distinctive-jazz-27"
-    filename = "final.hdf5"
+
+    directory = "model/reccurent_job_ddqn_weekend_final/frosty-dream-3"
+    filename = "0000423336.hdf5"
+    print(directory)
+    print(filename)
     
     
     #LOAD THE TEST FILE
-    df = pd.read_excel("data/test_set.xlsx")
+    test_file = "data/test_set_simple.xlsx"
+    test_file = "data/test_set_augmented.xlsx"
+    test_file = "data/test_set - Copie.xlsx"
+    print(test_file)
+    df = pd.read_excel(test_file)
     
     formulations = np.array(df["FORMULATION"].tolist())
     targets = np.array(df["DATE DEBUT REMPLISSAGE"].tolist())
@@ -63,11 +70,11 @@ def local_test():
     nbr_job_to_use = len(targets)
     
     #model params
-    operator_vector_length = 28
-    echu_weights = 0
-    ordo_weights = 4
+    operator_vector_length = 7
+    echu_weights = -59
+    ordo_weights = 7
     job_finished_weigths = 0
-    forward_weights = -1
+    forward_weights = 0
     independent = True
     
     environment = Environment.create(environment = TF_environment(target, formulation,echelle, job_name, nbr_operation_max, nbr_machines, nbr_operator, 
@@ -137,6 +144,8 @@ def local_test():
     mean_delta = df_done["delta_lead_time"].mean()
     std_delta = df_done["delta_lead_time"].std()
     sum_delta = df_done["delta_lead_time"].sum()
+    mean_lead_time = df["lead_time_test"].mean()
+    std_lead_time = df["lead_time_test"].std()
     
     print("number done : ", nbr_done)
     print("completion_rate : ", completion_rate)
@@ -145,15 +154,16 @@ def local_test():
     print("mean_delta : ", mean_delta)
     print("std_delta : ", std_delta)
     print("sum_delta : ", sum_delta)
-    
-    df.to_csv("test_model.csv", sep = ";", columns = df.columns, header = True)
+    print("mean lead-time : ",mean_lead_time )
+    print("std lead-time : ", std_lead_time )
+    df.to_csv("test_model_.csv", sep = ";", columns = df.columns, header = True)
 
 
 
 
 def evaluate_model(agent, environment, operator_vector_length, echu_weights):
     #LOAD THE TEST FILE
-    df = pd.read_excel("data/test_set.xlsx")
+    df = pd.read_excel("data/test_set_simple.xlsx")
     
     formulations = np.array(df["FORMULATION"].tolist())
     targets = np.array(df["DATE DEBUT REMPLISSAGE"].tolist())
@@ -233,8 +243,3 @@ def evaluate_model(agent, environment, operator_vector_length, echu_weights):
     df.to_csv("test_model.csv", sep = ";", columns = df.columns, header = True)
     
     return nbr_done, completion_rate, min_delta, max_delta, mean_delta, std_delta, sum_delta, reward_tot
-
-
-
-
-

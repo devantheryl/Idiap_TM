@@ -47,6 +47,7 @@ def train_model(wandb_activate = True,sweep = True, load = False):
     target_sync_frequency  = configs["NETW_UPDATE_FREQ"]
     epsilon = configs["epsilon"]
     epsilon_min = configs["epsilon_min"]
+    entropy_regularization = configs["entropy_regularization"]
     
     multi_step = configs["multi_step"]
     
@@ -76,9 +77,9 @@ def train_model(wandb_activate = True,sweep = True, load = False):
                 
                 run = wandb.init(
     
-                  project="reccurent" + "_job_" + agent_type+ "_weekend_test",
+                  project="reccurent" + "_job_" + agent_type+ "_weekend_final",
                   entity="devantheryl",
-                  notes = "only 6 formu",
+                  notes = "",
                   config=configs,
                 )
         
@@ -116,6 +117,7 @@ def train_model(wandb_activate = True,sweep = True, load = False):
             batch_size = batch_size,
             network = network,
             update_frequency = update_frequency,
+            #learning_rate = learning_rate,
             learning_rate = dict(type = 'exponential', unit = 'episodes', num_steps = int(num_episode*nbr_job_to_use), initial_value = learning_rate, decay_rate = lr_decay),
             #huber_loss = huber_loss,
             horizon = horizon,
@@ -137,7 +139,8 @@ def train_model(wandb_activate = True,sweep = True, load = False):
             network = network,
             update_frequency = update_frequency,
             learning_rate = dict(type = 'exponential', unit = 'episodes', num_steps = int(num_episode*nbr_job_to_use), initial_value = learning_rate, decay_rate = lr_decay),
-            l2_regularization = huber_loss,
+            #learning_rate = learning_rate,
+            entropy_regularization  = entropy_regularization ,
             horizon = horizon,
             discount = discount,
             critic = network,
@@ -223,7 +226,7 @@ def train_model(wandb_activate = True,sweep = True, load = False):
                     wandb.log(
                         {
                             "exploration" : tracked["agent/exploration/exploration"],
-                            "learning_rate" : tracked["agent/policy_optimizer/learning_rate/learning_rate"],
+                            #"learning_rate" : tracked["agent/policy_optimizer/learning_rate/learning_rate"],
                             "policy-loss" : tracked["agent/policy-loss"],
                             "update-return" : tracked["agent/update-return"],
                             "reward_batch" : reward_batch,
@@ -243,7 +246,7 @@ def train_model(wandb_activate = True,sweep = True, load = False):
                             "policy-loss" : tracked["agent/policy-loss"],
                             "policy-objective-loss" : tracked["agent/policy-objective-loss"],
                             "policy-regularization-loss" : tracked["agent/policy-regularization-loss"],                 
-                            "learning_rate" : tracked["agent/policy_optimizer/learning_rate/learning_rate"],
+                            #"learning_rate" : tracked["agent/policy_optimizer/learning_rate/learning_rate"],
                             "update-advantage" : tracked["agent/update-advantage"],
                             "update-return" : tracked["agent/update-return"],
                             "reward_batch" : reward_batch,
@@ -276,7 +279,8 @@ def train_model(wandb_activate = True,sweep = True, load = False):
         
         
         if i % save_every == 0 and wandb_activate:
-            agent.save("model/" + run.project + "/" +  run.name +"/", '{:010d}'.format(step), format = "hdf5")
+            #agent.save("model/" + run.project + "/" +  run.name +"/", '{:010d}'.format(step), format = "hdf5")
+            pass
                 
         if i % test_every == 0:
             
@@ -304,11 +308,14 @@ def train_model(wandb_activate = True,sweep = True, load = False):
             print("mean_delta : ", mean_delta)
             print("std_delta : ", std_delta)
             print("sum_delta : ", sum_delta)
+            
+            if completion_rate == 1.0:
+                agent.save("model/" + run.project + "/" +  run.name +"/", '{:010d}'.format(step), format = "hdf5")
                     
     if wandb_activate:
         
         run.finish()
-        agent.save("model/" + run.project + "/" +  run.name +"/", "final", format = "hdf5")
+        #agent.save("model/" + run.project + "/" +  run.name +"/", "final", format = "hdf5")
         
     agent.close()
     environment.close()
