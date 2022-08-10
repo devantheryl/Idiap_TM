@@ -5,6 +5,7 @@ Created on Mon Dec  6 12:50:34 2021
 @author: LDE
 """
 from src.Operation2 import Operation
+from src.batch_description import get_batch_description
 import numpy as np
 import json
 from datetime import datetime, timedelta, date
@@ -64,8 +65,8 @@ class Job:
     def create_all_operations(self):
         
         
-        with open("src/batch_description.json") as json_file:
-            batch_description = json.load(json_file)
+        
+        batch_description = get_batch_description()
             
         if self.formulation == 1 and self.job_size == 20000:
             batch_info = batch_description["Batch_3.75_20000_REVERSE"]
