@@ -18,7 +18,11 @@ from datetime import datetime, timedelta, date
 from random import sample
 
 #to set the current working directory
-os.chdir("C:/Users/LDE/Prog/projet_master/digital_twins")
+import sys
+import os
+abspath = os.path.abspath(__file__)
+dname =os.path.dirname(os.path.dirname(abspath))
+os.chdir(dname)
 
 class Production_line():
     

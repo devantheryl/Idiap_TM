@@ -1,140 +1,4 @@
 {
-    "Batch_3.75_20000" : {
-        
-        "operation1" : {
-            "number" : 1,
-            "OF" : "POLBR",
-            "processable_on" : [1,2],
-            "processing_time" : 2,
-            "nbr_of_sucessor" : 13,
-            "expiration_time" : 12,
-            "dependencies" : [],
-            "operator" : 2,
-            "used_by" : 2
-            
-        },
-        "operation2" : {
-            "number" : 2,
-            "processable_on" : [3],
-            "processing_time" : 1,
-            "nbr_of_sucessor" : 12,
-            "expiration_time" : 60,
-            "dependencies" : [1],
-            "operator" : 2,
-            "used_by" : 3
-        },
-        "operation3" : {
-            "number" : 3,
-            "processable_on" : [4,5],
-            "processing_time" : 1,
-            "nbr_of_sucessor" : 11,
-            "expiration_time" : 2,
-            "dependencies" : [2],
-            "operator" : 3,
-            "used_by" : 4
-        },
-        "operation4" : {
-            "number" : 4,
-            "processable_on" : [6],
-            "processing_time" : 2,
-            "nbr_of_sucessor" : 10,
-            "expiration_time" : 60,
-            "dependencies" : [3],
-            "operator" : 2,
-            "used_by" : 5
-        },
-        "operation5" : {
-            "number" : 5,
-            "processable_on" : [1,2],
-            "processing_time" : 4,
-            "nbr_of_sucessor" : 9,
-            "expiration_time" : 12,
-            "dependencies" : [4],
-            "operator" : 2,
-            "used_by" : 6
-        },
-        "operation6" : {
-            "number" : 6,
-            "processable_on" : [3],
-            "processing_time" : 2,
-            "nbr_of_sucessor" : 8,
-            "expiration_time" : 60,
-            "dependencies" : [5],
-            "operator" : 2,
-            "used_by" : 9
-        },
-        "operation7" : {
-            "number" : 7,
-            "processable_on" : [8],
-            "processing_time" : 3,
-            "nbr_of_sucessor" : 7,
-            "expiration_time" : 14,
-            "dependencies" : [],
-            "operator" : 2,
-            "used_by" : 9
-        },
-        "operation9" : {
-            "number" : 9,
-            "processable_on" : [9],
-            "processing_time" : 4,
-            "nbr_of_sucessor" : 6,
-            "expiration_time" : 10,
-            "dependencies" : [6,7],
-            "operator" : 8,
-            "used_by" : 10
-        },
-        "operation10" : {
-            "number" : 10,
-            "processable_on" : [10],
-            "processing_time" : 1,
-            "nbr_of_sucessor" : 5,
-            "expiration_time" : 60,
-            "dependencies" : [9],
-            "operator" : 2,
-            "used_by" : 11
-        },
-        "operation11" : {
-            "number" : 11,
-            "processable_on" : [11],
-            "processing_time" : 2,
-            "nbr_of_sucessor" : 4,
-            "expiration_time" : 60,
-            "dependencies" : [10],
-            "operator" : 2,
-            "used_by" : 12
-        },
-        "operation12" : {
-            "number" : 12,
-            "processable_on" : [12],
-            "processing_time" : 4,
-            "nbr_of_sucessor" : 3,
-            "expiration_time" : 60,
-            "dependencies" : [11],
-            "operator" : 5,
-            "used_by" : 13
-        },
-        "operation13" : {
-            "number" : 13,
-            "processable_on" : [13],
-            "processing_time" : 1,
-            "nbr_of_sucessor" : 2,
-            "expiration_time" : 60,
-            "dependencies" : [12],
-            "operator" : 0,
-            "used_by" : 14
-        },
-        "operation14" : {
-            "number" : 14,
-            "processable_on" : [12],
-            "processing_time" : 1,
-            "nbr_of_sucessor" : 1,
-            "expiration_time" : 60,
-            "dependencies" : [13],
-            "operator" : 0,
-            "used_by" : 14
-        }
-        
-    },
     
     "Batch_3.75_20000_REVERSE" : {
         
@@ -169,7 +33,7 @@
         "operation3" : {
             "type" : "operation",
             "number" : 5,
-            "processable_on" : [4,5],
+            "processable_on" : [4],
             "processing_time" : 1,
             "expiration_time" : 2,
             "dependencies" : [7],
@@ -182,7 +46,7 @@
         "operation4" : {
             "type" : "operation",
             "number" : 7,
-            "processable_on" : [6],
+            "processable_on" : [5],
             "processing_time" : 2,
             "expiration_time" : 60,
             "dependencies" : [9],
@@ -221,7 +85,7 @@
         "operation7" : {
             "type" : "operation",
             "number" : 13,
-            "processable_on" : [8],
+            "processable_on" : [7],
             "processing_time" : 3,
             "expiration_time" : 14,
             "dependencies" : [15],
@@ -234,8 +98,118 @@
         "operation9" : {
             "type" : "operation",
             "number" : 15,
-            "processable_on" : [9],
+            "processable_on" : [8],
             "processing_time" : 4,
+            "expiration_time" : 14,
+            "dependencies" : [],
+            "operator" : 8,
+            "used_by" : [13,11],
+            "begin_day" : 1, 
+            "QC_delay" : 0
+        }
+        
+        
+    },
+    "Batch_3.75_6600_REVERSE" : {
+        
+        "operation1" : {
+            "type" : "operation",
+            "number" : 1,
+            "OF" : "POLBR",
+            "processable_on" : [1,2],
+            "processing_time" : 2,
+            "expiration_time" : 12,
+            "dependencies" : [3],
+            "operator" : 2,
+            "used_by" : [],
+            "begin_day" : 1, 
+            "QC_delay" : 0
+            
+        },
+        
+        "operation2" : {
+            "type" : "operation",
+            "number" : 3,
+            "processable_on" : [3],
+            "processing_time" : 1,
+            "expiration_time" : 60,
+            "dependencies" : [5],
+            "operator" : 2,
+            "used_by" : [1],
+            "begin_day" : 0, 
+            "QC_delay" : 0
+        },
+        
+        "operation3" : {
+            "type" : "operation",
+            "number" : 5,
+            "processable_on" : [4],
+            "processing_time" : 1,
+            "expiration_time" : 2,
+            "dependencies" : [7],
+            "operator" : 3,
+            "used_by" : [3],
+            "begin_day" : 0, 
+            "QC_delay" : 0
+        },
+        
+        "operation4" : {
+            "type" : "operation",
+            "number" : 7,
+            "processable_on" : [5],
+            "processing_time" : 2,
+            "expiration_time" : 60,
+            "dependencies" : [9],
+            "operator" : 2,
+            "used_by" : [5],
+            "begin_day" : 1, 
+            "QC_delay" : 0
+        },
+        
+        "operation5" : {
+            "type" : "operation",
+            "number" : 9,
+            "processable_on" : [1,2],
+            "processing_time" : 2,
+            "expiration_time" : 12,
+            "dependencies" : [11],
+            "operator" : 2,
+            "used_by" : [7],
+            "begin_day" : 1, 
+            "QC_delay" : 0
+        },
+        
+        "operation6" : {
+            "type" : "operation",
+            "number" : 11,
+            "processable_on" : [3],
+            "processing_time" : 1,
+            "expiration_time" : 60,
+            "dependencies" : [15],
+            "operator" : 2,
+            "used_by" : [9],
+            "begin_day" : 1, 
+            "QC_delay" : 4
+        },
+        
+        "operation7" : {
+            "type" : "operation",
+            "number" : 13,
+            "processable_on" : [7],
+            "processing_time" : 1,
+            "expiration_time" : 14,
+            "dependencies" : [15],
+            "operator" : 2,
+            "used_by" : [],
+            "begin_day" : 0, 
+            "QC_delay" : 1
+        },
+        
+        "operation9" : {
+            "type" : "operation",
+            "number" : 15,
+            "processable_on" : [8],
+            "processing_time" : 2,
             "expiration_time" : 14,
             "dependencies" : [],
             "operator" : 8,
@@ -279,7 +253,7 @@
         "operation3" : {
             "type" : "operation",
             "number" : 5,
-            "processable_on" : [4,5],
+            "processable_on" : [4],
             "processing_time" : 1,
             "expiration_time" : 2,
             "dependencies" : [7],
@@ -292,7 +266,7 @@
         "operation4" : {
             "type" : "operation",
             "number" : 7,
-            "processable_on" : [6],
+            "processable_on" : [5],
             "processing_time" : 2,
             "expiration_time" : 60,
             "dependencies" : [9],
@@ -331,7 +305,7 @@
         "operation7" : {
             "type" : "operation",
             "number" : 13,
-            "processable_on" : [8],
+            "processable_on" : [7],
             "processing_time" : 3,
             "expiration_time" : 14,
             "dependencies" : [15],
@@ -344,8 +318,118 @@
         "operation9" : {
             "type" : "operation",
             "number" : 15,
-            "processable_on" : [9],
+            "processable_on" : [8],
             "processing_time" : 4,
+            "expiration_time" : 14,
+            "dependencies" : [],
+            "operator" : 8,
+            "used_by" : [13,11],
+            "begin_day" : 1, 
+            "QC_delay" : 0
+        }
+        
+        
+    },
+    "Batch_11.25_6600_REVERSE" : {
+        
+        "operation1" : {
+            "type" : "operation",
+            "number" : 1,
+            "OF" : "POLBR",
+            "processable_on" : [1,2],
+            "processing_time" : 2,
+            "expiration_time" : 12,
+            "dependencies" : [3],
+            "operator" : 2,
+            "used_by" : [],
+            "begin_day" : 1, 
+            "QC_delay" : 0
+            
+        },
+        
+        "operation2" : {
+            "type" : "operation",
+            "number" : 3,
+            "processable_on" : [3],
+            "processing_time" : 1,
+            "expiration_time" : 60,
+            "dependencies" : [5],
+            "operator" : 2,
+            "used_by" : [1],
+            "begin_day" : 0, 
+            "QC_delay" : 0
+        },
+        
+        "operation3" : {
+            "type" : "operation",
+            "number" : 5,
+            "processable_on" : [4],
+            "processing_time" : 1,
+            "expiration_time" : 2,
+            "dependencies" : [7],
+            "operator" : 3,
+            "used_by" : [3],
+            "begin_day" : 0, 
+            "QC_delay" : 0
+        },
+        
+        "operation4" : {
+            "type" : "operation",
+            "number" : 7,
+            "processable_on" : [6],
+            "processing_time" : 2,
+            "expiration_time" : 60,
+            "dependencies" : [9],
+            "operator" : 2,
+            "used_by" : [5],
+            "begin_day" : 1, 
+            "QC_delay" : 0
+        },
+        
+        "operation5" : {
+            "type" : "operation",
+            "number" : 9,
+            "processable_on" : [1,2],
+            "processing_time" : 2,
+            "expiration_time" : 12,
+            "dependencies" : [11],
+            "operator" : 2,
+            "used_by" : [7],
+            "begin_day" : 1, 
+            "QC_delay" : 0
+        },
+        
+        "operation6" : {
+            "type" : "operation",
+            "number" : 11,
+            "processable_on" : [3],
+            "processing_time" : 1,
+            "expiration_time" : 60,
+            "dependencies" : [15],
+            "operator" : 2,
+            "used_by" : [9],
+            "begin_day" : 1, 
+            "QC_delay" : 4
+        },
+        
+        "operation7" : {
+            "type" : "operation",
+            "number" : 13,
+            "processable_on" : [7],
+            "processing_time" : 1,
+            "expiration_time" : 14,
+            "dependencies" : [15],
+            "operator" : 2,
+            "used_by" : [],
+            "begin_day" : 0, 
+            "QC_delay" : 1
+        },
+        
+        "operation9" : {
+            "type" : "operation",
+            "number" : 15,
+            "processable_on" : [8],
+            "processing_time" : 2,
             "expiration_time" : 14,
             "dependencies" : [],
             "operator" : 8,
@@ -414,7 +498,7 @@
         "operation3" : {
             "type" : "operation",
             "number" : 5,
-            "processable_on" : [4,5],
+            "processable_on" : [4],
             "processing_time" : 1,
             "expiration_time" : 2,
             "dependencies" : [7],
@@ -426,7 +510,7 @@
         "operation3.2" : {
             "type" : "operation",
             "number" : 6,
-            "processable_on" : [4,5],
+            "processable_on" : [4],
             "processing_time" : 1,
             "expiration_time" : 2,
             "dependencies" : [8],
@@ -438,7 +522,7 @@
         "operation4" : {
             "type" : "operation",
             "number" : 7,
-            "processable_on" : [6],
+            "processable_on" : [5],
             "processing_time" : 2,
             "expiration_time" : 60,
             "dependencies" : [9],
@@ -450,7 +534,7 @@
         "operation4.2" : {
             "type" : "operation",
             "number" : 8,
-            "processable_on" : [6],
+            "processable_on" : [5],
             "processing_time" : 2,
             "expiration_time" : 60,
             "dependencies" : [10],
@@ -475,7 +559,7 @@
             "type" : "operation",
             "number" : 10,
             "processable_on" : [1,2],
-            "processing_time" : 4,
+            "processing_time" : 2,
             "expiration_time" : 12,
             "dependencies" : [12],
             "operator" : 2,
@@ -510,7 +594,7 @@
         "operation7" : {
             "type" : "operation",
             "number" : 13,
-            "processable_on" : [8],
+            "processable_on" : [7],
             "processing_time" : 3,
             "expiration_time" : 14,
             "dependencies" : [15],
@@ -522,20 +606,210 @@
         "operation8" : {
             "type" : "operation",
             "number" : 14,
+            "processable_on" : [6],
+            "processing_time" : 1,
+            "expiration_time" : 60,
+            "dependencies" : [15],
+            "operator" : 2,
+            "used_by" : [11,12],
+            "begin_day" : 0, 
+            "QC_delay" : 0
+        },
+        "operation9" : {
+            "type" : "operation",
+            "number" : 15,
+            "processable_on" : [8],
+            "processing_time" : 4,
+            "expiration_time" : 14,
+            "dependencies" : [],
+            "operator" : 8,
+            "used_by" : [13,14],
+            "begin_day" : 1, 
+            "QC_delay" : 0
+        }
+        
+        
+    },
+    "Batch_22.50_6600_REVERSE" : {
+        
+        "operation1" : {
+            "type" : "operation",
+            "name" : "broyage_poly",
+            "number" : 1,
+            "OF" : "POLBR",
+            "processable_on" : [1,2],
+            "processing_time" : 2,
+            "expiration_time" : 12,
+            "dependencies" : [3],
+            "operator" : 2,
+            "used_by" : [],
+            "begin_day" : 1, 
+            "QC_delay" : 0
+            
+        },
+        "operation1.2" : {
+            "type" : "operation",
+            "number" : 2,
+            "OF" : "POLBR",
+            "processable_on" : [1,2],
+            "processing_time" : 2,
+            "expiration_time" : 12,
+            "dependencies" : [4],
+            "operator" : 2,
+            "used_by" : [],
+            "begin_day" : 1, 
+            "QC_delay" : 0
+            
+        },
+        "operation2" : {
+            "type" : "operation",
+            "number" : 3,
+            "processable_on" : [3],
+            "processing_time" : 1,
+            "expiration_time" : 60,
+            "dependencies" : [5],
+            "operator" : 2,
+            "used_by" : [1],
+            "begin_day" : 0, 
+            "QC_delay" : 0
+        },
+        "operation2.2" : {
+            "type" : "operation",
+            "number" : 4,
+            "processable_on" : [3],
+            "processing_time" : 1,
+            "expiration_time" : 60,
+            "dependencies" : [6],
+            "operator" : 2,
+            "used_by" : [2],
+            "begin_day" : 0, 
+            "QC_delay" : 0
+        },
+        "operation3" : {
+            "type" : "operation",
+            "number" : 5,
+            "processable_on" : [4],
+            "processing_time" : 1,
+            "expiration_time" : 2,
+            "dependencies" : [7],
+            "operator" : 3,
+            "used_by" : [3],
+            "begin_day" : 0, 
+            "QC_delay" : 0
+        },
+        "operation3.2" : {
+            "type" : "operation",
+            "number" : 6,
+            "processable_on" : [4],
+            "processing_time" : 1,
+            "expiration_time" : 2,
+            "dependencies" : [8],
+            "operator" : 3,
+            "used_by" : [4],
+            "begin_day" : 0, 
+            "QC_delay" : 0
+        },
+        "operation4" : {
+            "type" : "operation",
+            "number" : 7,
+            "processable_on" : [5],
+            "processing_time" : 2,
+            "expiration_time" : 60,
+            "dependencies" : [9],
+            "operator" : 2,
+            "used_by" : [5],
+            "begin_day" : 1, 
+            "QC_delay" : 0
+        },
+        "operation4.2" : {
+            "type" : "operation",
+            "number" : 8,
+            "processable_on" : [5],
+            "processing_time" : 2,
+            "expiration_time" : 60,
+            "dependencies" : [10],
+            "operator" : 2,
+            "used_by" : [6],
+            "begin_day" : 1, 
+            "QC_delay" : 0
+        },
+        "operation5" : {
+            "type" : "operation",
+            "number" : 9,
+            "processable_on" : [1,2],
+            "processing_time" : 2,
+            "expiration_time" : 12,
+            "dependencies" : [11],
+            "operator" : 2,
+            "used_by" : [7],
+            "begin_day" : 1, 
+            "QC_delay" : 0
+        },
+        "operation5.2" : {
+            "type" : "operation",
+            "number" : 10,
+            "processable_on" : [1,2],
+            "processing_time" : 2,
+            "expiration_time" : 12,
+            "dependencies" : [12],
+            "operator" : 2,
+            "used_by" : [8],
+            "begin_day" : 1, 
+            "QC_delay" : 0
+        },
+        "operation6" : {
+            "type" : "operation",
+            "number" : 11,
+            "processable_on" : [3],
+            "processing_time" : 1,
+            "expiration_time" : 60,
+            "dependencies" : [14],
+            "operator" : 2,
+            "used_by" : [9],
+            "begin_day" : 1, 
+            "QC_delay" : 4
+        },
+        "operation6.2" : {
+            "type" : "operation",
+            "number" : 12,
+            "processable_on" : [3],
+            "processing_time" : 1,
+            "expiration_time" : 60,
+            "dependencies" : [14],
+            "operator" : 2,
+            "used_by" : [10],
+            "begin_day" : 1, 
+            "QC_delay" : 4
+        },
+        "operation7" : {
+            "type" : "operation",
+            "number" : 13,
             "processable_on" : [7],
             "processing_time" : 1,
             "expiration_time" : 14,
             "dependencies" : [15],
             "operator" : 2,
-            "used_by" : [11,12],
+            "used_by" : [],
             "begin_day" : 0, 
             "QC_delay" : 1
+        },
+        "operation8" : {
+            "type" : "operation",
+            "number" : 14,
+            "processable_on" : [6],
+            "processing_time" : 1,
+            "expiration_time" : 60,
+            "dependencies" : [15],
+            "operator" : 2,
+            "used_by" : [11,12],
+            "begin_day" : 0, 
+            "QC_delay" : 0
         },
         "operation9" : {
             "type" : "operation",
             "number" : 15,
-            "processable_on" : [9],
-            "processing_time" : 4,
+            "processable_on" : [8],
+            "processing_time" : 2,
             "expiration_time" : 14,
             "dependencies" : [],
             "operator" : 8,
@@ -569,17 +843,17 @@
         "2" : [1,2],
         "3" : [3],
         "4" : [3],
-        "5" : [5],
-        "6" : [5],
-        "7" : [6],
-        "8" : [6],
+        "5" : [4],
+        "6" : [4],
+        "7" : [5],
+        "8" : [5],
         "9" : [1,2],
         "10" : [1,2],
         "11" : [3],
         "12" : [3],
-        "13" : [8],
-        "14" : [7],
-        "15" : [9]       
+        "13" : [7],
+        "14" : [6],
+        "15" : [8]       
     }, 
     "machines" : [
         "broyeur_b1", 
@@ -589,12 +863,8 @@
         "extrudeur_b2", 
         "combinaison_b",
         "millieu_b1" , 
-        "perry_b2", 
-        "sortie_lyo_b2", 
-        "capsulage_b1",
-        "IV_b", 
-        "envoi_irr_g", 
-        "retour_irr_g"
+        "perry_b2"
+        
     ]
 
 }

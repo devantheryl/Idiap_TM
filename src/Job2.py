@@ -63,6 +63,7 @@ class Job:
         
     def create_all_operations(self):
         
+        
         with open("src/batch_description.json") as json_file:
             batch_description = json.load(json_file)
             

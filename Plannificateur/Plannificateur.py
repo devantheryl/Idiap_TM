@@ -1,16 +1,4 @@
-#!/usr/bin/env python3
-
-# Filename: pycalc.py
-
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
-
-"""PyCalc is a simple calculator built using Python and PyQt5."""
+"""plannificateur permet l'ordonancement des lots sur la chaine de production"""
 
 
 import src.Exploit as exploit
@@ -20,7 +8,7 @@ import sys
 from functools import partial
 
 # Import QApplication and the required widgets from PyQt5.QtWidgets
-from PyQt5.QtCore import Qt, QDate, QTime, QDateTime
+from PyQt5.QtCore import Qt, QDate, QTime, QDateTime, QDir
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWidgets import QGridLayout
 from PyQt5.QtWidgets import QLineEdit
@@ -34,9 +22,10 @@ from PyQt5.QtWidgets import QDateEdit
 from PyQt5.QtWidgets import QComboBox
 from PyQt5.QtWidgets import QLabel
 from PyQt5.QtWidgets import QPlainTextEdit
+from PyQt5.QtWidgets import QFileDialog
 
 __version__ = "0.1"
-__author__ = "Leodanis Pozo Ramos"
+__author__ = "Lucas Devanthéry"
 
 ERROR_MSG = "ERROR"
 
@@ -49,13 +38,16 @@ class PyCalcUi(QMainWindow):
         """View initializer."""
         super().__init__()
         # Set some main window's properties
-        self.setWindowTitle("PyCalc")
+        self.setWindowTitle("Plannificateur")
         #self.setFixedSize(600, 600)
         # Set the central widget and the general layout
         self.generalLayout = QVBoxLayout()
         self._centralWidget = QWidget(self)
         self.setCentralWidget(self._centralWidget)
         self._centralWidget.setLayout(self.generalLayout)
+        
+        self.buttons = {}
+        
         # Create the display and the buttons
         self._createDisplay()
         self._createButtons()
@@ -63,6 +55,12 @@ class PyCalcUi(QMainWindow):
     def _createDisplay(self):
         """Create the display layout."""
         self.display_layout = QVBoxLayout()
+        
+        """get the excel filename"""
+        self.filename_button = QPushButton("Excel File")
+        self.buttons["Excel_file"] = self.filename_button
+        self.filename_label = QLabel("")
+        
         
         """Formulation comboxBox"""
         self.formulation_comboxBox = QComboBox()
@@ -98,6 +96,9 @@ class PyCalcUi(QMainWindow):
         
    
         # Add the display to the general layout
+        self.display_layout.addWidget(self.filename_button)
+        self.display_layout.addWidget(self.filename_label)
+        
         self.display_layout.addWidget(self.formulation_label)
         self.display_layout.addWidget(self.formulation_comboxBox)
         
@@ -117,7 +118,7 @@ class PyCalcUi(QMainWindow):
 
     def _createButtons(self):
         """Create the buttons."""
-        self.buttons = {}
+        
         buttonsLayout = QGridLayout()
         # Button text | position on the QGridLayout
         buttons = {
@@ -160,6 +161,7 @@ class PyCalcCtrl:
         formulations = []
         scales = []
         targets = []
+        filename= self._view.filename_label.text()
         
         formulation_driver = {
                 "3.75" :1,
@@ -171,7 +173,7 @@ class PyCalcCtrl:
             formulations.append(formulation_driver[value["formulation"]])
             scales.append(int(value["scale"]))
             targets.append(value["target"])
-        exploit.make_planning(batch_names, formulations, scales, targets)
+        exploit.make_planning(batch_names, formulations, scales, targets, filename)
     
     def _addBatch(self):
         batch_number = self._view.batch_lineEdit.text()
@@ -181,13 +183,16 @@ class PyCalcCtrl:
         target_year = str(self._view.target_dateEdit.date().year())[-2:]
         
         batch = "PROD-" + target_year + "-" + formulation + "-" + batch_number
-        self._view.batchList_plainText.insertPlainText(batch + " " + target + "\n")
         
-        self.batch_dict[batch] = {
-                "formulation" : formulation,
-                "scale" : scale,
-                "target" : target
-            }
+        if batch not in self.batch_dict.keys():  
+            self._view.batchList_plainText.insertPlainText(batch + " " + target + "\n")
+            
+            self.batch_dict[batch] = {
+                    "formulation" : formulation,
+                    "scale" : scale,
+                    "target" : target
+                }
+            
         
     def _removeBatch(self):
         print(self._view.batchList_plainText.toPlainText().split("\n")[:-1])
@@ -198,13 +203,18 @@ class PyCalcCtrl:
             for t in self._view.batchList_plainText.toPlainText().split("\n")[:-2]:
                 new_text = new_text + t + "\n"
             self._view.batchList_plainText.setPlainText(new_text)
-        
+            
+            
+    def _browseFile(self):
+        fileName, _ = QFileDialog.getOpenFileName(self._view, 'Single File', QDir.rootPath() , '*.xlsm')
+        self._view.filename_label.setText(str(fileName))
 
     def _connectSignals(self):
         """Connect signals and slots."""
         self._view.buttons["Add"].clicked.connect(partial(self._addBatch))
         self._view.buttons["Remove"].clicked.connect(partial(self._removeBatch))
         self._view.buttons["Run"].clicked.connect(partial(self._runPlanning))
+        self._view.buttons["Excel_file"].clicked.connect(partial(self._browseFile))
         
 
         

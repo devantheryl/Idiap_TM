@@ -5,7 +5,6 @@ Created on Thu Dec  9 11:51:52 2021
 @author: LDE
 """
 
-
 class Machine:
     
     def __init__(self, number, name):
