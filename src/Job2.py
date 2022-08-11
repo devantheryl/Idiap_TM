@@ -108,8 +108,7 @@ class Job:
             self.operation_planning.append(operation)
                 
     def create_operation(self, operation_number):
-        with open("src/batch_description.json") as json_file:
-            batch_description = json.load(json_file)
+        batch_description = get_batch_description()
         
         if self.formulation == 1 and self.job_size == 20000:
             batch_info = batch_description["Batch_3.75_20000_REVERSE"]

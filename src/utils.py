@@ -379,7 +379,7 @@ def extract_machine_operator_state(df):
         
         
     
-    return df_ressources_final
+    return df_ressources_final, df_operator
 
 
 

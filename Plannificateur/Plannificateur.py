@@ -70,7 +70,7 @@ class PyCalcUi(QMainWindow):
         
         """scale comboxBox"""
         self.scale_comboxBox = QComboBox()
-        self.scale_comboxBox.addItems(["6600","20000"])
+        self.scale_comboxBox.addItems(["20000","6600"])
         self.scale_label = QLabel("Scale :")
         self.scale_label.setBuddy(self.scale_comboxBox)
         
