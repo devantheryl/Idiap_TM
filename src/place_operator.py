@@ -5,32 +5,8 @@ Created on Wed Aug 10 16:15:42 2022
 @author: LDE
 """
 import pandas as pd
-import numpy as np
-from openpyxl import load_workbook
-import openpyxl
-from openpyxl.utils import range_boundaries
-from openpyxl.utils.cell import get_column_letter
-import csv
-import re
-from pandas.tseries.offsets import DateOffset
-import json
-import os
-from datetime import datetime, timedelta, date
-from itertools import islice
 
-import time
-import json
-from collections import deque
-
-from src.TF_env3 import TF_environment
-from tensorforce import Environment, Runner, Agent
-
-import src.utils as utils
-
-import xlwings as xw
-
-
-def place_operator(df_t, planning):
+def place_operator(df_operator, planning):
         
     operators = ["SFR", "BPI", "JPI", "JDD", "FDS", "SFH", "NDE", "LTF", "SRG", "JPE", "RPI", "ANA",
                 "MTR", "CMT", "CGR", "CPO", "REA"]
@@ -63,6 +39,29 @@ def place_operator(df_t, planning):
         "LYO" : 8
     }
     
+    #ajoute les occupations octodure et laverie au planning 
+    date_min = planning["Start"].min()
+    date_max = planning["Finish"].max()
+
+    date_index = pd.date_range(start = date_min, end = date_max, freq = "12H")# 1D car octo et laverie dure toujours 1D, avec les meme opérateurs
+    
+    for i in range(0,len(date_index)-1,2):
+        row_operator = df_operator.loc[date_index[i]]
+        nbr_octodure = 0
+        nbr_laverie = 0
+        for operator in operators:
+            if row_operator[operator] == "OCTODURE":
+                nbr_octodure += 1
+            if row_operator[operator] == "NETTOYAGE":
+                nbr_laverie += 1
+            pass
+        
+        if nbr_octodure <2:
+            pass
+            
+        if nbr_laverie <2:
+            pass
+    
     selected_operators = {}
     for row_operation in planning.iterrows():
         start = row_operation[1]["Start"]
@@ -71,9 +70,9 @@ def place_operator(df_t, planning):
         
         qualified_operators = operators_stats.loc[operation][operators_stats.loc[operation] >0]
         
-        df_operators = df_t.loc[start:finish, operators]
+        df_operator_operation = df_operator.loc[start:finish]
         
-        free_operator = df_operators == "0"
+        free_operator = df_operator_operation == "0"
         free_operator = free_operator.loc[:,free_operator.all()].columns
         
         
@@ -89,9 +88,7 @@ def place_operator(df_t, planning):
         selected_operators[row_operation[0]] = free_qualified_operator.sample(n = operator_needed[operation], weights =free_qualified_operator.to_list()).index.to_list()
         
         for op in selected_operators[row_operation[0]]:
-            df_t.loc[start:finish, op] = operation
-        
-        
+            df_operator.loc[start:finish, op] = operation
         
         
         
