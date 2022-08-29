@@ -25,6 +25,8 @@ def place_operator(df_operator, planning):
         "Milieu de suspension  " : "MILIEU",
         "Combin. des fractions de microgranules" : "CF",
         "Remplissage Poudre + liquide B2" : "LYO",
+        "OCTODURE" : "OCTODURE",
+        "LAVERIE" : "LAVERIE",
     }
     
     operator_needed = {
@@ -36,31 +38,37 @@ def place_operator(df_operator, planning):
         "TM" : 2,
         "MILIEU" : 2,
         "CF" : 2,
-        "LYO" : 8
+        "LYO" : 8,
+        "OCTODURE" : 2,
+        "LAVERIE" : 2
     }
     
     #ajoute les occupations octodure et laverie au planning 
     date_min = planning["Start"].min()
     date_max = planning["Finish"].max()
 
-    date_index = pd.date_range(start = date_min, end = date_max, freq = "12H")# 1D car octo et laverie dure toujours 1D, avec les meme opérateurs
+    date_index = pd.date_range(start = date_min, end = date_max, freq = "12H")# 12h
     
-    for i in range(0,len(date_index)-1,2):
+    planning_len = len(planning)
+    
+    for i in range(0,len(date_index)-1,1):
         row_operator = df_operator.loc[date_index[i]]
         nbr_octodure = 0
         nbr_laverie = 0
         for operator in operators:
             if row_operator[operator] == "OCTODURE":
                 nbr_octodure += 1
-            if row_operator[operator] == "NETTOYAGE":
+            if row_operator[operator] == "LAVERIE":
                 nbr_laverie += 1
             pass
         
         if nbr_octodure <2:
-            pass
+            new_row = {"Start" : date_index[i], "Finish" : date_index[i], "op_machine" : "OCTODURE" }
+            planning = planning.append(new_row, ignore_index = True)
             
         if nbr_laverie <2:
-            pass
+            new_row = {"Start" : date_index[i], "Finish" : date_index[i], "op_machine" : "LAVERIE" }
+            planning = planning.append(new_row, ignore_index = True)
     
     selected_operators = {}
     for row_operation in planning.iterrows():
@@ -93,7 +101,7 @@ def place_operator(df_operator, planning):
         
         
         
-    return selected_operators
+    return selected_operators, planning.iloc[planning_len:]
     
     
         
