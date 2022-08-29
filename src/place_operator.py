@@ -6,12 +6,12 @@ Created on Wed Aug 10 16:15:42 2022
 """
 import pandas as pd
 
-def place_operator(df_operator, planning):
+def place_operator(df_operator, planning, operators_stats):
         
     operators = ["SFR", "BPI", "JPI", "JDD", "FDS", "SFH", "NDE", "LTF", "SRG", "JPE", "RPI", "ANA",
                 "MTR", "CMT", "CGR", "CPO", "REA"]
     
-    operators_stats = pd.read_csv("C:/Users/LDE/Prog/projet_master/digital_twins/data/operator_stats.csv", delimiter =  ";", index_col = 0)
+    #operators_stats = pd.read_csv("C:/Users/LDE/Prog/projet_master/digital_twins/data/operator_stats.csv", delimiter =  ";", index_col = 0)
     
     operation_occupations = {
         "Broyage polymère B1": "BP",
@@ -70,33 +70,39 @@ def place_operator(df_operator, planning):
             new_row = {"Start" : date_index[i], "Finish" : date_index[i], "op_machine" : "LAVERIE" }
             planning = planning.append(new_row, ignore_index = True)
     
-    selected_operators = {}
-    for row_operation in planning.iterrows():
-        start = row_operation[1]["Start"]
-        finish = row_operation[1]["Finish"]
-        operation = operation_occupations[row_operation[1]["op_machine"]]
-        
-        qualified_operators = operators_stats.loc[operation][operators_stats.loc[operation] >0]
-        
-        df_operator_operation = df_operator.loc[start:finish]
-        
-        free_operator = df_operator_operation == "0"
-        free_operator = free_operator.loc[:,free_operator.all()].columns
-        
-        
-        free_qualified_operator = []
-        for free_op in free_operator:
-            if free_op in qualified_operators.index.to_list():
-                free_qualified_operator.append(free_op)
-                
+    
+    for tentative in range(20):
+        selected_operators = {}
+        df_operator_potential = df_operator.copy()
+        for row_operation in planning.iterrows():
+            start = row_operation[1]["Start"]
+            finish = row_operation[1]["Finish"]
+            operation = operation_occupations[row_operation[1]["op_machine"]]
             
-        free_qualified_operator = qualified_operators.loc[free_qualified_operator]
-        
-        
-        selected_operators[row_operation[0]] = free_qualified_operator.sample(n = operator_needed[operation], weights =free_qualified_operator.to_list()).index.to_list()
-        
-        for op in selected_operators[row_operation[0]]:
-            df_operator.loc[start:finish, op] = operation
+            qualified_operators = operators_stats.loc[operation][operators_stats.loc[operation] >0]
+            
+            df_operator_operation = df_operator_potential.loc[start:finish]
+            
+            free_operator = df_operator_operation == "0"
+            free_operator = free_operator.loc[:,free_operator.all()].columns
+            
+            
+            free_qualified_operator = []
+            for free_op in free_operator:
+                if free_op in qualified_operators.index.to_list():
+                    free_qualified_operator.append(free_op)
+                    
+                
+            free_qualified_operator = qualified_operators.loc[free_qualified_operator]
+            
+            if len(free_qualified_operator) >= operator_needed[operation]:
+                selected_operators[row_operation[0]] = free_qualified_operator.sample(n = operator_needed[operation], weights =free_qualified_operator.to_list()).index.to_list()
+            else:
+                print("pas assez d'operateur")
+                break
+            
+            for op in selected_operators[row_operation[0]]:
+                df_operator_potential.loc[start:finish, op] = operation
         
         
         
