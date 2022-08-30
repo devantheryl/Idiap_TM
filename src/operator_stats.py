@@ -96,7 +96,7 @@ def get_operators_stats(filename):
 
 
     operator_list = ["SFR", "BPI", "JPI", "JDD", "FDS", "SFH", "NDE", "LTF", "SRG", "JPE", "RPI", "ANA",
-                    "MTR", "CMT", "CGR", "CPO", "REA", "LBU"]
+                    "MTR", "CMT", "CGR", "CPO", "REA"]
     
     merge_occupations = ["OCTODURE", "BP", "TP", "MEL", "EXT",  "BB", "TM", "CF", "MILIEU", 
                          "LYO", "CAPS", "IV", "LAVERIE", "FORMATION", "ETIQUE", 

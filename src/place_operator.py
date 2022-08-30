@@ -70,10 +70,11 @@ def place_operator(df_operator, planning, operators_stats):
             new_row = {"Start" : date_index[i], "Finish" : date_index[i], "op_machine" : "LAVERIE" }
             planning = planning.append(new_row, ignore_index = True)
     
-    
-    for tentative in range(20):
+    best_selected_operators = {}
+    for tentative in range(2000):
         selected_operators = {}
         df_operator_potential = df_operator.copy()
+        no_operator = False
         for row_operation in planning.iterrows():
             start = row_operation[1]["Start"]
             finish = row_operation[1]["Finish"]
@@ -98,16 +99,20 @@ def place_operator(df_operator, planning, operators_stats):
             if len(free_qualified_operator) >= operator_needed[operation]:
                 selected_operators[row_operation[0]] = free_qualified_operator.sample(n = operator_needed[operation], weights =free_qualified_operator.to_list()).index.to_list()
             else:
-                print("pas assez d'operateur")
+                print("operator tentative : " , tentative, ",   pas assez d'operateur pour : ", operation, ",  operation_index :",row_operation[0])
+                no_operator = True
                 break
             
             for op in selected_operators[row_operation[0]]:
                 df_operator_potential.loc[start:finish, op] = operation
+        if no_operator == False:
+            best_selected_operators = selected_operators
+            print("ok at :", tentative)
         
         
         
         
-    return selected_operators, planning.iloc[planning_len:]
+    return best_selected_operators, planning.iloc[planning_len:]
     
     
         
