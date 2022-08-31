@@ -348,7 +348,7 @@ def extract_machine_operator_state(df):
         df_machine["operator"] = df_machine["operator"] - df_machine[key + "_operator"] * operator_machine_dict[key]
         
         
-    df_ressources_final = df_machine[column_to_use]
+    df_ressources_final = df_machine[column_to_use].copy()
     
     
     #EXTRAIT LES TACHE EFFECTUéE PAR LES OPéRATEURS
@@ -378,6 +378,11 @@ def extract_machine_operator_state(df):
             df_ressources_final.loc[row_index,"operator"] = df_ressources_final.loc[row_index,"operator"] - 4
         
         
+    #merge occupation of mélange et extrudeur (m4 et m5)
+    merge_melex = np.where(df_ressources_final.m4 + df_ressources_final.m5 >=1,1,0)
+    df_ressources_final.loc[:,"m4"] = merge_melex
+    df_ressources_final.loc[:,"m5"] = merge_melex
+    
     
     return df_ressources_final, df_operator
 

@@ -71,7 +71,7 @@ def place_operator(df_operator, planning, operators_stats):
             planning = planning.append(new_row, ignore_index = True)
     
     best_selected_operators = {}
-    for tentative in range(2000):
+    for tentative in range(20):
         selected_operators = {}
         df_operator_potential = df_operator.copy()
         no_operator = False

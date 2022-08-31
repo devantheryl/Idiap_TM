@@ -14,7 +14,7 @@ from pandas.tseries.offsets import DateOffset
 import json
 import os
 from datetime import datetime, timedelta, date
-
+from src.batch_description import get_batch_description
 from random import sample
 
 #to set the current working directory
@@ -259,8 +259,7 @@ class Production_line():
         create all the Machine objects
 
         """
-        with open("src/batch_description.json") as json_file:
-            batch_description = json.load(json_file)
+        batch_description = get_batch_description()
         
         machines = np.full(self.nbr_machines, None)
         
@@ -293,7 +292,7 @@ class Production_line():
         
         ended_operations = []
         
-           
+        
         for operation in self.job.operations:
             if operation != None:
                 #on vérifie que l'opération soit plannifiée
