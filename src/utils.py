@@ -281,7 +281,7 @@ def extract_machine_operator_state(df):
            'Mélanges B1 ', 'Extrusion B1', 'Mélanges B2', 'Extrusion B2',
            'Broyage bâtonnets B1 ', 'Broyage bâtonnets B2 ',
            'Tamisage Microgranules B2', 'Combin. des fractions de microgranules',
-           'Milieu de suspension  ', 'Remplissage Poudre + liquide B2', 'Sortie Lyo','Capsulage' ]
+           'Milieu de suspension  ', 'Remplissage Poudre + liquide B2', 'Sortie Lyo','Capsulage']
     
     operators = ["SFR", "BPI", "JPI", "JDD", "FDS", "SFH", "NDE", "LTF", "SRG", "JPE", "RPI", "ANA",
                 "MTR", "CMT", "CGR", "CPO", "REA", "LBU"]
@@ -291,7 +291,7 @@ def extract_machine_operator_state(df):
                      "LYO", "CAPS", "IV", "LAVERIE", "FORMATION", "ETIQUE", 
                      "REQUALIF", "NETTOYAGE", "TEST", "VACANCE", "ABSENT" ,"CONGE",]
     
-    vacances_occupations = ["VACANCE", "ABSENT" ,"CONGE","FORMATION", "IV"]    
+    vacances_occupations = ["VACANCE", "ABSENT" ,"CONGE","FORMATION", "IV"]
     
     machine_dict = {"m1" : ['Broyage polymère B1','Broyage bâtonnets B1 ' ],
                     "m2" : ['Broyage polymère B2','Broyage bâtonnets B2 '],
@@ -306,7 +306,7 @@ def extract_machine_operator_state(df):
                     
                     }
     
-    vacances_conge2022 = ["2022-04-18","2022-05-26","2022-05-27", "2022-06-06","2022-06-16", "2022-08-01", "2022-08-15", 
+    vacances_conge2022 = ["2022-04-18","2022-05-26","2022-05-27", "2022-06-06","2022-06-16", "2022-08-01", "2022-08-15",
                           "2022-11-01", "2022-12-08", "2022-12-26","2022-12-27", "2022-12-28", "2022-12-29", "2022-12-30"]
     
     operator_machine_dict = {"m1" : 2,
