@@ -468,6 +468,7 @@ class Production_line():
         params_prod_line = 2
         state_size =  self.nbr_operation_max * params_op + self.futur_length*(self.nbr_machines * params_machine + 1) + params_prod_line
         
+        
         return state_size
     
     def get_state(self):

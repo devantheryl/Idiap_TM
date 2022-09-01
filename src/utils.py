@@ -284,7 +284,7 @@ def extract_machine_operator_state(df):
            'Milieu de suspension  ', 'Remplissage Poudre + liquide B2', 'Sortie Lyo','Capsulage']
     
     operators = ["SFR", "BPI", "JPI", "JDD", "FDS", "SFH", "NDE", "LTF", "SRG", "JPE", "RPI", "ANA",
-                "MTR", "CMT", "CGR", "CPO", "REA", "LBU"]
+                "MTR", "CMT", "CGR", "CPO", "REA"]
     
     
     merge_occupations = ["OCTODURE", "BP", "TP", "MEL", "EXT",  "BB", "TM", "CF", "MILIEU", 
@@ -374,8 +374,8 @@ def extract_machine_operator_state(df):
         if row_index_str in vacances_conge2022 or row_index.weekday() >4:
             df_ressources_final.loc[row_index,"operator"] = 0
         else:
-            #enlève 2 operator pour la laverie et 2 pour octodure
-            df_ressources_final.loc[row_index,"operator"] = df_ressources_final.loc[row_index,"operator"] - 4
+            #enlève 2 operator pour la laverie et 2 pour octodure et 1 de marge
+            df_ressources_final.loc[row_index,"operator"] = df_ressources_final.loc[row_index,"operator"] - 5
         
         
     #merge occupation of mélange et extrudeur (m4 et m5)

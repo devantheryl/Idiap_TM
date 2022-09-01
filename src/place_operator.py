@@ -11,7 +11,6 @@ def place_operator(df_operator, planning, operators_stats):
     operators = ["SFR", "BPI", "JPI", "JDD", "FDS", "SFH", "NDE", "LTF", "SRG", "JPE", "RPI", "ANA",
                 "MTR", "CMT", "CGR", "CPO", "REA"]
     
-    #operators_stats = pd.read_csv("C:/Users/LDE/Prog/projet_master/digital_twins/data/operator_stats.csv", delimiter =  ";", index_col = 0)
     
     operation_occupations = {
         "Broyage polymère B1": "BP",
@@ -55,27 +54,29 @@ def place_operator(df_operator, planning, operators_stats):
         row_operator = df_operator.loc[date_index[i]]
         nbr_octodure = 0
         nbr_laverie = 0
-        for operator in operators:
-            if row_operator[operator] == "OCTODURE":
-                nbr_octodure += 1
-            if row_operator[operator] == "LAVERIE":
-                nbr_laverie += 1
-            pass
-        
-        if nbr_octodure <2:
-            new_row = {"Start" : date_index[i], "Finish" : date_index[i], "op_machine" : "OCTODURE" }
-            planning = planning.append(new_row, ignore_index = True)
+        if date_index[i].weekday() <5:
+            for operator in operators:
+                if row_operator[operator] == "OCTODURE":
+                    nbr_octodure += 1
+                if row_operator[operator] == "LAVERIE":
+                    nbr_laverie += 1
+                pass
             
-        if nbr_laverie <2:
-            new_row = {"Start" : date_index[i], "Finish" : date_index[i], "op_machine" : "LAVERIE" }
-            planning = planning.append(new_row, ignore_index = True)
+            if nbr_octodure <2:
+                new_row = {"Start" : date_index[i], "Finish" : date_index[i], "op_machine" : "OCTODURE" }
+                planning = planning.append(new_row, ignore_index = True)
+                
+            if nbr_laverie <2:
+                new_row = {"Start" : date_index[i], "Finish" : date_index[i], "op_machine" : "LAVERIE" }
+                planning = planning.append(new_row, ignore_index = True)
     
     best_selected_operators = {}
-    for tentative in range(20):
+    best_nbr_placed = 0
+    for tentative in range(1000):
         selected_operators = {}
         df_operator_potential = df_operator.copy()
-        no_operator = False
-        for row_operation in planning.iterrows():
+        nbr_placed = 0
+        for row_operation in planning.sample(n = len(planning)).iterrows():
             start = row_operation[1]["Start"]
             finish = row_operation[1]["Finish"]
             operation = operation_occupations[row_operation[1]["op_machine"]]
@@ -97,17 +98,20 @@ def place_operator(df_operator, planning, operators_stats):
             free_qualified_operator = qualified_operators.loc[free_qualified_operator]
             
             if len(free_qualified_operator) >= operator_needed[operation]:
-                selected_operators[row_operation[0]] = free_qualified_operator.sample(n = operator_needed[operation], weights =free_qualified_operator.to_list()).index.to_list()
+                selected_operators[row_operation[0]] = free_qualified_operator.sample(n = operator_needed[operation]).index.to_list()
+                nbr_placed +=1
             else:
-                print("operator tentative : " , tentative, ",   pas assez d'operateur pour : ", operation, ",  operation_index :",row_operation[0])
-                no_operator = True
-                break
+                #print("operator tentative : " , tentative, ",   pas assez d'operateur pour : ", operation, ",  operation_index :",row_operation[0], "dispo : ", len(free_qualified_operator))
+                selected_operators[row_operation[0]] = []
             
             for op in selected_operators[row_operation[0]]:
                 df_operator_potential.loc[start:finish, op] = operation
-        if no_operator == False:
+        
+        if nbr_placed > best_nbr_placed:
             best_selected_operators = selected_operators
-            print("ok at :", tentative)
+            best_nbr_placed = nbr_placed
+            print("tentative: ", tentative, "placed :", nbr_placed, "/", len(planning) )
+        
         
         
         
