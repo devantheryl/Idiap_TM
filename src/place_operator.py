@@ -50,7 +50,7 @@ def place_operator(df_operator, planning, operators_stats):
     
     planning_len = len(planning)
     
-    for i in range(0,len(date_index)-1,1):
+    for i in range(0,len(date_index),1):
         row_operator = df_operator.loc[date_index[i]]
         nbr_octodure = 0
         nbr_laverie = 0
@@ -72,10 +72,11 @@ def place_operator(df_operator, planning, operators_stats):
     
     best_selected_operators = {}
     best_nbr_placed = 0
-    for tentative in range(1000):
+    for tentative in range(4000):
         selected_operators = {}
         df_operator_potential = df_operator.copy()
         nbr_placed = 0
+        not_placed = []
         for row_operation in planning.sample(n = len(planning)).iterrows():
             start = row_operation[1]["Start"]
             finish = row_operation[1]["Finish"]
@@ -103,6 +104,7 @@ def place_operator(df_operator, planning, operators_stats):
             else:
                 #print("operator tentative : " , tentative, ",   pas assez d'operateur pour : ", operation, ",  operation_index :",row_operation[0], "dispo : ", len(free_qualified_operator))
                 selected_operators[row_operation[0]] = []
+                not_placed.append((start,finish,operation))
             
             for op in selected_operators[row_operation[0]]:
                 df_operator_potential.loc[start:finish, op] = operation
@@ -111,6 +113,7 @@ def place_operator(df_operator, planning, operators_stats):
             best_selected_operators = selected_operators
             best_nbr_placed = nbr_placed
             print("tentative: ", tentative, "placed :", nbr_placed, "/", len(planning) )
+            print("not placed : ", not_placed)
         
         
         
