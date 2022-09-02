@@ -186,7 +186,7 @@ def place_operator(df_operator, planning, operators_stats):
         
         
         
-    return total_best_selected_operators, planning.iloc[planning_len:]
+    return total_best_selected_operators, planning.iloc[planning_len:], total_best_nbr_placed / len(planning)
     
     
         
