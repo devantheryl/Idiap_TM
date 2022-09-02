@@ -383,10 +383,15 @@ class Production_line():
                     
                         
                     #TODO change the static rule
-                    #eviter que qu'un mélange d'un autre lot se produise pendant une extrusion
+                    #eviter que qu'un mélange d'un autre lot se produise pendant une extrusion, 7-8 extrusion, 5-6 mélange
                     if operation.operation_number == 7 or operation.operation_number == 8:
                         #on check que le mélangeur soit idle
                         if self.machines[3].status != 0:
+                            executable = False
+                    #same for melange
+                    if operation.operation_number == 5 or operation.operation_number == 6:
+                        #on check que le mélangeur soit idle
+                        if self.machines[4].status != 0:
                             executable = False
                             
                     #TODO change this 
