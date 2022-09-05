@@ -69,10 +69,9 @@ class Production_line():
         self.state_size = self.get_state_size()
         
         #assuming that the new batch begin with noting in the prod_line yet. TODO change this for more generic beahvior
-        self.state_full = self.create_timeseries(target,futur_state)
-        self.state_full = self.merge_state(self.state_full, futur_state)
+        self.state_full = futur_state
                         
-        self.time = self.state_full.index[0]
+        self.time = target + DateOffset(hours = 12*4, minutes = -1)
         
         self.init_time = self.time 
         self.morning_afternoon = 1 #0: morning, 1: afternoon
