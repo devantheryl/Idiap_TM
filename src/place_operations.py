@@ -7,6 +7,7 @@ Created on Fri Sep  2 14:09:52 2022
 
 import pandas as pd
 import numpy as np
+from pandas.tseries.offsets import DateOffset
 
 def place_operations(agent, environment, df_futur_machine, targets, formulations, scales, batch_names):
     
@@ -16,6 +17,7 @@ def place_operations(agent, environment, df_futur_machine, targets, formulations
     for j in range(len(targets)):
         lead_time_min = 1000
         print("job : ", j)
+
         for tentative in range(20):
             reward_tot = 0
             
@@ -71,4 +73,4 @@ def place_operations(agent, environment, df_futur_machine, targets, formulations
         
     print("lead time mean : ",np.mean(lead_time_tot))
     
-    return 
+    return planning_tot_max, lead_time_tot
