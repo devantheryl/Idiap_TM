@@ -375,7 +375,7 @@ def extract_machine_operator_state(df):
             df_ressources_final.loc[row_index,"operator"] = 0
         else:
             #enlève 2 operator pour la laverie et 2 pour octodure et 1 de marge
-            df_ressources_final.loc[row_index,"operator"] = df_ressources_final.loc[row_index,"operator"] - 5
+            df_ressources_final.loc[row_index,"operator"] = df_ressources_final.loc[row_index,"operator"] - 4
         
         
     #merge occupation of mélange et extrudeur (m4 et m5)

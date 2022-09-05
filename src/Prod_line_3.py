@@ -73,7 +73,7 @@ class Production_line():
                         
         self.time = target + DateOffset(hours = 12*4, minutes = -1)
         
-        self.init_time = self.time 
+        self.init_time = self.time
         self.morning_afternoon = 1 #0: morning, 1: afternoon
         self.reset()
     
