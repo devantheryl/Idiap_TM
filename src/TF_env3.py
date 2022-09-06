@@ -38,7 +38,7 @@ class TF_environment(Environment):
         self.production_line = Production_line(self.target, self.formulation,self.echelle, self.job_name, self.nbr_operation_max, self.nbr_machines,
                                                self.nbr_operator,self.futur_length, self.futur_state,  self.echu_weights, self.forward_weights,
                                                self.ordo_weights, self.job_finished_weigths)
-        self.max_step_per_episode = 100
+        self.max_step_per_episode = 200
         self.i = 0
         self.nbr_echu =0
         
@@ -64,6 +64,7 @@ class TF_environment(Environment):
                                                self.nbr_operator,self.futur_length, self.futur_state,  self.echu_weights, self.forward_weights,
                                                self.ordo_weights, self.job_finished_weigths)
         
+        self.production_line.reset()
         action_mask = self.production_line.get_mask()
         
         # Add action mask to states dictionary (mask item is "[NAME]_mask", here "action_mask")

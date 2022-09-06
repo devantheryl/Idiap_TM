@@ -12,16 +12,16 @@ from pandas.tseries.offsets import DateOffset
 def place_operations(agent, environment, df_futur_machine, targets, formulations, scales, batch_names):
     
     planning_tot_max = None
-    planning_max = None
     lead_time_tot = []
     for j in range(len(targets)):
+        planning_max = None
         lead_time_min = 1000
         print("job : ", j)
 
-        for tentative in range(20):
+        for tentative in range(100):
             reward_tot = 0
             
-            futur_state = df_futur_machine
+            futur_state = df_futur_machine.copy()
     
             # Initialize episode
             target = pd.to_datetime(targets[j])

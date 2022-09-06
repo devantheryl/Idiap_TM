@@ -75,12 +75,12 @@ class Production_line():
         
         self.init_time = self.time
         self.morning_afternoon = 1 #0: morning, 1: afternoon
-        self.reset()
     
     def reset(self):
         
         self.job.started = True     
         self.update_check_executable()
+        self.step(18) #plan perry
         
         
     def step(self, action_index):
