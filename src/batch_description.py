@@ -13,12 +13,12 @@ def get_batch_description():
         
         "operation1" : {
             "type" : "operation",
-            "number" : 1,
+            "number" : 0,
             "OF" : "POLBR",
-            "processable_on" : [1,2],
+            "processable_on" : [0,1],
             "processing_time" : 2,
             "expiration_time" : 12,
-            "dependencies" : [3],
+            "dependencies" : [2],
             "operator" : 2,
             "used_by" : [],
             "begin_day" : 1, 
@@ -28,76 +28,76 @@ def get_batch_description():
         
         "operation2" : {
             "type" : "operation",
-            "number" : 3,
-            "processable_on" : [3],
+            "number" : 2,
+            "processable_on" : [2],
             "processing_time" : 1,
             "expiration_time" : 60,
-            "dependencies" : [5],
+            "dependencies" : [4],
             "operator" : 2,
-            "used_by" : [1],
+            "used_by" : [0],
             "begin_day" : 0, 
             "QC_delay" : 0
         },
         
         "operation3" : {
             "type" : "operation",
-            "number" : 5,
-            "processable_on" : [4],
+            "number" : 4,
+            "processable_on" : [3],
             "processing_time" : 1,
             "expiration_time" : 2,
-            "dependencies" : [7],
+            "dependencies" : [6],
             "operator" : 3,
-            "used_by" : [3],
+            "used_by" : [2],
             "begin_day" : 0, 
             "QC_delay" : 0
         },
         
         "operation4" : {
             "type" : "operation",
-            "number" : 7,
-            "processable_on" : [5],
+            "number" : 6,
+            "processable_on" : [4],
             "processing_time" : 2,
             "expiration_time" : 60,
-            "dependencies" : [9],
+            "dependencies" : [8],
             "operator" : 2,
-            "used_by" : [5],
+            "used_by" : [4],
             "begin_day" : 1, 
             "QC_delay" : 0
         },
         
         "operation5" : {
             "type" : "operation",
-            "number" : 9,
-            "processable_on" : [1,2],
+            "number" : 8,
+            "processable_on" : [0,1],
             "processing_time" : 4,
             "expiration_time" : 12,
-            "dependencies" : [11],
+            "dependencies" : [10],
             "operator" : 2,
-            "used_by" : [7],
+            "used_by" : [6],
             "begin_day" : 1, 
             "QC_delay" : 0
         },
         
         "operation6" : {
             "type" : "operation",
-            "number" : 11,
-            "processable_on" : [3],
+            "number" : 10,
+            "processable_on" : [2],
             "processing_time" : 2,
             "expiration_time" : 60,
-            "dependencies" : [15],
+            "dependencies" : [14],
             "operator" : 2,
-            "used_by" : [9],
+            "used_by" : [8],
             "begin_day" : 1, 
             "QC_delay" : 4
         },
         
         "operation7" : {
             "type" : "operation",
-            "number" : 13,
-            "processable_on" : [7],
+            "number" : 12,
+            "processable_on" : [6],
             "processing_time" : 3,
             "expiration_time" : 14,
-            "dependencies" : [15],
+            "dependencies" : [14],
             "operator" : 2,
             "used_by" : [],
             "begin_day" : 0, 
@@ -106,13 +106,13 @@ def get_batch_description():
         
         "operation9" : {
             "type" : "operation",
-            "number" : 15,
-            "processable_on" : [8],
+            "number" : 14,
+            "processable_on" : [7],
             "processing_time" : 4,
             "expiration_time" : 14,
             "dependencies" : [],
             "operator" : 8,
-            "used_by" : [13,11],
+            "used_by" : [12,10],
             "begin_day" : 1, 
             "QC_delay" : 0
         }
@@ -123,12 +123,12 @@ def get_batch_description():
         
         "operation1" : {
             "type" : "operation",
-            "number" : 1,
+            "number" : 0,
             "OF" : "POLBR",
-            "processable_on" : [1,2],
+            "processable_on" : [0,1],
             "processing_time" : 2,
             "expiration_time" : 12,
-            "dependencies" : [3],
+            "dependencies" : [2],
             "operator" : 2,
             "used_by" : [],
             "begin_day" : 1, 
@@ -138,76 +138,76 @@ def get_batch_description():
         
         "operation2" : {
             "type" : "operation",
-            "number" : 3,
-            "processable_on" : [3],
+            "number" : 2,
+            "processable_on" : [2],
             "processing_time" : 1,
             "expiration_time" : 60,
-            "dependencies" : [5],
+            "dependencies" : [4],
             "operator" : 2,
-            "used_by" : [1],
+            "used_by" : [0],
             "begin_day" : 0, 
             "QC_delay" : 0
         },
         
         "operation3" : {
             "type" : "operation",
-            "number" : 5,
-            "processable_on" : [4],
+            "number" : 4,
+            "processable_on" : [3],
             "processing_time" : 1,
             "expiration_time" : 2,
-            "dependencies" : [7],
+            "dependencies" : [6],
             "operator" : 3,
-            "used_by" : [3],
+            "used_by" : [2],
             "begin_day" : 0, 
             "QC_delay" : 0
         },
         
         "operation4" : {
             "type" : "operation",
-            "number" : 7,
-            "processable_on" : [5],
+            "number" : 6,
+            "processable_on" : [4],
             "processing_time" : 2,
             "expiration_time" : 60,
-            "dependencies" : [9],
+            "dependencies" : [8],
             "operator" : 2,
-            "used_by" : [5],
+            "used_by" : [4],
             "begin_day" : 1, 
             "QC_delay" : 0
         },
         
         "operation5" : {
             "type" : "operation",
-            "number" : 9,
-            "processable_on" : [1,2],
+            "number" : 8,
+            "processable_on" : [0,1],
             "processing_time" : 2,
             "expiration_time" : 12,
-            "dependencies" : [11],
+            "dependencies" : [10],
             "operator" : 2,
-            "used_by" : [7],
+            "used_by" : [6],
             "begin_day" : 1, 
             "QC_delay" : 0
         },
         
         "operation6" : {
             "type" : "operation",
-            "number" : 11,
-            "processable_on" : [3],
+            "number" : 10,
+            "processable_on" : [2],
             "processing_time" : 1,
             "expiration_time" : 60,
-            "dependencies" : [15],
+            "dependencies" : [14],
             "operator" : 2,
-            "used_by" : [9],
+            "used_by" : [8],
             "begin_day" : 1, 
             "QC_delay" : 4
         },
         
         "operation7" : {
             "type" : "operation",
-            "number" : 13,
-            "processable_on" : [7],
+            "number" : 12,
+            "processable_on" : [6],
             "processing_time" : 1,
             "expiration_time" : 14,
-            "dependencies" : [15],
+            "dependencies" : [14],
             "operator" : 2,
             "used_by" : [],
             "begin_day" : 0, 
@@ -216,13 +216,13 @@ def get_batch_description():
         
         "operation9" : {
             "type" : "operation",
-            "number" : 15,
-            "processable_on" : [8],
+            "number" : 14,
+            "processable_on" : [7],
             "processing_time" : 2,
             "expiration_time" : 14,
             "dependencies" : [],
             "operator" : 8,
-            "used_by" : [13,11],
+            "used_by" : [12,10],
             "begin_day" : 1, 
             "QC_delay" : 0
         }
@@ -233,12 +233,12 @@ def get_batch_description():
         
         "operation1" : {
             "type" : "operation",
-            "number" : 1,
+            "number" : 0,
             "OF" : "POLBR",
-            "processable_on" : [1,2],
+            "processable_on" : [0,1],
             "processing_time" : 2,
             "expiration_time" : 12,
-            "dependencies" : [3],
+            "dependencies" : [2],
             "operator" : 2,
             "used_by" : [],
             "begin_day" : 1, 
@@ -248,76 +248,76 @@ def get_batch_description():
         
         "operation2" : {
             "type" : "operation",
-            "number" : 3,
-            "processable_on" : [3],
+            "number" : 2,
+            "processable_on" : [2],
             "processing_time" : 1,
             "expiration_time" : 60,
-            "dependencies" : [5],
+            "dependencies" : [4],
             "operator" : 2,
-            "used_by" : [1],
+            "used_by" : [0],
             "begin_day" : 0, 
             "QC_delay" : 0
         },
         
         "operation3" : {
             "type" : "operation",
-            "number" : 5,
-            "processable_on" : [4],
+            "number" : 4,
+            "processable_on" : [3],
             "processing_time" : 1,
             "expiration_time" : 2,
-            "dependencies" : [7],
+            "dependencies" : [6],
             "operator" : 3,
-            "used_by" : [3],
+            "used_by" : [2],
             "begin_day" : 0, 
             "QC_delay" : 0
         },
         
         "operation4" : {
             "type" : "operation",
-            "number" : 7,
-            "processable_on" : [5],
+            "number" : 6,
+            "processable_on" : [4],
             "processing_time" : 2,
             "expiration_time" : 60,
-            "dependencies" : [9],
+            "dependencies" : [8],
             "operator" : 2,
-            "used_by" : [5],
+            "used_by" : [4],
             "begin_day" : 1, 
             "QC_delay" : 0
         },
         
         "operation5" : {
             "type" : "operation",
-            "number" : 9,
-            "processable_on" : [1,2],
+            "number" : 8,
+            "processable_on" : [0,1],
             "processing_time" : 4,
             "expiration_time" : 12,
-            "dependencies" : [11],
+            "dependencies" : [10],
             "operator" : 2,
-            "used_by" : [7],
+            "used_by" : [6],
             "begin_day" : 1, 
             "QC_delay" : 0
         },
         
         "operation6" : {
             "type" : "operation",
-            "number" : 11,
-            "processable_on" : [3],
+            "number" : 10,
+            "processable_on" : [2],
             "processing_time" : 2,
             "expiration_time" : 60,
-            "dependencies" : [15],
+            "dependencies" : [14],
             "operator" : 2,
-            "used_by" : [9],
+            "used_by" : [8],
             "begin_day" : 1, 
             "QC_delay" : 4
         },
         
         "operation7" : {
             "type" : "operation",
-            "number" : 13,
-            "processable_on" : [7],
+            "number" : 12,
+            "processable_on" : [6],
             "processing_time" : 3,
             "expiration_time" : 14,
-            "dependencies" : [15],
+            "dependencies" : [14],
             "operator" : 2,
             "used_by" : [],
             "begin_day" : 0, 
@@ -326,13 +326,13 @@ def get_batch_description():
         
         "operation9" : {
             "type" : "operation",
-            "number" : 15,
-            "processable_on" : [8],
+            "number" : 14,
+            "processable_on" : [7],
             "processing_time" : 4,
             "expiration_time" : 14,
             "dependencies" : [],
             "operator" : 8,
-            "used_by" : [13,11],
+            "used_by" : [12,10],
             "begin_day" : 1, 
             "QC_delay" : 0
         }
@@ -343,12 +343,12 @@ def get_batch_description():
         
         "operation1" : {
             "type" : "operation",
-            "number" : 1,
+            "number" : 0,
             "OF" : "POLBR",
-            "processable_on" : [1,2],
+            "processable_on" : [0,1],
             "processing_time" : 2,
             "expiration_time" : 12,
-            "dependencies" : [3],
+            "dependencies" : [2],
             "operator" : 2,
             "used_by" : [],
             "begin_day" : 1, 
@@ -358,76 +358,76 @@ def get_batch_description():
         
         "operation2" : {
             "type" : "operation",
-            "number" : 3,
-            "processable_on" : [3],
+            "number" : 2,
+            "processable_on" : [2],
             "processing_time" : 1,
             "expiration_time" : 60,
-            "dependencies" : [5],
+            "dependencies" : [4],
             "operator" : 2,
-            "used_by" : [1],
+            "used_by" : [0],
             "begin_day" : 0, 
             "QC_delay" : 0
         },
         
         "operation3" : {
             "type" : "operation",
-            "number" : 5,
-            "processable_on" : [4],
+            "number" : 4,
+            "processable_on" : [3],
             "processing_time" : 1,
             "expiration_time" : 2,
-            "dependencies" : [7],
+            "dependencies" : [6],
             "operator" : 3,
-            "used_by" : [3],
+            "used_by" : [2],
             "begin_day" : 0, 
             "QC_delay" : 0
         },
         
         "operation4" : {
             "type" : "operation",
-            "number" : 7,
-            "processable_on" : [6],
+            "number" : 6,
+            "processable_on" : [5],
             "processing_time" : 2,
             "expiration_time" : 60,
-            "dependencies" : [9],
+            "dependencies" : [8],
             "operator" : 2,
-            "used_by" : [5],
+            "used_by" : [4],
             "begin_day" : 1, 
             "QC_delay" : 0
         },
         
         "operation5" : {
             "type" : "operation",
-            "number" : 9,
-            "processable_on" : [1,2],
+            "number" : 8,
+            "processable_on" : [0,1],
             "processing_time" : 2,
             "expiration_time" : 12,
-            "dependencies" : [11],
+            "dependencies" : [10],
             "operator" : 2,
-            "used_by" : [7],
+            "used_by" : [6],
             "begin_day" : 1, 
             "QC_delay" : 0
         },
         
         "operation6" : {
             "type" : "operation",
-            "number" : 11,
-            "processable_on" : [3],
+            "number" : 10,
+            "processable_on" : [2],
             "processing_time" : 1,
             "expiration_time" : 60,
-            "dependencies" : [15],
+            "dependencies" : [14],
             "operator" : 2,
-            "used_by" : [9],
+            "used_by" : [8],
             "begin_day" : 1, 
             "QC_delay" : 4
         },
         
         "operation7" : {
             "type" : "operation",
-            "number" : 13,
-            "processable_on" : [7],
+            "number" : 12,
+            "processable_on" : [6],
             "processing_time" : 1,
             "expiration_time" : 14,
-            "dependencies" : [15],
+            "dependencies" : [14],
             "operator" : 2,
             "used_by" : [],
             "begin_day" : 0, 
@@ -436,13 +436,13 @@ def get_batch_description():
         
         "operation9" : {
             "type" : "operation",
-            "number" : 15,
-            "processable_on" : [8],
+            "number" : 14,
+            "processable_on" : [7],
             "processing_time" : 2,
             "expiration_time" : 14,
             "dependencies" : [],
             "operator" : 8,
-            "used_by" : [13,11],
+            "used_by" : [12,10],
             "begin_day" : 1, 
             "QC_delay" : 0
         }
@@ -454,9 +454,23 @@ def get_batch_description():
         "operation1" : {
             "type" : "operation",
             "name" : "broyage_poly",
+            "number" : 0,
+            "OF" : "POLBR",
+            "processable_on" : [0,1],
+            "processing_time" : 2,
+            "expiration_time" : 12,
+            "dependencies" : [2],
+            "operator" : 2,
+            "used_by" : [],
+            "begin_day" : 1, 
+            "QC_delay" : 0
+            
+        },
+        "operation1.2" : {
+            "type" : "operation",
             "number" : 1,
             "OF" : "POLBR",
-            "processable_on" : [1,2],
+            "processable_on" : [0,1],
             "processing_time" : 2,
             "expiration_time" : 12,
             "dependencies" : [3],
@@ -466,24 +480,22 @@ def get_batch_description():
             "QC_delay" : 0
             
         },
-        "operation1.2" : {
-            "type" : "operation",
-            "number" : 2,
-            "OF" : "POLBR",
-            "processable_on" : [1,2],
-            "processing_time" : 2,
-            "expiration_time" : 12,
-            "dependencies" : [4],
-            "operator" : 2,
-            "used_by" : [],
-            "begin_day" : 1, 
-            "QC_delay" : 0
-            
-        },
         "operation2" : {
             "type" : "operation",
+            "number" : 2,
+            "processable_on" : [2],
+            "processing_time" : 1,
+            "expiration_time" : 60,
+            "dependencies" : [4],
+            "operator" : 2,
+            "used_by" : [0],
+            "begin_day" : 0, 
+            "QC_delay" : 0
+        },
+        "operation2.2" : {
+            "type" : "operation",
             "number" : 3,
-            "processable_on" : [3],
+            "processable_on" : [2],
             "processing_time" : 1,
             "expiration_time" : 60,
             "dependencies" : [5],
@@ -492,22 +504,22 @@ def get_batch_description():
             "begin_day" : 0, 
             "QC_delay" : 0
         },
-        "operation2.2" : {
+        "operation3" : {
             "type" : "operation",
             "number" : 4,
             "processable_on" : [3],
             "processing_time" : 1,
-            "expiration_time" : 60,
+            "expiration_time" : 2,
             "dependencies" : [6],
-            "operator" : 2,
+            "operator" : 3,
             "used_by" : [2],
             "begin_day" : 0, 
             "QC_delay" : 0
         },
-        "operation3" : {
+        "operation3.2" : {
             "type" : "operation",
             "number" : 5,
-            "processable_on" : [4],
+            "processable_on" : [3],
             "processing_time" : 1,
             "expiration_time" : 2,
             "dependencies" : [7],
@@ -516,22 +528,22 @@ def get_batch_description():
             "begin_day" : 0, 
             "QC_delay" : 0
         },
-        "operation3.2" : {
+        "operation4" : {
             "type" : "operation",
             "number" : 6,
             "processable_on" : [4],
-            "processing_time" : 1,
-            "expiration_time" : 2,
+            "processing_time" : 2,
+            "expiration_time" : 60,
             "dependencies" : [8],
-            "operator" : 3,
+            "operator" : 2,
             "used_by" : [4],
-            "begin_day" : 0, 
+            "begin_day" : 1, 
             "QC_delay" : 0
         },
-        "operation4" : {
+        "operation4.2" : {
             "type" : "operation",
             "number" : 7,
-            "processable_on" : [5],
+            "processable_on" : [4],
             "processing_time" : 2,
             "expiration_time" : 60,
             "dependencies" : [9],
@@ -540,23 +552,23 @@ def get_batch_description():
             "begin_day" : 1, 
             "QC_delay" : 0
         },
-        "operation4.2" : {
+        "operation5" : {
             "type" : "operation",
             "number" : 8,
-            "processable_on" : [5],
-            "processing_time" : 2,
-            "expiration_time" : 60,
+            "processable_on" : [0,1],
+            "processing_time" : 4,
+            "expiration_time" : 12,
             "dependencies" : [10],
             "operator" : 2,
             "used_by" : [6],
             "begin_day" : 1, 
             "QC_delay" : 0
         },
-        "operation5" : {
+        "operation5.2" : {
             "type" : "operation",
             "number" : 9,
-            "processable_on" : [1,2],
-            "processing_time" : 4,
+            "processable_on" : [0,1],
+            "processing_time" : 2,
             "expiration_time" : 12,
             "dependencies" : [11],
             "operator" : 2,
@@ -564,49 +576,37 @@ def get_batch_description():
             "begin_day" : 1, 
             "QC_delay" : 0
         },
-        "operation5.2" : {
-            "type" : "operation",
-            "number" : 10,
-            "processable_on" : [1,2],
-            "processing_time" : 2,
-            "expiration_time" : 12,
-            "dependencies" : [12],
-            "operator" : 2,
-            "used_by" : [8],
-            "begin_day" : 1, 
-            "QC_delay" : 0
-        },
         "operation6" : {
             "type" : "operation",
-            "number" : 11,
-            "processable_on" : [3],
+            "number" : 10,
+            "processable_on" : [2],
             "processing_time" : 2,
             "expiration_time" : 60,
-            "dependencies" : [14],
+            "dependencies" : [13],
             "operator" : 2,
-            "used_by" : [9],
+            "used_by" : [8],
             "begin_day" : 1, 
             "QC_delay" : 4
         },
         "operation6.2" : {
             "type" : "operation",
-            "number" : 12,
-            "processable_on" : [3],
+            "number" : 11,
+            "processable_on" : [2],
             "processing_time" : 2,
             "expiration_time" : 60,
-            "dependencies" : [14],
+            "dependencies" : [13],
             "operator" : 2,
-            "used_by" : [10],
+            "used_by" : [9],
             "begin_day" : 1, 
             "QC_delay" : 4
         },
         "operation7" : {
             "type" : "operation",
-            "number" : 13,
-            "processable_on" : [7],
+            "number" : 12,
+            "processable_on" : [6],
             "processing_time" : 3,
             "expiration_time" : 14,
-            "dependencies" : [15],
+            "dependencies" : [14],
             "operator" : 2,
             "used_by" : [],
             "begin_day" : 0, 
@@ -614,25 +614,25 @@ def get_batch_description():
         },
         "operation8" : {
             "type" : "operation",
-            "number" : 14,
-            "processable_on" : [6],
+            "number" : 13,
+            "processable_on" : [5],
             "processing_time" : 1,
             "expiration_time" : 60,
-            "dependencies" : [15],
+            "dependencies" : [14],
             "operator" : 2,
-            "used_by" : [11,12],
+            "used_by" : [10,11],
             "begin_day" : 0, 
             "QC_delay" : 0
         },
         "operation9" : {
             "type" : "operation",
-            "number" : 15,
-            "processable_on" : [8],
+            "number" : 14,
+            "processable_on" : [7],
             "processing_time" : 4,
             "expiration_time" : 14,
             "dependencies" : [],
             "operator" : 8,
-            "used_by" : [13,14],
+            "used_by" : [12,13],
             "begin_day" : 1, 
             "QC_delay" : 0
         }
@@ -644,9 +644,23 @@ def get_batch_description():
         "operation1" : {
             "type" : "operation",
             "name" : "broyage_poly",
+            "number" : 0,
+            "OF" : "POLBR",
+            "processable_on" : [0,1],
+            "processing_time" : 2,
+            "expiration_time" : 12,
+            "dependencies" : [2],
+            "operator" : 2,
+            "used_by" : [],
+            "begin_day" : 1, 
+            "QC_delay" : 0
+            
+        },
+        "operation1.2" : {
+            "type" : "operation",
             "number" : 1,
             "OF" : "POLBR",
-            "processable_on" : [1,2],
+            "processable_on" : [0,1],
             "processing_time" : 2,
             "expiration_time" : 12,
             "dependencies" : [3],
@@ -656,24 +670,22 @@ def get_batch_description():
             "QC_delay" : 0
             
         },
-        "operation1.2" : {
-            "type" : "operation",
-            "number" : 2,
-            "OF" : "POLBR",
-            "processable_on" : [1,2],
-            "processing_time" : 2,
-            "expiration_time" : 12,
-            "dependencies" : [4],
-            "operator" : 2,
-            "used_by" : [],
-            "begin_day" : 1, 
-            "QC_delay" : 0
-            
-        },
         "operation2" : {
             "type" : "operation",
+            "number" : 2,
+            "processable_on" : [2],
+            "processing_time" : 1,
+            "expiration_time" : 60,
+            "dependencies" : [4],
+            "operator" : 2,
+            "used_by" : [0],
+            "begin_day" : 0, 
+            "QC_delay" : 0
+        },
+        "operation2.2" : {
+            "type" : "operation",
             "number" : 3,
-            "processable_on" : [3],
+            "processable_on" : [2],
             "processing_time" : 1,
             "expiration_time" : 60,
             "dependencies" : [5],
@@ -682,22 +694,22 @@ def get_batch_description():
             "begin_day" : 0, 
             "QC_delay" : 0
         },
-        "operation2.2" : {
+        "operation3" : {
             "type" : "operation",
             "number" : 4,
             "processable_on" : [3],
             "processing_time" : 1,
-            "expiration_time" : 60,
+            "expiration_time" : 2,
             "dependencies" : [6],
-            "operator" : 2,
+            "operator" : 3,
             "used_by" : [2],
             "begin_day" : 0, 
             "QC_delay" : 0
         },
-        "operation3" : {
+        "operation3.2" : {
             "type" : "operation",
             "number" : 5,
-            "processable_on" : [4],
+            "processable_on" : [3],
             "processing_time" : 1,
             "expiration_time" : 2,
             "dependencies" : [7],
@@ -706,22 +718,22 @@ def get_batch_description():
             "begin_day" : 0, 
             "QC_delay" : 0
         },
-        "operation3.2" : {
+        "operation4" : {
             "type" : "operation",
             "number" : 6,
             "processable_on" : [4],
-            "processing_time" : 1,
-            "expiration_time" : 2,
+            "processing_time" : 2,
+            "expiration_time" : 60,
             "dependencies" : [8],
-            "operator" : 3,
+            "operator" : 2,
             "used_by" : [4],
-            "begin_day" : 0, 
+            "begin_day" : 1, 
             "QC_delay" : 0
         },
-        "operation4" : {
+        "operation4.2" : {
             "type" : "operation",
             "number" : 7,
-            "processable_on" : [5],
+            "processable_on" : [4],
             "processing_time" : 2,
             "expiration_time" : 60,
             "dependencies" : [9],
@@ -730,22 +742,22 @@ def get_batch_description():
             "begin_day" : 1, 
             "QC_delay" : 0
         },
-        "operation4.2" : {
+        "operation5" : {
             "type" : "operation",
             "number" : 8,
-            "processable_on" : [5],
+            "processable_on" : [0,1],
             "processing_time" : 2,
-            "expiration_time" : 60,
+            "expiration_time" : 12,
             "dependencies" : [10],
             "operator" : 2,
             "used_by" : [6],
             "begin_day" : 1, 
             "QC_delay" : 0
         },
-        "operation5" : {
+        "operation5.2" : {
             "type" : "operation",
             "number" : 9,
-            "processable_on" : [1,2],
+            "processable_on" : [0,1],
             "processing_time" : 2,
             "expiration_time" : 12,
             "dependencies" : [11],
@@ -754,49 +766,37 @@ def get_batch_description():
             "begin_day" : 1, 
             "QC_delay" : 0
         },
-        "operation5.2" : {
-            "type" : "operation",
-            "number" : 10,
-            "processable_on" : [1,2],
-            "processing_time" : 2,
-            "expiration_time" : 12,
-            "dependencies" : [12],
-            "operator" : 2,
-            "used_by" : [8],
-            "begin_day" : 1, 
-            "QC_delay" : 0
-        },
         "operation6" : {
             "type" : "operation",
-            "number" : 11,
-            "processable_on" : [3],
+            "number" : 10,
+            "processable_on" : [2],
             "processing_time" : 1,
             "expiration_time" : 60,
-            "dependencies" : [14],
+            "dependencies" : [13],
             "operator" : 2,
-            "used_by" : [9],
+            "used_by" : [8],
             "begin_day" : 1, 
             "QC_delay" : 4
         },
         "operation6.2" : {
             "type" : "operation",
-            "number" : 12,
-            "processable_on" : [3],
+            "number" : 11,
+            "processable_on" : [2],
             "processing_time" : 1,
             "expiration_time" : 60,
-            "dependencies" : [14],
+            "dependencies" : [13],
             "operator" : 2,
-            "used_by" : [10],
+            "used_by" : [9],
             "begin_day" : 1, 
             "QC_delay" : 4
         },
         "operation7" : {
             "type" : "operation",
-            "number" : 13,
-            "processable_on" : [7],
+            "number" : 12,
+            "processable_on" : [6],
             "processing_time" : 1,
             "expiration_time" : 14,
-            "dependencies" : [15],
+            "dependencies" : [14],
             "operator" : 2,
             "used_by" : [],
             "begin_day" : 0, 
@@ -804,25 +804,25 @@ def get_batch_description():
         },
         "operation8" : {
             "type" : "operation",
-            "number" : 14,
-            "processable_on" : [6],
+            "number" : 13,
+            "processable_on" : [5],
             "processing_time" : 1,
             "expiration_time" : 60,
-            "dependencies" : [15],
+            "dependencies" : [14],
             "operator" : 2,
-            "used_by" : [11,12],
+            "used_by" : [10,11],
             "begin_day" : 0, 
             "QC_delay" : 0
         },
         "operation9" : {
             "type" : "operation",
-            "number" : 15,
-            "processable_on" : [8],
+            "number" : 14,
+            "processable_on" : [7],
             "processing_time" : 2,
             "expiration_time" : 14,
             "dependencies" : [],
             "operator" : 8,
-            "used_by" : [13,14],
+            "used_by" : [12,13],
             "begin_day" : 1, 
             "QC_delay" : 0
         }
@@ -830,39 +830,23 @@ def get_batch_description():
         
     },
     
-    
-    "action_space" : {
-        "1" : [1,2],
-        "2" : [3],
-        "3" : [4,5],
-        "4" : [6],
-        "5" : [1,2],
-        "6" : [3],
-        "7" : [8],
-        "8" : [7],
-        "9" : [9],
-        "10" : [10],
-        "11" : [11],
-        "12" : [12],
-        "13" : [13],
-        "14" : [14]        
-    }, 
+
     "action_space_reverse" : {
-        "1" : [1,2],
-        "2" : [1,2],
-        "3" : [3],
+        "0" : [0,1],
+        "1" : [0,1],
+        "2" : [2],
+        "3" : [2],
         "4" : [3],
-        "5" : [4],
+        "5" : [3],
         "6" : [4],
-        "7" : [5],
-        "8" : [5],
-        "9" : [1,2],
-        "10" : [1,2],
-        "11" : [3],
-        "12" : [3],
-        "13" : [7],
-        "14" : [6],
-        "15" : [8]       
+        "7" : [4],
+        "8" : [0,1],
+        "9" : [0,1],
+        "10" : [2],
+        "11" : [2],
+        "12" : [6],
+        "13" : [5],
+        "14" : [7]       
     }, 
     "machines" : [
         "broyeur_b1", 

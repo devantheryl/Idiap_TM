@@ -26,60 +26,75 @@ os.chdir(dname)
 
 class Production_line():
     
-    def __init__(self, target, formulation,echelle,job_name, nbr_operation_max, nbr_machines, nbr_operator, futur_length,
-                 futur_state, echu_weights, forward_weights, ordo_weights, job_finished_weigths):
+    def __init__(self, nbr_operation_max, nbr_machines, futur_length,
+                 echu_weights, forward_weights, ordo_weights, job_finished_weigths):
         
         
         
-            
+        """
+        variables for the state_space
+        """
         self.nbr_operation_max = nbr_operation_max
         self.nbr_machines = nbr_machines
-        self.nbr_operator = nbr_operator
         self.futur_length = futur_length
         
-        self.formulation = formulation
-        
-        
+        """
+        variables to keep trace of the data
+        """
         self.historic_operator = []
         self.historic_time = []
+        self.number_echu = 0
+        
         self.job_launched = False
         
-
-        self.target_date = []
-        self.formulations = []
-        
+        """
+        variables for the RL reward
+        """
         self.echu_weights = echu_weights
         self.forward_weights = forward_weights
         self.ordo_weights = ordo_weights
         self.job_finished_weigths = job_finished_weigths
         
-        self.number_echu = 0
-        #params
+
+        """
+        variables of the Batch
+        """
+        self.job = None
+        self.formulation = None
+        self.scale = None
+        self.job_name = None
         
-        #list to keep the jobs objects
-        self.job = Job(job_name,1, formulation, 20000, nbr_operation_max,target,target ,melange_number =0)
         
-        #list to keep the machines objects
+        """
+        create all the machines
+        """
         self.machines = self.create_machines()
         
-        #all the actions we can take
+        
+        """
+        create the action space
+        """
         self.actions_space = self.create_actions_space()
         
-        #state size
+        
+        """
+        get the state_space size
+        """
         self.state_size = self.get_state_size()
         
-        #assuming that the new batch begin with noting in the prod_line yet. TODO change this for more generic beahvior
-        self.state_full = futur_state
-                        
-        self.time = target + DateOffset(hours = 12*4, minutes = -1)
         
-        self.init_time = self.time
-        self.morning_afternoon = 1 #0: morning, 1: afternoon
+        """
+        at the creation of the prod line object, the state is not known
+        """
+        self.state = None                
+        self.time = None
+        
+
+
     
     def reset(self):
         
         self.job.started = True     
-        self.update_check_executable()
         self.step(18) #plan perry
         
         
@@ -190,68 +205,6 @@ class Production_line():
                 
         return next_state,reward, done, self.number_echu
     
-    
-        
-       
-    def create_timeseries(self,target, futur_state):
-        
-        perry_duration = int(self.job.operations[15-1].processing_time/2)
-        end = target + DateOffset(days = perry_duration)
-        
-        if futur_state is None:
-            start = end - DateOffset(days = self.futur_length/2)
-        else:
-            start = target
-            
-        date_rng = pd.date_range(start=start, end=end, freq='12H', )
-        date_rng = reversed(date_rng)
-        df = pd.DataFrame(date_rng, columns=['date'])
-        df['datetime'] = pd.to_datetime(df['date'])
-        df = df.set_index('datetime')
-        df.drop(['date'], axis=1, inplace=True)
-        df = df.resample('12H', offset = '-1m').mean().iloc[::-1]
-        
-        
-        df["operator"] = 0
-        for index, row in df.iterrows():
-            if index.dayofweek < 5:
-
-                df.loc[index,"operator"] = self.nbr_operator
-                          
-        
-        df["m1"] = 0
-        df["m2"] = 0
-        df["m3"] = 0
-        df["m4"] = 0
-        df["m5"] = 0
-        df["m6"] = 0
-        df["m7"] = 0
-        df["m8"] = 0
-        
-        
-        return df
-        
-    def merge_state(self, current, futur):
-        
-        df_tot = pd.concat([futur,current])    
-        df_tot = df_tot.resample('12H', offset = '-1m').mean().iloc[::-1]
-        
-        for index, row in df_tot[df_tot["operator"].isna()].iterrows():
-            if index.dayofweek < 5:
-                df_tot.loc[index,"operator"] = 12
-            else:
-                df_tot.loc[index,"operator"] = 0
-            
-            df_tot.loc[index,"m1"] = 0
-            df_tot.loc[index,"m2"] = 0
-            df_tot.loc[index,"m3"] = 0
-            df_tot.loc[index,"m4"] = 0
-            df_tot.loc[index,"m5"] = 0
-            df_tot.loc[index,"m6"] = 0
-            df_tot.loc[index,"m7"] = 0
-            df_tot.loc[index,"m8"] = 0
-            
-        return df_tot
     
     def create_machines(self):
         """
