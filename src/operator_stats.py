@@ -7,32 +7,11 @@ Created on Mon Aug 29 14:46:50 2022
 import pandas as pd
 import numpy as np
 from openpyxl import load_workbook
-import openpyxl
-from openpyxl.utils import range_boundaries
-from openpyxl.utils.cell import get_column_letter
-import csv
-import re
-from pandas.tseries.offsets import DateOffset
-import json
-import os
-from datetime import datetime, timedelta, date
+
 from itertools import islice
 
 import unidecode
 
-import time
-import json
-from collections import deque
-
-from src.TF_env3 import TF_environment
-from tensorforce import Environment, Runner, Agent
-
-import src.utils as utils
-
-import xlwings as xw
-
-import matplotlib.pyplot as plt
-import pandas as pd
 
 def get_operators_stats(filename):
    

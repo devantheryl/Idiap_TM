@@ -63,12 +63,12 @@ def place_operator(df_operator, planning, operators_stats):
                 pass
             
             if nbr_octodure <2:
-                new_row = {"Start" : date_index[i], "Finish" : date_index[i], "op_machine" : "OCTODURE" }
-                planning = planning.append(new_row, ignore_index = True)
+                new_row = pd.DataFrame({"Start" : date_index[i], "Finish" : date_index[i], "op_machine" : "OCTODURE" }, index = [0])
+                planning = pd.concat([planning, new_row], ignore_index = True)
                 
             if nbr_laverie <2:
-                new_row = {"Start" : date_index[i], "Finish" : date_index[i], "op_machine" : "LAVERIE" }
-                planning = planning.append(new_row, ignore_index = True)
+                new_row = pd.DataFrame({"Start" : date_index[i], "Finish" : date_index[i], "op_machine" : "LAVERIE" }, index = [0])
+                planning = pd.concat([planning, new_row], ignore_index = True)
     
     
     total_best_selected_operators = {}

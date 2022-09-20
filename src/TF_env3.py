@@ -4,14 +4,11 @@ Created on Thu Jan 13 11:51:35 2022
 
 @author: LDE
 """
-import json
-import os
-from collections import deque
-import numpy as np
-from tensorforce import Environment, Runner, Agent
+
+from tensorforce import Environment
 from src.Prod_line_3 import Production_line
 
-import time
+
 
 class TF_environment(Environment):
     
@@ -39,7 +36,7 @@ class TF_environment(Environment):
         
         self.production_line = Production_line(self.nbr_operation_max, self.nbr_machines, self.futur_length, 
                                                self.echu_weights, self.forward_weights, self.ordo_weights, self.job_finished_weigths)
-        self.max_step_per_episode = 200
+        self.max_step_per_episode = 300
         
         
     def states(self):

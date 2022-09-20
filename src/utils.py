@@ -4,151 +4,173 @@ Created on Fri Dec 17 16:45:59 2021
 
 @author: LDE
 """
-import matplotlib.pyplot as plt
-from matplotlib.dates import DayLocator
-import matplotlib.patches as pat
-import matplotlib as mpl
-import json
-import random 
-import time
-from datetime import datetime, timedelta, date
-import matplotlib.dates as mdates
+
+from datetime import datetime, timedelta
+
 import numpy as np
 import xlwings as xw
 from openpyxl import load_workbook
-import openpyxl
-from openpyxl.utils import range_boundaries
+
 from openpyxl.utils.cell import get_column_letter
 from itertools import islice
 import pandas as pd
 from unidecode import unidecode
+from pandas.tseries.offsets import DateOffset
 
-def visualize(results ,historical_time, historical_operator, path = ""):
+def visualize(excel_file, batch_names, planning_tot_final, selected_operators, planning_octo_laverie):
     
-    operation_machine = {
-                     (0) : "echu",
-                     (1,1) : "broyage_poly_1",
-                     (1,2) : "broyage_poly_2",
-                     (2,1) : "broyage_poly_1",
-                     (2,2) : "broyage_poly_2",
-                     (3,3) : "tamisage_poly_3",
-                     (4,3) : "tamisage_poly_3",
-                     (5,4) : "mélange_4",
-                     (6,4) : "mélange_4",
-                     (7,5) : "extrusion_6",
-                     (8,5) : "extrusion_6",
-                     (9,1) : "broyage_ug_1",
-                     (9,2) : "broyage_ug_2",
-                     (10,1) : "broyage_ug_1",
-                     (10,2) : "broyage_ug_2",
-                     (11,3) : "tamisage_ug_3",
-                     (12,3) : "tamisage_ug_3",
-                     (13,7) : "tween_8",
-                     (14,6) : "combinaison_7",
-                     (15,8) : "perry_9",
-                     (16,9) : "sortie_lyo_10",
-                     (17,10) : "capsulage_11",
-                     (18,11) : "IV_12",
-                     (19,12) : "envoi IRR_13",
-                     (20,13) : "retour IRR_14"
+    operation_machine_excel_rows = {
+    
+                 "Broyage polymère B1": 4,
+                 "Broyage polymère B2" : 13,
+                 "Tamisage polymère B2" : 22,          
+                 "Mélanges B1 " : 29,
+                 "Extrusion B2" : 54,
+                 "Broyage bâtonnets B1 " : 61,
+                 "Broyage bâtonnets B2 " : 71,
+                 "Tamisage Microgranules B2" : 81,
+                 "Milieu de suspension  " : 98,
+                 "Combin. des fractions de microgranules" : 88,
+                 "Remplissage Poudre + liquide B2" : 104
+                 }
+        
+    operator_excel_rows = {
+        "SFR" : 192, 
+        "BPI" : 194, 
+        "JPI" : 196, 
+        "JDD" : 198, 
+        "FDS" : 200, 
+        "SFH" : 202, 
+        "NDE" : 204, 
+        "LTF" : 206, 
+        "SRG" : 208, 
+        "JPE" : 210, 
+        "RPI" : 212, 
+        "ANA" : 214,
+        "MTR" : 216, 
+        "CMT" : 218, 
+        "CGR" : 220, 
+        "CPO" : 222, 
+        "REA" : 224
     }
     
-    schedule = results.copy()
-    
-    
-    
-    op_machine = []
-    for index, row in schedule.iterrows():
-        
-        op = row["Operation"]
-        machine = row["Machine"]
-        duration = row["Duration"]
-        if duration != 0:
-            op_machine.append(operation_machine[int(op),int(machine)])
-        else:
-            op_machine.append(operation_machine[0])
-    
-    schedule["op_machine"] = op_machine
-    
-    
-    jobs = sorted(list(schedule['Job'].unique()))
-    operation_machine_sorted = [value for key,value in operation_machine.items()][::-1]
-    uniq, index = np.unique(np.array(operation_machine_sorted), return_index=True)
-    machines = uniq[index.argsort()]
-    schedule = schedule[schedule["op_machine"] != "echu"]
-    #makespan = (schedule['Start'].max() - schedule['Finish'].min()).days
-    end_date = schedule['Finish'].max()
-    
-    
-    bar_style = {'alpha':1.0, 'lw':25, 'solid_capstyle':'butt'}
-    text_style = {'color':'white', 'weight':'bold', 'ha':'center', 'va':'center'}
-    colors = mpl.cm.Dark2.colors
+    operation_occupations = {
+        "Broyage polymère B1": "BP",
+        "Broyage polymère B2" : "BP",
+        "Tamisage polymère B2" : "TP",          
+        "Mélanges B1 " : "MEL",
+        "Extrusion B2" : "EXT",
+        "Broyage bâtonnets B1 " : "BB",
+        "Broyage bâtonnets B2 " : "BB",
+        "Tamisage Microgranules B2" : "TM",
+        "Milieu de suspension  " : "MILIEU",
+        "Combin. des fractions de microgranules" : "CF",
+        "Remplissage Poudre + liquide B2" : "LYO",
+    }
 
-    schedule.sort_values(by=['Job', 'Start'])
-    schedule.set_index(['Job', 'op_machine'], inplace=True,append = True)
+
+    wb = xw.Book(excel_file)
+    ws = wb.sheets["PLANNING"]
     
-    fig, ax = plt.subplots(2,1, figsize=(30, (len(jobs)+len(machines))))
+    rng = ws.range("A1:AQN1")
     
-    for jdx, j in enumerate(jobs, 1):
-        for mdx, m in enumerate(machines, 1):
-            for index,_,_ in schedule.index:
-                if (index,j,m) in schedule.index:
+    
+    #create the color for each job
+    color_dict = {}
+    for job in batch_names:
+        color = tuple(np.random.choice(range(256), size=3))
+        color_dict[job] = color
+    
+    
+    
+    for r in rng:
+        
+        current_date = pd.to_datetime(r.value)
+        if current_date is not None:
+            for i, row in planning_tot_final.iterrows():
+                afternoon = False
+                op_date = row.at["Start"]
+                if current_date.day_of_year == op_date.day_of_year:
+                    op = row.at["op_machine"]
+                    excel_row_index_operation = operation_machine_excel_rows[op]
                     
+                    operators = selected_operators[i]
+                    excel_row_index_operator = [operator_excel_rows[o] for o in operators]
                     
-                    xs = schedule.loc[(index,j,m), 'Start']
-                    xf = schedule.loc[(index,j,m), 'Finish']
-                    xs = mdates.date2num(xs)
-                    xf = mdates.date2num(xf)
-                    width = xf-xs
+                    if op_date.hour != 0:
+                        r_aft = r.offset(column_offset = 1)
+                        afternoon = True
                     
-                    op = schedule.loc[(index,j,m), 'Operation']
-                    
+                    duration = row["Duration"].days * 2 + row["Duration"].seconds//3600 //12
+                    last_excel_cell_operation = 0
+                    last_excel_cell_operators = []
+                    for j in range(duration):
+                        if afternoon:
+                            if j > 0:
+                                colum_letter = get_column_letter(r_aft.offset(column_offset = j+1).column)
+                            else:
+                                colum_letter = get_column_letter(r_aft.offset(column_offset = j).column)
+                        else:
+                            if j > 1:
+                                colum_letter = get_column_letter(r.offset(column_offset = j+1).column)
+                                
+                            else:
+                                colum_letter = get_column_letter(r.offset(column_offset = j).column)
+                                
+                        excel_cell_operation = colum_letter + str(excel_row_index_operation)
+                        excel_cell_operators = [colum_letter + str(index_operator) for index_operator in excel_row_index_operator]
                         
-                    ax[0].plot([xs, xf], [jdx]*2, c=colors[mdx%7], **bar_style)
-                    #ax[0].text((xs + xf)/2, jdx, m, **text_style)
-                    
-                    if op in [1,3,5,7,9,11]:
-                        rect = pat.Rectangle((xs, mdx-0.5), width, 1, linewidth=2,facecolor=colors[jdx%7], linestyle = 'solid', ec = "black")
                         
-                        #ax[1].plot([xs, xf], [mdx]*2, c=colors[jdx%7], **bar_style, linestyle='dashed')
-                        ax[1].add_patch(rect)
+                        
+                        if (duration == 2 or duration ==4) and (j == 1 or j == 3):
+                            ws.range(last_excel_cell_operation + ":" + excel_cell_operation).merge()
+                            
+                            for n,excel_cell_operator in enumerate(excel_cell_operators):
+                                ws.range(last_excel_cell_operators[n] + ":" + excel_cell_operator).merge()
+                                
+                        else:
+                            ws.range(excel_cell_operation).value = row["Job"]
+                            ws.range(excel_cell_operation).color = color_dict[row["Job"]]
+                            
+                            for excel_cell_operator in excel_cell_operators:
+                                ws.range(excel_cell_operator).value = operation_occupations[row["op_machine"]]
+                                ws.range(excel_cell_operator).color = color_dict[row["Job"]]
+                            
+                            
+                        last_excel_cell_operation = excel_cell_operation
+                        last_excel_cell_operators = excel_cell_operators
+            
+            #for operator laverie octodure
+            for i, row in planning_octo_laverie.iterrows():
+                afternoon = False
+                op_date = row.at["Start"]
+                if current_date.day_of_year == op_date.day_of_year:
+                    op = row.at["op_machine"]
+    
+                    
+                    operators = selected_operators[i]
+                    excel_row_index_operator = [operator_excel_rows[o] for o in operators]
+                    
+                    if op_date.hour != 0:
+                        r_aft = r.offset(column_offset = 1)
+                        afternoon = True
+                    
+                    duration = 1
+                    last_excel_cell_operators = []
+                    
+                    if afternoon:
+                        colum_letter = get_column_letter(r_aft.offset(column_offset = 0).column)
+                        
                     else:
-                        #ax[1].plot([xs, xf], [mdx]*2, c=colors[jdx%7], **bar_style, linestyle='dotted')
-                        rect = pat.Rectangle((xs, mdx-0.5), width, 1, linewidth=2, facecolor=colors[jdx%7], linestyle = 'dotted',ec = "black")
-                        ax[1].add_patch(rect)
-                    #ax[1].text(xs, mdx, j, **text_style)
-                    
+                        colum_letter = get_column_letter(r.offset(column_offset = 0).column)
+                            
+                    excel_cell_operators = [colum_letter + str(index_operator) for index_operator in excel_row_index_operator]
+
+                    for excel_cell_operator in excel_cell_operators:
+                        ws.range(excel_cell_operator).value = row["op_machine"]
                         
-                
-    ax[0].set_title('Job Schedule')
-    ax[0].set_ylabel('Job')
-    ax[1].set_title('Machine Schedule')
-    ax[1].set_ylabel('Machine')
-    
-    ax3 = ax[1].twinx()
-    ax3.set_ylabel("operator")
-    ax3.step(historical_time,historical_operator, alpha = 1.0, where = 'post')
-    
-    
-    for idx, s in enumerate([jobs, machines]):
-        ax[idx].set_ylim(0.5, 0.5+len(s))
-        ax[idx].set_yticks(range(1, 1+len(s)))
-        ax[idx].set_yticklabels(s)
-        #ax[idx].text(end_date, ax[idx].get_ylim()[0], "{0:0.1f}".format(makespan), ha='center', va='bottom')
-        ax[idx].plot([end_date]*2, ax[idx].get_ylim(), 'r--')
-        ax[idx].set_xlabel('Time')
-        ax[idx].grid(True)
-        ax[idx].xaxis.set_major_locator(DayLocator())
-        
-    
-        
-    fig.tight_layout()
-    fig.autofmt_xdate()
-    #fig.show()
-    
-    if len(path):
-        fig.savefig(path)
-    fig.savefig("test.png")
+                        
+                    last_excel_cell_operators = excel_cell_operators
     
     
 
@@ -293,39 +315,39 @@ def extract_machine_operator_state(df):
     
     vacances_occupations = ["VACANCE", "ABSENT" ,"CONGE","FORMATION", "IV"]
     
-    machine_dict = {"m1" : ['Broyage polymère B1','Broyage bâtonnets B1 ' ],
-                    "m2" : ['Broyage polymère B2','Broyage bâtonnets B2 '],
-                    "m3" : ['Tamisage polymère B2', 'Tamisage Microgranules B2'],
-                    "m4" : ['Mélanges B1 ', 'Mélanges B2'],
-                    "m5" : ['Extrusion B1','Extrusion B2'],
-                    "m6" : ['Combin. des fractions de microgranules'],
-                    "m7" : ['Milieu de suspension  '],
-                    "m8" : ['Remplissage Poudre + liquide B2'],
-                    "m9" : ['Sortie Lyo'],
-                    "m10": ['Capsulage']
+    machine_dict = {"m0" : ['Broyage polymère B1','Broyage bâtonnets B1 ' ],
+                    "m1" : ['Broyage polymère B2','Broyage bâtonnets B2 '],
+                    "m2" : ['Tamisage polymère B2', 'Tamisage Microgranules B2'],
+                    "m3" : ['Mélanges B1 ', 'Mélanges B2'],
+                    "m4" : ['Extrusion B1','Extrusion B2'],
+                    "m5" : ['Combin. des fractions de microgranules'],
+                    "m6" : ['Milieu de suspension  '],
+                    "m7" : ['Remplissage Poudre + liquide B2'],
+                    "m8" : ['Sortie Lyo'],
+                    "m9": ['Capsulage']
                     
                     }
     
     vacances_conge2022 = ["2022-04-18","2022-05-26","2022-05-27", "2022-06-06","2022-06-16", "2022-08-01", "2022-08-15",
                           "2022-11-01", "2022-12-08", "2022-12-26","2022-12-27", "2022-12-28", "2022-12-29", "2022-12-30"]
     
-    operator_machine_dict = {"m1" : 2,
+    operator_machine_dict = {"m0" : 2,
+                             "m1" : 2,
                              "m2" : 2,
-                             "m3" : 2,
-                             "m4" : 3,
+                             "m3" : 3,
+                             "m4" : 2,
                              "m5" : 2,
                              "m6" : 2,
-                             "m7" : 2,
-                             "m8" : 8,
-                             "m9" : 2,
-                             "m10": 2,
+                             "m7" : 8,
+                             "m8" : 2,
+                             "m9": 2,
                              }
     
     columns_name = df.columns
     df_machine = df[machines].copy()
     
     #merge same step using the same machine
-    column_to_use = ["operator", "m1", "m2", "m3", "m4", "m5", "m6", "m7", "m8"]
+    column_to_use = ["operator", "m0", "m1", "m2", "m3", "m4", "m5", "m6", "m7"]
     df_machine["operator"] = 17
     
     
@@ -378,10 +400,23 @@ def extract_machine_operator_state(df):
             df_ressources_final.loc[row_index,"operator"] = df_ressources_final.loc[row_index,"operator"] - 4
         
         
-    #merge occupation of mélange et extrudeur (m4 et m5)
-    merge_melex = np.where(df_ressources_final.m4 + df_ressources_final.m5 >=1,1,0)
+    #merge occupation of mélange et extrudeur (m3 et m4)
+    merge_melex = np.where(df_ressources_final.m3 + df_ressources_final.m4 >=1,1,0)
+    df_ressources_final.loc[:,"m3"] = merge_melex
     df_ressources_final.loc[:,"m4"] = merge_melex
-    df_ressources_final.loc[:,"m5"] = merge_melex
+    
+
+    #clean the DF, make it usable by the prod_line class
+    index_to_keep = df_ressources_final.index + DateOffset(hours = 11, minutes = 59)
+    df_ressources_final.set_index(index_to_keep,inplace = True)
+    
+    df_ressources_final = df_ressources_final.iloc[::-1]
+    df_ressources_final.drop(df_ressources_final.index[0], inplace = True)
+    
+    
+    df_ressources_final.operator = np.where(df_ressources_final.operator < 0, 0, df_ressources_final.operator)
+    
+    df_ressources_final = df_ressources_final[column_to_use]
     
     
     return df_ressources_final, df_operator

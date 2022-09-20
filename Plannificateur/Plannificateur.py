@@ -8,18 +8,18 @@ import sys
 from functools import partial
 
 # Import QApplication and the required widgets from PyQt5.QtWidgets
-from PyQt5.QtCore import Qt, QDate, QTime, QDateTime, QDir
+from PyQt5.QtCore import QDateTime, QDir
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWidgets import QGridLayout
 from PyQt5.QtWidgets import QLineEdit
 from PyQt5.QtWidgets import QMainWindow
 from PyQt5.QtWidgets import QPushButton
 from PyQt5.QtWidgets import QVBoxLayout
-from PyQt5.QtWidgets import QHBoxLayout
+
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtWidgets import QComboBox
 from PyQt5.QtWidgets import QDateEdit
-from PyQt5.QtWidgets import QComboBox
+
 from PyQt5.QtWidgets import QLabel
 from PyQt5.QtWidgets import QPlainTextEdit
 from PyQt5.QtWidgets import QFileDialog

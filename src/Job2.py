@@ -7,14 +7,12 @@ Created on Mon Dec  6 12:50:34 2021
 from src.Operation2 import Operation
 from src.batch_description import get_batch_description
 import numpy as np
-import json
-from datetime import datetime, timedelta, date
 import pandas as pd
 
 
 class Job:
     
-    def __init__(self,job_name,job_number, formulation, job_size, max_operation,target_date,creation_date ,melange_number =0):
+    def __init__(self,job_name, formulation, job_size, max_operation,target_date ,melange_number =0):
         """
         init a new Job and create all corresponding operations
 
@@ -28,13 +26,11 @@ class Job:
         
         #init params
         self.job_name = job_name
-        self.job_number = job_number
         self.formulation = formulation
         self.job_size = job_size
         self.max_operation = max_operation
         self.melange_number = melange_number
         self.target_date = target_date
-        self.creation_date = creation_date
         
         
         #stats params
@@ -104,7 +100,7 @@ class Job:
                                   dependencies,operator,used_by,begin_day,QC_delay,executable)
             
             #store it in the jobs array
-            self.operations[number-1] = operation
+            self.operations[number] = operation
             self.operation_planning.append(operation)
                 
     def create_operation(self, operation_number):
@@ -146,7 +142,7 @@ class Job:
                                       processing_time,expiration_time,
                                       dependencies,operator,used_by,begin_day,QC_delay,executable)
                 #store it in the jobs array
-                self.operations[operation_number-1] = operation
+                self.operations[operation_number] = operation
                 self.operation_planning.append(operation)
                 
                 return

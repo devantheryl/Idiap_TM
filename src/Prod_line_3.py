@@ -11,15 +11,13 @@ from src.Machine2 import Machine
 import numpy as np
 import pandas as pd
 from pandas.tseries.offsets import DateOffset
-import json
-import os
-from datetime import datetime, timedelta, date
-from src.batch_description import get_batch_description
-from random import sample
 
-#to set the current working directory
-import sys
 import os
+
+from src.batch_description import get_batch_description
+
+
+
 abspath = os.path.abspath(__file__)
 dname =os.path.dirname(os.path.dirname(abspath))
 os.chdir(dname)
@@ -56,19 +54,13 @@ class Production_line():
         self.job_finished_weigths = job_finished_weigths
         
 
-        """
-        variables of the Batch
-        """
-        self.job = None
-        self.formulation = None
-        self.scale = None
-        self.job_name = None
         
         
         """
-        create all the machines
+        ressources
         """
         self.machines = self.create_machines()
+        self.job = None
         
         
         """
@@ -91,10 +83,15 @@ class Production_line():
         
 
 
-    
+    def add_job(self,target,formulation,scale,batch_name):
+        
+        self.job = Job(batch_name,formulation,scale,self.nbr_operation_max,target)
+
     def reset(self):
         
         self.job.started = True     
+        self.time = self.job.target_date + DateOffset(hours = 12*4, minutes = -1)
+        self.update_check_executable()
         self.step(18) #plan perry
         
         
@@ -119,8 +116,7 @@ class Production_line():
         action = self.actions_space[action_index]
         reward = 0
         
-        if self.check_legality(action) == False:
-            print("problem")
+        
         #si l'action est légal, normalement elle l'est du au mask
         if self.check_legality(action):
             job_to_schedule = action[0]
@@ -132,17 +128,13 @@ class Production_line():
                  
             if action == "forward":
                          
-                self.historic_operator.append(self.state_full.loc[self.time]["operator"])             
+                self.historic_operator.append(self.state.loc[self.time]["operator"])             
                 
                 previous_time = self.time
                 self.time -= DateOffset(hours= 12)
                 futur_time = self.time -DateOffset(hours = 12*(self.futur_length-1))
                 
                 self.historic_time.append(self.time)
-                
-                #add new day to df
-                if futur_time not in self.state_full.index:
-                    self.state_full = self.add_timestep(self.state_full)
                 
                 #update and check expiration time of all operations
                 self.number_echu = self.update_check_expiration_time(previous_time)
@@ -158,39 +150,39 @@ class Production_line():
                 #machine if the op has ended
                 ended_operations = self.update_processing_time() 
                 
+                
                 if self.number_echu:
-                    
                     self.job.remove_all_operation()
                     self.job.ended = True
                 
-                
-                                                     
-            
+
             else:
                 
                 reward += self.ordo_weights
                 
                 #on set l'opération à "en cours", set the start time and the machine
-                self.job.operations[operation_to_schedule-1].status = 1
-                self.job.operations[operation_to_schedule-1].end_time = self.time
-                self.job.operations[operation_to_schedule-1].processed_on = machine_to_schedule
+                self.job.operations[operation_to_schedule].status = 1
+                self.job.operations[operation_to_schedule].end_time = self.time
+                self.job.operations[operation_to_schedule].processed_on = machine_to_schedule
                 
                 
                 #update the machine status
-                self.machines[machine_to_schedule-1].assign_operation(job_to_schedule,operation_to_schedule)
+                self.machines[machine_to_schedule].assign_operation(job_to_schedule,operation_to_schedule)
                 
                 #decrease the number of operator remaining
-                op_duration = self.job.operations[operation_to_schedule-1].processing_time-1
+                op_duration = self.job.operations[operation_to_schedule].processing_time-1
                 end_op = self.time - DateOffset(hours = 12*op_duration)
-                machine_name = "m"+ str(self.machines[machine_to_schedule-1].number)
+                machine_name = "m"+ str(self.machines[machine_to_schedule].number)
 
 
-                self.state_full.loc[self.time:end_op,"operator"]  -= self.job.operations[operation_to_schedule-1].operator
-                self.state_full.loc[self.time:end_op,machine_name] = self.machines[machine_to_schedule-1].status
-                
+                self.state.loc[self.time:end_op,"operator"]  -= self.job.operations[operation_to_schedule].operator
+                self.state.loc[self.time:end_op,machine_name] = self.machines[machine_to_schedule].status
+        
+        else:
+            print("problem")
+        
         #update and check newly executable operations
         executables = self.update_check_executable()
-        
         
         
         next_state = self.get_state()
@@ -216,7 +208,7 @@ class Production_line():
         machines = np.full(self.nbr_machines, None)
         
         for i, machine_name in enumerate(batch_description["machines"]):
-            machines[i] = Machine(i+1, machine_name)
+            machines[i] = Machine(i, machine_name)
             
         return machines
     
@@ -225,8 +217,7 @@ class Production_line():
         create the actions space
 
         """
-        with open("src/batch_description.json") as json_file:
-            batch_description = json.load(json_file)
+        batch_description = get_batch_description()
             
         actions = []
         for key,value in batch_description["action_space_reverse"].items():
@@ -254,7 +245,7 @@ class Production_line():
                         operation.start_time = self.time
                         ended_operations.append(operation.operation_number)
                         machine = operation.processed_on
-                        self.machines[machine-1].remove_operation()
+                        self.machines[machine].remove_operation()
                                 
                                 #self.operator += operation.operator
                                 
@@ -273,10 +264,10 @@ class Production_line():
                                   
                     for operation_used in operation.used_by:
                         #si l'opérations suivantes n'a pas encore commencé
-                        if self.job.operations[operation_used-1].status == 0:
+                        if self.job.operations[operation_used].status == 0:
                     
                             #si l'opération est échue
-                            if self.job.operations[operation_used-1].decrease_get_expiration_time(time) == 0:
+                            if self.job.operations[operation_used].decrease_get_expiration_time(time) == 0:
 
                                 job_ended = True
                                 
@@ -298,7 +289,7 @@ class Production_line():
                     executable = True
                     for dependencie in operation.dependencies:
                         #si l'opération précédente n'est pas terminée
-                        if self.job.operations[dependencie-1].status != -1:
+                        if self.job.operations[dependencie].status != -1:
                             executable = False
                     
                     
@@ -314,7 +305,7 @@ class Production_line():
                         executable = False
                     
                     end_op = self.time - DateOffset(hours = 12*(duration-1))
-                    state = self.state_full.loc[self.time:end_op]
+                    state = self.state.loc[self.time:end_op]
                     #iter over the time of manufacturing for an operation
                     for i,row in state.iterrows():
                         if row["operator"] < operation.operator:
@@ -335,20 +326,20 @@ class Production_line():
                     
                         
                     #TODO change the static rule
-                    #eviter que qu'un mélange d'un autre lot se produise pendant une extrusion, 7-8 extrusion, 5-6 mélange
-                    if operation.operation_number == 7 or operation.operation_number == 8:
+                    #eviter que qu'un mélange d'un autre lot se produise pendant une extrusion, 6-7 extrusion, 4-5 mélange
+                    if operation.operation_number == 6 or operation.operation_number == 7:
                         #on check que le mélangeur soit idle
                         if self.machines[3].status != 0:
                             executable = False
                     #same for melange
-                    if operation.operation_number == 5 or operation.operation_number == 6:
-                        #on check que le mélangeur soit idle
+                    if operation.operation_number == 4 or operation.operation_number == 5:
+                        #on check que l'extrudeur soit idle
                         if self.machines[4].status != 0:
                             executable = False
                             
                     #TODO change this 
                     #pour eviter que l'extrusion soit mal plannifiée (probleme de doublon)
-                    if operation.operation_number == 8 or operation.operation_number == 7:
+                    if operation.operation_number == 6 or operation.operation_number == 7:
                         if self.time.weekday() == 0:
                             executable = False
                         
@@ -357,7 +348,8 @@ class Production_line():
                         executables.append(operation.operation_number)
                     operation.executable = executable
                 #si op = perry
-                        
+                else:
+                    operation.executable = False
         return executables
                         
     
@@ -384,28 +376,10 @@ class Production_line():
         machine_to_schedule = int(action[2])
         
         
-        operation = self.job.operations[operation_to_schedule-1]
+        operation = self.job.operations[operation_to_schedule]
         
         if operation != None:
-            duration = operation.processing_time
-            
-            #check if machine is free for the whole process time
-            machine_name = "m" + str(machine_to_schedule)
-            end_op = self.time - DateOffset(hours = 12*(duration-1))
-            state = self.state_full.loc[self.time:end_op]
-            machine_free = True
-            for index,row in state.iterrows():
-                if row[machine_name] != 0:
-                    machine_free = False
-                    
-                #eviter que qu'un mélange d'un autre lot se produise pendant une extrusion
-                melangeur_free = True
-                if operation.operation_number == 7 or operation.operation_number == 8:
-                    #on check que le mélangeur soit idle
-                    if row["m4"] != 0:
-                        melangeur_free = False
-                 
-            if operation.status == 0 and operation.executable and machine_free and melangeur_free:
+            if operation.executable:
                 return True
                 
         return False
@@ -442,14 +416,17 @@ class Production_line():
         #add futur state to state 
         current_time = self.time
         futur_time = current_time - DateOffset(hours = 12*(self.futur_length-1))
-        current_state = self.state_full.loc[current_time:futur_time]
+        current_state = self.state.loc[current_time:futur_time]
         
         for row in current_state.to_numpy():
             row_copy = np.copy(row)
-            row_copy[0] = row_copy[0]/self.nbr_operator
+            #TODO change the normalization
+            row_copy[0] = row_copy[0]/12
             sum_state = np.concatenate((sum_state,row))
         
-        sum_state = np.concatenate((sum_state, np.array([self.morning_afternoon,(self.time.weekday()-3)/3])))
+        morning_afternoon = 0 if self.time.hour == 11 else 1
+        
+        sum_state = np.concatenate((sum_state, np.array([morning_afternoon,(self.time.weekday()-3)/3])))
         
     
         assert(self.state_size == len(sum_state))
@@ -474,19 +451,6 @@ class Production_line():
             
         return plan_df
     
-        
-        
-        #TODO summarize all the stats and kpis of the prod line
-    
-    def add_timestep(self,df):
-        idx = df.tail(1).index[0] -  pd.Timedelta(hours=12)
-        df.loc[idx] = [0,0,0,0,0,0,0,0,0]
-        df = df.resample('12H', offset = '-1m').mean().iloc[::-1]
-        
-        if df.index[-1].dayofweek<5:
-            df.loc[idx]["operator"] = 12
-        
-        return df            
             
         
 
