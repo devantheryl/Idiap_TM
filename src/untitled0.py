@@ -1,13 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Aug 31 15:44:17 2022
+Created on Tue Sep 20 16:15:42 2022
 
 @author: LDE
 """
 
-test = (1,2,3)
-test2 = test
+import numpy as np
+li = ["test 85:15", "test"]
 
-test2[0] = 3
+print(np.sort(np.unique(li)))
 
-print(test, test2)
+
+
+test = "test 18"
+
+print(test.split(" "))

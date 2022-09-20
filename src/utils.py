@@ -77,9 +77,12 @@ def visualize(excel_file, batch_names, planning_tot_final, selected_operators, p
     
     #create the color for each job
     color_dict = {}
-    for job in batch_names:
+    for job in np.sort(np.unique(planning_tot_final["Job"].tolist())):
         color = tuple(np.random.choice(range(256), size=3))
-        color_dict[job] = color
+        if "75:25" in job:
+            color_dict[job] = color_dict[job.split(" ")[0]]
+        else:
+            color_dict[job] = color
     
     
     
@@ -129,6 +132,7 @@ def visualize(excel_file, batch_names, planning_tot_final, selected_operators, p
                                 ws.range(last_excel_cell_operators[n] + ":" + excel_cell_operator).merge()
                                 
                         else:
+                            
                             ws.range(excel_cell_operation).value = row["Job"]
                             ws.range(excel_cell_operation).color = color_dict[row["Job"]]
                             

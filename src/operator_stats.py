@@ -136,3 +136,33 @@ def get_operators_stats(filename):
         operation_vs_operator[column] = operation_vs_operator[column]  / operation_vs_operator[column].sum()
         
     return operation_vs_operator.T
+
+#return the operation the operators can make
+def get_PIF():
+    operator_list = ["SFR", "BPI", "JPI", "JDD", "FDS", "SFH", "NDE", "LTF", "SRG", "JPE", "RPI", "ANA",
+                    "MTR", "CMT", "CGR", "CPO", "REA"]
+    operation_list = ["BP","TP","EXT","MEL","BB", "TM", "CF", "MILIEU",
+                      "LYO", "CAPS","IV", "LAVERIE","OCTODURE"]
+    
+    df = pd.DataFrame([
+                        [1,	1,	1,	1,	1,	0,	1,	0,	0,	1,	0,	1,	0,	0,	0,	0,	0],
+                        [1,	1,	1,	1,	1,	0,	1,	0,	0,	1,	1,	1,	1,	0,	0,	1,	0],
+                        [1,	1,	1,	1,	1,	0,	1,	0,	0,	0,	0,	1,	1,	0,	0,	0,	0],
+                        [1,	0,	1,	1,	1,	0,	0,	0,	0,	0,	0,	1,	1,	0,	0,	0,	0],
+                        [1,	1,	1,	1,	1,	0,	1,	0,	0,	1,	0,	1,	0,	0,	0,	0,	0],
+                        [1,	1,	1,	1,	1,	0,	1,	0,	0,	1,	1,	1,	1,	0,	0,	1,	0],
+                        [1,	1,	1,	1,	1,	0,	1,	0,	0,	0,	0,	1,	0,	0,	0,	0,	0],
+                        [0,	0,	0,	0,	0,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1],
+                        [1,	1,	1,	1,	1,	1,	1,	0,	1,	1,	1,	1,	1,	1,	1,	1,	1],
+                        [0,	0,	0,	0,	0,	0,	1,	0,	1,	1,	1,	1,	1,	1,	1,	1,	1],
+                        [0,	0,	0,	0,	0,	1,	1,	0,	0,	0,	1,	1,	1,	1,	1,	1,	1],
+                        [0,	0,	0,	0,	0,	1,	1,	1,	1,	0,	0,	0,	0,	0,	0,	0,	0],
+                        [0,	1,	1,	0,	0,	0,	0,	0,	0,	1,	0,	0,	0,	0,	0,	0,	0]], 
+                        index = operation_list, columns=operator_list)
+    
+    return df
+
+
+df = get_PIF()
+
+    

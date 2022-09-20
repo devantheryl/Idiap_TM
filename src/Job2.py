@@ -93,9 +93,18 @@ class Job:
                 begin_day = value["begin_day"]
                 QC_delay = value["QC_delay"]
                 
+            job_name = self.job_name
+            if self.formulation == 6:
+                if number in [0,2,4,6,8,10]:
+                    job_name += " (75:25)"
+                if number in [1,3,5,7,9,11]:
+                    job_name += " (85:15)"
+                
+                
+                    
                 
             #create the operation
-            operation = Operation(self.job_name,op_type,number,processable_on,
+            operation = Operation(job_name,op_type,number,processable_on,
                                   processing_time,expiration_time,
                                   dependencies,operator,used_by,begin_day,QC_delay,executable)
             
@@ -160,6 +169,7 @@ class Job:
         planning = []
         for operation in self.operation_planning:
             if operation != None:
+                job_name = operation.job_name
                 operation_number = operation.operation_number
                 machine = operation.processed_on
                 start = operation.start_time
@@ -168,7 +178,7 @@ class Job:
                     duration = end-start
                 except:
                     duration  = 0.0
-                planning.append((self.job_name,machine,operation_number,start,duration,end))
+                planning.append((job_name,machine,operation_number,start,duration,end))
         return planning
     
     def get_stats(self):
