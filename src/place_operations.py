@@ -20,7 +20,7 @@ def place_operations(agent, environment, df_futur_machine, targets, formulations
         lead_time_min = 1000
         print("job : ", j)
 
-        for tentative in range(10):
+        for tentative in range(20):
             reward_tot = 0
             
             state = df_futur_machine.copy()
