@@ -278,15 +278,22 @@ def unmerge_excel(excel_file):
     idx = [r[0] for r in data]
     data = (islice(r, 1, None) for r in data)
     df = pd.DataFrame(data, index=idx, columns=cols)
+    df_restrict = df.copy()
     
+    
+    """
+    prepare the full df 
+    """
+    df = df.reset_index()
+    df = df.set_index([df.columns[0], df.columns[1]])
+    
+
     #keep only machines and operator index
-    df = df[~df.index.duplicated(keep='first')]
     index_to_keep = df.index.dropna()
     
     df = df.loc[index_to_keep]
     
     df =df.drop(df.filter(like='None').columns, axis=1)
-    df = df.drop(columns = df.columns[0])
     
     #resample the column of df
     columns = pd.to_datetime(df.columns)
@@ -298,7 +305,30 @@ def unmerge_excel(excel_file):
     df_t = df_t.drop(columns = df_t.columns[0])#again drop useless column
     df_t = df_t.fillna('0')
     
-    return df_t
+    """
+    prepare the resticted df 
+    """
+    #keep only machines and operator index
+    df_restrict = df_restrict[~df_restrict.index.duplicated(keep='first')]
+    index_to_keep = df_restrict.index.dropna()
+    
+    df_restrict = df_restrict.loc[index_to_keep]
+    
+    df_restrict =df_restrict.drop(df_restrict.filter(like='None').columns, axis=1)
+    df_restrict = df_restrict.drop(columns = df_restrict.columns[0])
+    
+    #resample the column of df
+    columns = pd.to_datetime(df_restrict.columns)
+    
+    resampled_date = pd.DataFrame(0,columns=[""],index=columns).resample('12H', closed = "left").mean().index.tolist()
+    df_restrict = df_restrict.iloc[: , :-1] #drop the last column to make the datetime list fit
+    df_restrict.columns = resampled_date
+    df_restrict_t = df_restrict.transpose() #transpose to have the date as index
+    df_restrict_t = df_restrict_t.drop(columns = df_restrict_t.columns[0])#again drop useless column
+    df_restrict_t = df_restrict_t.fillna('0')
+    
+    
+    return df_t, df_restrict_t
 
 def extract_machine_operator_state(df):
     
@@ -310,7 +340,7 @@ def extract_machine_operator_state(df):
            'Milieu de suspension  ', 'Remplissage Poudre + liquide B2', 'Sortie Lyo','Capsulage']
     
     operators = ["SFR", "BPI", "JPI", "JDD", "FDS", "SFH", "NDE", "LTF", "SRG", "JPE", "RPI", "ANA",
-                "MTR", "CMT", "CGR", "CPO", "REA"]
+                "MTR", "CMT", "CGR", "CPO", "REA", "NRO", "VZU", "ACH"]
     
     
     merge_occupations = ["OCTODURE", "BP", "TP", "MEL", "EXT",  "BB", "TM", "CF", "MILIEU", 
@@ -328,7 +358,7 @@ def extract_machine_operator_state(df):
                     "m6" : ['Milieu de suspension  '],
                     "m7" : ['Remplissage Poudre + liquide B2'],
                     "m8" : ['Sortie Lyo'],
-                    "m9": ['Capsulage']
+                    "m9":  ['Capsulage']
                     
                     }
     
@@ -344,14 +374,14 @@ def extract_machine_operator_state(df):
                              "m6" : 2,
                              "m7" : 8,
                              "m8" : 2,
-                             "m9": 2,
+                             "m9" : 2,
                              }
     
     columns_name = df.columns
     df_machine = df[machines].copy()
     
     #merge same step using the same machine
-    column_to_use = ["operator", "m0", "m1", "m2", "m3", "m4", "m5", "m6", "m7"]
+    column_to_use = ["m0", "m1", "m2", "m3", "m4", "m5", "m6", "m7", "m8", "m9"]
     df_machine["operator"] = 17
     
     
@@ -411,11 +441,11 @@ def extract_machine_operator_state(df):
     
 
     #clean the DF, make it usable by the prod_line class
-    index_to_keep = df_ressources_final.index + DateOffset(hours = 11, minutes = 59)
-    df_ressources_final.set_index(index_to_keep,inplace = True)
+    #index_to_keep = df_ressources_final.index #+ DateOffset(hours = 11, minutes = 59)
+    #df_ressources_final.set_index(index_to_keep,inplace = True)
     
-    df_ressources_final = df_ressources_final.iloc[::-1]
-    df_ressources_final.drop(df_ressources_final.index[0], inplace = True)
+    #df_ressources_final = df_ressources_final.iloc[::-1]
+    #df_ressources_final.drop(df_ressources_final.index[0], inplace = True)
     
     
     df_ressources_final.operator = np.where(df_ressources_final.operator < 0, 0, df_ressources_final.operator)

@@ -52,9 +52,7 @@ class Production_line():
         self.forward_weights = forward_weights
         self.ordo_weights = ordo_weights
         self.job_finished_weigths = job_finished_weigths
-        
-
-        
+    
         
         """
         ressources
