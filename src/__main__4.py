@@ -38,7 +38,101 @@ prod_line = Production_line(begin_date)
 
 
 
-selected_operators = {}
+operation_machine = {
+    ("BR","m0") : "Broyage polymère B1",
+    ("BR","m1") : "Broyage polymère B2",
+    ("BR_1","m0") : "Broyage polymère B1",
+    ("BR_1","m1") : "Broyage polymère B2",
+    ("BR_2","m0") : "Broyage polymère B1",
+    ("BR_2","m1") : "Broyage polymère B2",
+    
+    ("TP","m2") : "Tamisage polymère B2",
+    ("TP_1","m2") : "Tamisage polymère B2",
+    ("TP_2","m2") : "Tamisage polymère B2",
+    
+    ("MEL","m3") : "Mélanges B2",
+    ("MEL_1","m3") : "Mélanges B2 ",
+    ("MEL_2","m3") : "Mélanges B2 ",
+    
+    ("EX","m4") : "Extrusion B2",
+    ("EX_1","m4") : "Extrusion B2",
+    ("EX_2","m4") : "Extrusion B2",
+    
+    ("BB","m0") : "Broyage bâtonnets B1 ",
+    ("BB","m1") : "Broyage bâtonnets B2 ",
+    ("BB_1","m0") : "Broyage bâtonnets B1 ",
+    ("BB_1","m1") : "Broyage bâtonnets B2 ",
+    ("BB_2","m0") : "Broyage bâtonnets B1 ",
+    ("BB_2","m1") : "Broyage bâtonnets B2 ",
+    
+    ("TM","m2") : "Tamisage Microgranules B2",
+    ("TM_1","m2") : "Tamisage Microgranules B2",
+    ("TM_2","m2") : "Tamisage Microgranules B2",
+    
+    ("MILIEU","m6") : "Milieu de suspension  ",
+    
+    ("CF","m5") : "Combin. des fractions de microgranules",
+    
+    ("PERRY","m7") : "Remplissage Poudre + liquide B2",
+    }
+operation_raccourci = {
+    "Broyage polymère B1" : "BR",
+    "Broyage polymère B2" : "BR",
+    "Tamisage polymère B2" :"TP",
+    "Mélanges B2" : "MEL",
+    "Extrusion B2" : "EXT",
+    "Broyage bâtonnets B1 " : "BB",
+    "Broyage bâtonnets B2 " : "BB",
+    "Tamisage Microgranules B2" : "TM",
+    "Milieu de suspension  " : "MILIEU",
+    "Combin. des fractions de microgranules" : "CF",
+    "Sortie Lyo" : "LYO",
+    "Capsulage" : "CAPS",
+    "Remplissage Poudre + liquide B2" : "LYO"
+    
+    }
+
+operateur_needed = {
+    "Broyage polymère B1" : 2,
+    "Broyage polymère B2" : 2,
+    "Tamisage polymère B2" :2,
+    "Mélanges B2" : 3,
+    "Extrusion B2" : 2,
+    "Broyage bâtonnets B1 " : 2,
+    "Broyage bâtonnets B2 " : 2,
+    "Tamisage Microgranules B2" : 2,
+    "Milieu de suspension  " : 2,
+    "Combin. des fractions de microgranules" : 2,
+    "Remplissage Poudre + liquide B2" : 8
+    }
+
+#attribue les opérateurs aux opérations qui n'en ont pas encore 
+operators = prod_line.df_operator[begin_date:]
+machine = prod_line.df_machine[begin_date:]
+operator_stats_df = prod_line.operator_stats_df
+
+for index in machine.index:
+    machines_used = machine.loc[index]
+    machines_used = machines_used[machines_used!="0"].to_list()
+    
+    operators_planned = operators.loc[index]
+    
+    for machine_used in machines_used:
+        machine_used_raccourci = operation_raccourci[machine_used]
+        test_operator = operators_planned[(machine_used_raccourci == operators_planned) == True].to_list()
+        
+        #l'opération n'a pas encore d'opérateur attitrés
+        if len(test_operator) == 0:
+            print(index,machine_used_raccourci, test_operator)
+    
+    
+
+
+
+
+
+
+
 selected_machines  = {}
 done = False
 while not done:
@@ -74,12 +168,11 @@ while not done:
         
         #store the selected ressources
         selected_machines[choosen_idx] = machine_to_plan[0]
-        selected_operators[choosen_idx] = operators_to_plan
         
         
         #met a jour les ressources disponibles
         end_date = current_date + DateOffset(hours = 12 * (duration-1))
-        prod_line.df_machine.loc[current_date:end_date, machine_to_plan] = 1
+        prod_line.df_machine.loc[current_date:end_date, machine_to_plan] = operation_machine[to_plan.operation_name, machine_to_plan[0]]
         for op in operators_to_plan:
             prod_line.df_operator.loc[current_date:end_date,op] = to_plan.operation_name
             
@@ -99,50 +192,11 @@ batch_names = prod_line.batch_names
 
 
 
-operation_machine = {
-                     ("BR","m0") : "Broyage polymère B1",
-                     ("BR","m1") : "Broyage polymère B2",
-                     ("BR_1","m0") : "Broyage polymère B1",
-                     ("BR_1","m1") : "Broyage polymère B2",
-                     ("BR_2","m0") : "Broyage polymère B1",
-                     ("BR_2","m1") : "Broyage polymère B2",
-                     
-                     ("TP","m2") : "Tamisage polymère B2",
-                     ("TP_1","m2") : "Tamisage polymère B2",
-                     ("TP_2","m2") : "Tamisage polymère B2",
-                     
-                     ("MEL","m3") : "Mélanges B1 ",
-                     ("MEL_1","m3") : "Mélanges B1 ",
-                     ("MEL_2","m3") : "Mélanges B1 ",
-                     
-                     ("EX","m4") : "Extrusion B2",
-                     ("EX_1","m4") : "Extrusion B2",
-                     ("EX_2","m4") : "Extrusion B2",
-                     
-                     ("BB","m0") : "Broyage bâtonnets B1 ",
-                     ("BB","m1") : "Broyage bâtonnets B2 ",
-                     ("BB_1","m0") : "Broyage bâtonnets B1 ",
-                     ("BB_1","m1") : "Broyage bâtonnets B2 ",
-                     ("BB_2","m0") : "Broyage bâtonnets B1 ",
-                     ("BB_2","m1") : "Broyage bâtonnets B2 ",
-                     
-                     ("TM","m2") : "Tamisage Microgranules B2",
-                     ("TM_1","m2") : "Tamisage Microgranules B2",
-                     ("TM_2","m2") : "Tamisage Microgranules B2",
-                     
-                     ("MILIEU","m6") : "Milieu de suspension  ",
-                     
-                     ("CF","m5") : "Combin. des fractions de microgranules",
-                     
-                     ("PERRY","m7") : "Remplissage Poudre + liquide B2",
-                     }
 
 
-final_selected_operators = {}
 planning_tot_final = pd.DataFrame(columns = ["Job", "Machine", "Operation", "Start", "Duration", "Finish", "op_machine"])
 for idx,(key, _) in enumerate(selected_machines.items()):
     machine = selected_machines[key]
-    operators = selected_operators[key]
     
     operation = prod_line.operations[key]
     
@@ -155,47 +209,16 @@ for idx,(key, _) in enumerate(selected_machines.items()):
             "op_machine" : operation_machine[operation.operation_name, machine]
             }
     row = pd.DataFrame(data = data,columns = ["Job", "Machine", "Operation", "Start", "Duration", "Finish", "op_machine"], index = [idx])
-    final_selected_operators[idx] = operators
-    
+
     planning_tot_final = pd.concat([planning_tot_final,row])
     
     
-    
-    
-operator_excel_rows = {
-        "SFR" : 192, 
-        "BPI" : 194, 
-        "JPI" : 196, 
-        "JDD" : 198, 
-        "FDS" : 200, 
-        "SFH" : 202, 
-        "NDE" : 204, 
-        "LTF" : 206, 
-        "SRG" : 208, 
-        "JPE" : 210, 
-        "RPI" : 212, 
-        "ANA" : 214,
-        "MTR" : 216, 
-        "CMT" : 218, 
-        "CGR" : 220, 
-        "CPO" : 222, 
-        "REA" : 224,
-        "NRO" : 227,
-        "VZU" : 229,
-        "ACH" : 231,
-        "LBU" : 233
-    }
 
 operators = prod_line.df_operator[begin_date:]
-test = operators.loc[begin_date:begin_date + DateOffset(hours = 12)].T
-test = test.rename(index=operator_excel_rows)
 
 
-excel_cell_operators = ["A" + str(index_operator) for index_operator in test.index.to_list()]
-occ1 = test.T.iloc[0].to_list()[0]
-occ2 = test.T.iloc[1].to_list()
 
-
+machine = prod_line.df_machine[begin_date:]
 
 
 
