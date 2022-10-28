@@ -51,7 +51,11 @@ def visualize(excel_file, batch_names, planning_tot_final, selected_operators, p
         "CMT" : 218, 
         "CGR" : 220, 
         "CPO" : 222, 
-        "REA" : 224
+        "REA" : 224,
+        "NRO" : 227,
+        "VZU" : 229,
+        "ACH" : 231,
+        "LBU" : 233
     }
     
     operation_occupations = {
@@ -85,11 +89,39 @@ def visualize(excel_file, batch_names, planning_tot_final, selected_operators, p
             color_dict[job] = color
     
     
-    
+    morning = True
     for r in rng:
         
         current_date = pd.to_datetime(r.value)
-        if current_date is not None:
+        
+        if current_date is None:
+            morning = True
+        else:
+            if morning:
+                try:
+                    operators = selected_operators.loc[current_date:current_date + DateOffset(hours = 12)].T
+                    operators = operators.rename(index=operator_excel_rows)
+                    
+                    column_letter_morning = get_column_letter(r.column)
+                    column_letter_afternoon = get_column_letter(r.offset(column_offset = 1).column)
+                    
+                    excel_cell_operators_morning = [column_letter_morning + str(index_operator) for index_operator in operators.index.to_list()]
+                    excel_cell_operators_afternoon = [column_letter_afternoon + str(index_operator) for index_operator in operators.index.to_list()]
+                    
+                    occ_morning = operators.T.iloc[0].to_list()
+                    occ_afternoon = operators.T.iloc[1].to_list()
+                    
+                    for i in range(len(excel_cell_operators_morning)):
+                        if occ_morning[i] == "0":
+                            occ_morning[i] = ""
+                        if occ_afternoon[i] == "0":
+                            occ_afternoon[i] = ""
+                        ws.range(excel_cell_operators_morning[i]).value = occ_morning[i]
+                        ws.range(excel_cell_operators_afternoon[i]).value = occ_afternoon[i]
+                except:
+                    print(current_date)
+                    
+            
             for i, row in planning_tot_final.iterrows():
                 afternoon = False
                 op_date = row.at["Start"]
@@ -97,16 +129,12 @@ def visualize(excel_file, batch_names, planning_tot_final, selected_operators, p
                     op = row.at["op_machine"]
                     excel_row_index_operation = operation_machine_excel_rows[op]
                     
-                    operators = selected_operators[i]
-                    excel_row_index_operator = [operator_excel_rows[o] for o in operators]
-                    
                     if op_date.hour != 0:
                         r_aft = r.offset(column_offset = 1)
                         afternoon = True
                     
                     duration = row["Duration"].days * 2 + row["Duration"].seconds//3600 //12
                     last_excel_cell_operation = 0
-                    last_excel_cell_operators = []
                     for j in range(duration):
                         if afternoon:
                             if j > 0:
@@ -121,60 +149,21 @@ def visualize(excel_file, batch_names, planning_tot_final, selected_operators, p
                                 colum_letter = get_column_letter(r.offset(column_offset = j).column)
                                 
                         excel_cell_operation = colum_letter + str(excel_row_index_operation)
-                        excel_cell_operators = [colum_letter + str(index_operator) for index_operator in excel_row_index_operator]
-                        
-                        
                         
                         if (duration == 2 or duration ==4) and (j == 1 or j == 3):
                             ws.range(last_excel_cell_operation + ":" + excel_cell_operation).merge()
-                            
-                            for n,excel_cell_operator in enumerate(excel_cell_operators):
-                                ws.range(last_excel_cell_operators[n] + ":" + excel_cell_operator).merge()
                                 
                         else:
                             
                             ws.range(excel_cell_operation).value = row["Job"]
                             ws.range(excel_cell_operation).color = color_dict[row["Job"]]
-                            
-                            for excel_cell_operator in excel_cell_operators:
-                                ws.range(excel_cell_operator).value = operation_occupations[row["op_machine"]]
-                                ws.range(excel_cell_operator).color = color_dict[row["Job"]]
-                            
+
                             
                         last_excel_cell_operation = excel_cell_operation
-                        last_excel_cell_operators = excel_cell_operators
-            
-            #for operator laverie octodure
-            for i, row in planning_octo_laverie.iterrows():
-                afternoon = False
-                op_date = row.at["Start"]
-                if current_date.day_of_year == op_date.day_of_year:
-                    op = row.at["op_machine"]
-    
-                    
-                    operators = selected_operators[i]
-                    excel_row_index_operator = [operator_excel_rows[o] for o in operators]
-                    
-                    if op_date.hour != 0:
-                        r_aft = r.offset(column_offset = 1)
-                        afternoon = True
-                    
-                    duration = 1
-                    last_excel_cell_operators = []
-                    
-                    if afternoon:
-                        colum_letter = get_column_letter(r_aft.offset(column_offset = 0).column)
-                        
-                    else:
-                        colum_letter = get_column_letter(r.offset(column_offset = 0).column)
-                            
-                    excel_cell_operators = [colum_letter + str(index_operator) for index_operator in excel_row_index_operator]
-
-                    for excel_cell_operator in excel_cell_operators:
-                        ws.range(excel_cell_operator).value = row["op_machine"]
                         
                         
-                    last_excel_cell_operators = excel_cell_operators
+            morning = False
+        
     
     
 
@@ -343,17 +332,17 @@ def extract_machine_operator_state(df):
                 "MTR", "CMT", "CGR", "CPO", "REA", "NRO", "VZU", "ACH"]
     
     
-    merge_occupations = ["OCTODURE", "BP", "TP", "MEL", "EXT",  "BB", "TM", "CF", "MILIEU", 
-                     "LYO", "CAPS", "IV", "LAVERIE", "FORMATION", "ETIQUE", 
-                     "REQUALIF", "NETTOYAGE", "TEST", "VACANCE", "ABSENT" ,"CONGE",]
+    merge_occupations = ["FORMATION","OCTODURE","LAVERIE","LAVAGE", "BP", "TP", "MEL", "EXT",  "BB", "TM", "CF", "MILIEU", 
+                     "LYO", "NETTOYAGE", "CAPS", "IV", "ETIQUE", 
+                     "REQUALIF","TEST", "VACANCE", "ABSENT" ,"CONGE",]
     
     vacances_occupations = ["VACANCE", "ABSENT" ,"CONGE","FORMATION", "IV"]
     
     machine_dict = {"m0" : ['Broyage polymère B1','Broyage bâtonnets B1 ' ],
                     "m1" : ['Broyage polymère B2','Broyage bâtonnets B2 '],
                     "m2" : ['Tamisage polymère B2', 'Tamisage Microgranules B2'],
-                    "m3" : ['Mélanges B1 ', 'Mélanges B2'],
-                    "m4" : ['Extrusion B1','Extrusion B2'],
+                    "m3" : ['Mélanges B1 ', 'Mélanges B2','Extrusion B1','Extrusion B2'],
+                    "m4" : ['Mélanges B1 ', 'Mélanges B2','Extrusion B1','Extrusion B2'],
                     "m5" : ['Combin. des fractions de microgranules'],
                     "m6" : ['Milieu de suspension  '],
                     "m7" : ['Remplissage Poudre + liquide B2'],
@@ -382,26 +371,18 @@ def extract_machine_operator_state(df):
     
     #merge same step using the same machine
     column_to_use = ["m0", "m1", "m2", "m3", "m4", "m5", "m6", "m7", "m8", "m9"]
-    df_machine["operator"] = 17
     
     
     #EXTRAIT L'UTILISATION DES MACHINES + LES OPERATEURS UTILISé PAR LES OPERATIONS PLANNIFIéES
     for key, value in machine_dict.items():
         df_machine[key] = "0"
-        df_machine[key + "_operator"] = "0"
-        
+
         for machine in value:
             
             #machine utilisée si la case != '0'
-            df_machine.loc[df_machine[machine] != "0", key] = "1" 
-            
-            #operator utilisé uniquement si la case contient un 'PROD'$
-            df_machine.loc[df_machine[machine].str.contains("PROD"),key + "_operator"] = "1"
-            
-        df_machine[key] = df_machine[key].astype(int)
-        df_machine[key + "_operator"] = df_machine[key + "_operator"].astype(int)
+            df_machine.loc[df_machine[machine] != "0", key] = machine
+
         
-        df_machine["operator"] = df_machine["operator"] - df_machine[key + "_operator"] * operator_machine_dict[key]
         
         
     df_ressources_final = df_machine[column_to_use].copy()
@@ -415,40 +396,9 @@ def extract_machine_operator_state(df):
         df_operator[operator] = df_operator[operator].apply(unidecode).str.upper()
         for potential in merge_occupations:
             df_operator.loc[df_operator[operator].str.contains(potential),operator] = potential
-            
-    #extrait les vacances congé, formation et IV, update le nombre d'operator
-    for row in df_operator.iterrows():
-        row_index = row[0]
-
-        
-        for operator in operators:
-            if row[1][operator] in vacances_occupations:
-                df_ressources_final.loc[row_index,"operator"] = df_ressources_final.loc[row_index,"operator"] - 1
                 
-        #met à 0 les operators pour les jour de congé
-        row_index_str = row_index.strftime("%Y-%m-%d")
-        if row_index_str in vacances_conge2022 or row_index.weekday() >4:
-            df_ressources_final.loc[row_index,"operator"] = 0
-        else:
-            #enlève 2 operator pour la laverie et 2 pour octodure et 1 de marge
-            df_ressources_final.loc[row_index,"operator"] = df_ressources_final.loc[row_index,"operator"] - 4
-        
-        
-    #merge occupation of mélange et extrudeur (m3 et m4)
-    merge_melex = np.where(df_ressources_final.m3 + df_ressources_final.m4 >=1,1,0)
-    df_ressources_final.loc[:,"m3"] = merge_melex
-    df_ressources_final.loc[:,"m4"] = merge_melex
-    
 
-    #clean the DF, make it usable by the prod_line class
-    #index_to_keep = df_ressources_final.index #+ DateOffset(hours = 11, minutes = 59)
-    #df_ressources_final.set_index(index_to_keep,inplace = True)
-    
-    #df_ressources_final = df_ressources_final.iloc[::-1]
-    #df_ressources_final.drop(df_ressources_final.index[0], inplace = True)
-    
-    
-    df_ressources_final.operator = np.where(df_ressources_final.operator < 0, 0, df_ressources_final.operator)
+
     
     df_ressources_final = df_ressources_final[column_to_use]
     

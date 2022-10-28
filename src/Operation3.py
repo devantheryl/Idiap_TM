@@ -14,7 +14,7 @@ batch_description = get_batch_description()
 
 class Operation:
     
-    def __init__(self,job_name,operation_name,formulation,scale, op_begin, op_end,  executable = False, status = 0):
+    def __init__(self,job_name,operation_name,formulation,scale, op_begin, op_end, operator_that_can_operate, executable = False, status = 0):
         
         self.job_name = job_name
         self.operation_name = operation_name
@@ -22,8 +22,10 @@ class Operation:
         self.scale = scale
         self.op_begin = op_begin
         self.op_end = op_end
+        self.operator_that_can_operate = operator_that_can_operate
         self.executable = executable
         self.status = status #0:non-attribué, 1:en cours, -1:terminé
+        self.processed_on = None
         
 
         self.processable_on = batch_description[str(formulation) + "_" + str(scale)][operation_name]["processable_on"]
@@ -35,7 +37,7 @@ class Operation:
         
         
         
-    def forward(self):
+    def forward(self,time):
     
         #op en cours
         if self.status == 1:
@@ -43,6 +45,8 @@ class Operation:
                    
         if self.processing_time == 0:
             self.status = -1
+            if self.op_end == None:
+                self.op_end = time
             
         return self.status
         

@@ -6,7 +6,7 @@ Created on Fri Nov 26 10:29:00 2021
 """
 
 from Operation3 import Operation
-
+from Job4 import Job
 import numpy as np
 import pandas as pd
 from pandas.tseries.offsets import DateOffset
@@ -16,6 +16,7 @@ import os
 import get_batch_to_produce as btp
 import src.utils as utils
 import operator_stats as op_stats
+
 
 
 
@@ -58,6 +59,20 @@ class Production_line():
         
         self.operations = []
         self.idx_operations_executable = np.full((len(self.vertices),),False )
+        
+        #create a list of all batches to plan
+        self.batch_names = []
+        for op in self.vertices:
+            self.batch_names.append([op[0], op[1][1], op[1][3]])#add all the batch name, formu, scale
+ 
+        self.batch_names = np.unique(self.batch_names, axis = 0)
+ 
+        #create a list of Job using the batch_names
+        self.jobs = {}
+        for batch in self.batch_names:
+            self.jobs[batch[0]] = Job(batch[0],batch[1], batch[2])
+        
+        
         for i, op in enumerate(self.vertices):
             job_name = op[0]
             operation_name = op[1][0]
@@ -73,30 +88,52 @@ class Production_line():
                 
             if formulation == 6 and operation_name in ["BR", "TP", "MEL", "EX", "BB", "TM"]:
                 operation_name = operation_name + "_" + op[1][2][-1] #to get the fraction 1 or 2 
-                
-            self.operations.append(Operation(job_name,operation_name,formulation,scale, op_begin, op_end, executable = False, status = done))
+            operation = Operation(job_name,operation_name,formulation,scale, op_begin, op_end,self.operator_that_can_operate[i], executable = False, status = done)
+            self.operations.append(operation)
+            self.jobs[job_name].operations.append(operation)
+            
+        self.machines_dispo = None
+        self.operators_dispo = None
         
         
         
-        self.update_executable()
+        
+        
 
         
         
+    """
+    fonction pour avancer toutes les opérations d'un timestep.
+    """
+    def forward(self):
+        echu = []
+        self.time += DateOffset(hours = 12)
+        for index, operation in enumerate(self.operations):
+            operation.forward(self.time)
+            dependence_index = np.argwhere(self.adjacency[:,index] == 1)
+            
+            dependences = []
+            
+            if len(dependence_index):
+                for idx in dependence_index:
+                    dependences.append(self.operations[idx[0]])
+            #l'opération est en terminée
+            if operation.status == -1:
+                for dependence in dependences:
+                    if dependence.status == 0: #si l'opération n'a pas encore commencé sachant que l'opération précédente est terminée
+                        expiration_time = dependence.decrease_get_expiration_time(self.time)
+                        if expiration_time == -1: #si l'opération est échue
+                            echu.append(operation)
         
-    def step(self):
-
-        
-
-        
-        pass
+        return echu
             
     
     
     #check only if the precedent operations have been made
     def update_executable(self):
         
-        operators_dispo = self.get_available_operators()
-        machines_dispo = self.get_available_machines()
+        self.operators_dispo = self.get_available_operators(self.time)
+        self.machines_dispo  = self.get_available_machines(self.time)
         
         
         for index, operation in enumerate(self.operations):
@@ -113,6 +150,11 @@ class Production_line():
                         
             if operation.status == -1 or operation.status == 1:#si l'opération est terminée ou en cours, elle n'est plus executable
                 executable = False
+                
+            #if the operation has to begin in the morning
+            if self.time.hour == 12 and operation.begin_day:
+                executable = False
+                
                 
             #ici nous avons deja checké si les étapes précédentes sont effectuée
             #on continue a checker si executable uniquement sur les opérations 
@@ -134,7 +176,7 @@ class Production_line():
                 dispo = np.full((len(processable_on), len(date_needed)),False)
                 for k,machine_prob in enumerate(processable_on):
                     for l,d in enumerate(date_needed):
-                        if machine_prob in machines_dispo[d]:
+                        if machine_prob in self.machines_dispo[d]:
                             dispo[k,l] = True
                           
                 if not dispo.all(axis = 1).any():
@@ -145,93 +187,60 @@ class Production_line():
                 qualified_operator = self.operator_that_can_operate[index]
                 
                 dispo = np.full((len(date_needed)), False)
-                for k, d in enumerate(date_needed):
-                    dispo[k] = len(set(qualified_operator) & set(operators_dispo[d])) >= operator_needed
+                for d in date_needed:
+                    qualified_operator = list(set(qualified_operator) & set(self.operators_dispo[d]))
                     
-                if not dispo.all():
+                if len(qualified_operator) < operator_needed:
                     executable = False
                      
             
             operation.executable = executable
             self.idx_operations_executable[index] = executable
+            
+            
+        return self.machines_dispo, self.operators_dispo
         
         
        
     
-    def get_available_operators(self):
+    def get_available_operators(self, time):
         
-        operators = self.df_operator[self.time:]
+        vacances_conge2022 = ["2022-04-18","2022-05-26","2022-05-27", "2022-06-06","2022-06-16", "2022-08-01", "2022-08-15",
+                          "2022-11-01", "2022-12-08", "2022-12-26","2022-12-27", "2022-12-28", "2022-12-29", "2022-12-30"]
+        
+        operators = self.df_operator[time:]
 
         operators_dispo = {}
         for index, op in operators.iterrows():
-            if index.weekday() < 5:
+            if index.weekday() < 5 and index.strftime("%Y-%m-%d") not in vacances_conge2022:
                 operators_dispo[index] = op.where(op == "0").dropna().index.tolist()
             else:
                 operators_dispo[index] = []
                 
         return operators_dispo
         
-    def get_available_machines(self):
+    def get_available_machines(self, time):
        
-        machines = self.df_machine[self.time:]
+        machines = self.df_machine[time:]
         
         machines_dispo = {}
         for index, machine in machines.iterrows():
             if index.weekday() < 5:
-                machines_dispo[index] = machine.where(machine == 0).dropna().index.tolist()
+                machines_dispo[index] = machine.where(machine == "0").dropna().index.tolist()
             else:
                 machines_dispo[index] = []
                 
         return machines_dispo
 
-    def update_processing_time(self):
+    """
+    check that all the batches are fully planned
+    """
+    def check_done(self):
+        for operation in self.operations:
+            if operation.status != -1: #si l'opération n'est pas terminée
+                return False
         
-        ended_operations = []
-        
-        
-        for operation in self.job.operations:
-            if operation != None:
-                #on vérifie que l'opération soit plannifiée
-                if operation.status == 1:
-                    #si l'opration est terminée
-                    if operation.forward() == -1:
-                        operation.start_time = self.time
-                        ended_operations.append(operation.operation_number)
-                        machine = operation.processed_on
-                        self.machines[machine].remove_operation()
-                                
-                                #self.operator += operation.operator
-                                
-                                
-                                
-        return ended_operations
-           
-    def update_check_expiration_time(self,time):
-        
-        nbr_echu = 0
-        
-        for operation in self.job.operations:
-            if operation != None:    
-                #si l'opération est terminée
-                if operation.status == -1:
-                                  
-                    for operation_used in operation.used_by:
-                        #si l'opérations suivantes n'a pas encore commencé
-                        if self.job.operations[operation_used].status == 0:
-                    
-                            #si l'opération est échue
-                            if self.job.operations[operation_used].decrease_get_expiration_time(time) == 0:
-
-                                job_ended = True
-                                
-
-                                nbr_echu += 1
-                                self.job.echu += [operation_used]
-                                
-                                break           
-                                        
-        return nbr_echu
-    
+        return True
 
     
     
