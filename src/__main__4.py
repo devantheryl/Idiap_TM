@@ -80,7 +80,7 @@ operation_raccourci = {
     "Broyage polymère B2" : "BR",
     "Tamisage polymère B2" :"TP",
     "Mélanges B2" : "MEL",
-    "Extrusion B2" : "EXT",
+    "Extrusion B2" : "EX",
     "Broyage bâtonnets B1 " : "BB",
     "Broyage bâtonnets B2 " : "BB",
     "Tamisage Microgranules B2" : "TM",
@@ -103,7 +103,9 @@ operateur_needed = {
     "Tamisage Microgranules B2" : 2,
     "Milieu de suspension  " : 2,
     "Combin. des fractions de microgranules" : 2,
-    "Remplissage Poudre + liquide B2" : 8
+    "Remplissage Poudre + liquide B2" : 8, 
+    "Sortie Lyo" : 2,
+    "Capsulage" : 2,
     }
 
 #attribue les opérateurs aux opérations qui n'en ont pas encore 
@@ -111,20 +113,64 @@ operators = prod_line.df_operator[begin_date:]
 machine = prod_line.df_machine[begin_date:]
 operator_stats_df = prod_line.operator_stats_df
 
+date_problem = []
 for index in machine.index:
     machines_used = machine.loc[index]
     machines_used = machines_used[machines_used!="0"].to_list()
     
-    operators_planned = operators.loc[index]
     
-    for machine_used in machines_used:
-        machine_used_raccourci = operation_raccourci[machine_used]
-        test_operator = operators_planned[(machine_used_raccourci == operators_planned) == True].to_list()
+    
+    
+    
+    best_ratio = 0
+    best_attribution = None
+    for tentative in range(50):
+        #on crée une copie des opérateurs
+        operators_planned = operators.loc[index].copy()
+        total_needed = 0
+        total_planned = 0
         
-        #l'opération n'a pas encore d'opérateur attitrés
-        if len(test_operator) == 0:
-            print(index,machine_used_raccourci, test_operator)
+        #go through the used machines
+        for machine_used in machines_used:
+            machine_used_raccourci = operation_raccourci[machine_used]
+            attributed_operator = operators_planned[(machine_used_raccourci == operators_planned) == True].to_list()
+            free_operators = operators_planned.where(operators_planned == "0").dropna().index.tolist()
+            
+            #l'opération n'a pas encore d'opérateur attitrés
+            if len(attributed_operator) == 0:
+                print(index,machine_used_raccourci, attributed_operator)
+                operator_that_can_operate = operator_stats_df.loc[machine_used_raccourci][operator_stats_df.loc[machine_used_raccourci] == 1].index.tolist()
+                free_operaotr_that_can_operate = list(set(operator_that_can_operate) & set(free_operators))
+                nbr_operator_needed = operateur_needed[machine_used]
+                
+                total_needed += nbr_operator_needed
+                for i in range(nbr_operator_needed,1,-1):
+                    try:
+                        selected_operator = sample(free_operaotr_that_can_operate,i)
+                        for op in selected_operator:
+                            operators_planned[op] = machine_used_raccourci
+                        total_planned += i
+                        break
+                    except:
+                        print("not enough operators")
+                
+        if total_needed == 0:
+            break
+            
+        ratio = total_planned/total_needed
+        if ratio > best_ratio:
+            best_ratio = ratio
+            best_attribution = operators_planned
+        if ratio == 1:
+            break
+            
+    if total_needed != 0:
+        operators.loc[index] = best_attribution
+        if best_ratio != 1:
+            date_problem.append(index)
+        
     
+prod_line.df_operator[begin_date:] = operators   
     
 
 
@@ -163,16 +209,23 @@ while not done:
             operator_that_can_operate = list(set(operator_that_can_operate) & set(operator_dispo[current_date + DateOffset(hours = 12*i)]))
             
         #choose the ressources
-        machine_to_plan  = sample(processable_on,1)
+        machine_to_plan  = sample(processable_on,1)[0]
         operators_to_plan = sample(operator_that_can_operate, operators_needed)
         
         #store the selected ressources
-        selected_machines[choosen_idx] = machine_to_plan[0]
+        selected_machines[choosen_idx] = machine_to_plan
         
         
         #met a jour les ressources disponibles
         end_date = current_date + DateOffset(hours = 12 * (duration-1))
-        prod_line.df_machine.loc[current_date:end_date, machine_to_plan] = operation_machine[to_plan.operation_name, machine_to_plan[0]]
+        prod_line.df_machine.loc[current_date:end_date, machine_to_plan] = operation_machine[to_plan.operation_name, machine_to_plan]
+        
+        #merge mélangeur et extrudeur
+        if machine_to_plan == "m3":
+            prod_line.df_machine.loc[current_date:end_date, "m4"] = operation_machine[to_plan.operation_name, machine_to_plan]
+        if machine_to_plan == "m4":
+            prod_line.df_machine.loc[current_date:end_date, "m3"] = operation_machine[to_plan.operation_name, machine_to_plan]
+        
         for op in operators_to_plan:
             prod_line.df_operator.loc[current_date:end_date,op] = to_plan.operation_name
             

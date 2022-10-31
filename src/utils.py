@@ -25,6 +25,7 @@ def visualize(excel_file, batch_names, planning_tot_final, selected_operators, p
                  "Broyage polymère B2" : 13,
                  "Tamisage polymère B2" : 22,          
                  "Mélanges B1 " : 29,
+                 "Mélanges B2" : 45,
                  "Extrusion B2" : 54,
                  "Broyage bâtonnets B1 " : 61,
                  "Broyage bâtonnets B2 " : 71,
@@ -63,6 +64,7 @@ def visualize(excel_file, batch_names, planning_tot_final, selected_operators, p
         "Broyage polymère B2" : "BP",
         "Tamisage polymère B2" : "TP",          
         "Mélanges B1 " : "MEL",
+        "Mélanges B2" : "MEL",
         "Extrusion B2" : "EXT",
         "Broyage bâtonnets B1 " : "BB",
         "Broyage bâtonnets B2 " : "BB",
@@ -332,7 +334,7 @@ def extract_machine_operator_state(df):
                 "MTR", "CMT", "CGR", "CPO", "REA", "NRO", "VZU", "ACH"]
     
     
-    merge_occupations = ["FORMATION","OCTODURE","LAVERIE","LAVAGE", "BP", "TP", "MEL", "EXT",  "BB", "TM", "CF", "MILIEU", 
+    merge_occupations = ["FORMATION","OCTODURE","LAVERIE","LAVAGE", "BP", "TP", "MEL", "EX",  "BB", "TM", "CF", "MILIEU", 
                      "LYO", "NETTOYAGE", "CAPS", "IV", "ETIQUE", 
                      "REQUALIF","TEST", "VACANCE", "ABSENT" ,"CONGE",]
     

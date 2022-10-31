@@ -15,7 +15,7 @@ import unidecode
 
 def get_operators_stats(filename):
    
-    #load the plannign
+    #load the planning
     wb = load_workbook(filename = filename, data_only = True, keep_vba = True)
     ws = wb["PLANNING"]
     
