@@ -32,7 +32,8 @@ def visualize(excel_file, batch_names, planning_tot_final, selected_operators, p
                  "Tamisage Microgranules B2" : 81,
                  "Milieu de suspension  " : 98,
                  "Combin. des fractions de microgranules" : 88,
-                 "Remplissage Poudre + liquide B2" : 104
+                 "Remplissage Poudre + liquide B2" : 104,
+                 "Capsulage" : 121
                  }
         
     operator_excel_rows = {
@@ -72,6 +73,7 @@ def visualize(excel_file, batch_names, planning_tot_final, selected_operators, p
         "Milieu de suspension  " : "MILIEU",
         "Combin. des fractions de microgranules" : "CF",
         "Remplissage Poudre + liquide B2" : "LYO",
+        "Capsulage" : "CAPS"
     }
 
 
@@ -121,7 +123,7 @@ def visualize(excel_file, batch_names, planning_tot_final, selected_operators, p
                         ws.range(excel_cell_operators_morning[i]).value = occ_morning[i]
                         ws.range(excel_cell_operators_afternoon[i]).value = occ_afternoon[i]
                 except:
-                    print(current_date)
+                    pass
                     
             
             for i, row in planning_tot_final.iterrows():

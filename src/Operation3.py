@@ -14,7 +14,7 @@ batch_description = get_batch_description()
 
 class Operation:
     
-    def __init__(self,job_name,operation_name,formulation,scale, op_begin, op_end, operator_that_can_operate, executable = False, status = 0):
+    def __init__(self,job_name,operation_name,formulation,scale, op_begin, op_end, operator_that_can_operate,processed_on, executable = False, status = 0):
         
         self.job_name = job_name
         self.operation_name = operation_name
@@ -25,7 +25,7 @@ class Operation:
         self.operator_that_can_operate = operator_that_can_operate
         self.executable = executable
         self.status = status #0:non-attribué, 1:en cours, -1:terminé
-        self.processed_on = None
+        self.processed_on = processed_on
         
 
         self.processable_on = batch_description[str(formulation) + "_" + str(scale)][operation_name]["processable_on"]
@@ -51,9 +51,12 @@ class Operation:
         return self.status
         
     def decrease_get_expiration_time(self, time):
-        self.expiration_time -= 1
-        if time.weekday() <5 and self.QC_delay >0:
-            self.QC_delay -=1
+        
+        if self.op_end is not None:
+            if time > self.op_end:
+                self.expiration_time -= 1
+                if time.weekday() <5 and self.QC_delay >0:
+                    self.QC_delay -=1
         return self.expiration_time
     
     

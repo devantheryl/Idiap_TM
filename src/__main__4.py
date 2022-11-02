@@ -31,11 +31,25 @@ import src.utils as utils
 import operator_stats as op_stats
 
 from random import sample
+from copy import deepcopy
+from time import time
 
 #load the current_date and create the prod_line object
 begin_date = pd.to_datetime("2022-10-13", format = "%Y-%m-%d")
 prod_line = Production_line(begin_date)
 
+
+prod_line.operators_dispo = prod_line.get_available_operators(prod_line.time)
+prod_line.machines_dispo  = prod_line.get_available_machines(prod_line.time)
+
+
+
+
+now = time()
+for t in range(1000):
+    pass
+    
+print((time()-now)/1000)
 
 
 operation_machine = {
@@ -51,8 +65,12 @@ operation_machine = {
     ("TP_2","m2") : "Tamisage polymère B2",
     
     ("MEL","m3") : "Mélanges B2",
-    ("MEL_1","m3") : "Mélanges B2 ",
-    ("MEL_2","m3") : "Mélanges B2 ",
+    ("MEL_1","m3") : "Mélanges B2",
+    ("MEL_2","m3") : "Mélanges B2",
+    ("MEL","m9") : "Mélanges B1 ",
+    ("MEL_1","m9") : "Mélanges B1 ",
+    ("MEL_2","m9") : "Mélanges B1 ",
+
     
     ("EX","m4") : "Extrusion B2",
     ("EX_1","m4") : "Extrusion B2",
@@ -74,6 +92,8 @@ operation_machine = {
     ("CF","m5") : "Combin. des fractions de microgranules",
     
     ("PERRY","m7") : "Remplissage Poudre + liquide B2",
+    
+    ("CAPS", "m8") : "Capsulage"
     }
 operation_raccourci = {
     "Broyage polymère B1" : "BR",
@@ -138,7 +158,6 @@ for index in machine.index:
             
             #l'opération n'a pas encore d'opérateur attitrés
             if len(attributed_operator) == 0:
-                print(index,machine_used_raccourci, attributed_operator)
                 operator_that_can_operate = operator_stats_df.loc[machine_used_raccourci][operator_stats_df.loc[machine_used_raccourci] == 1].index.tolist()
                 free_operaotr_that_can_operate = list(set(operator_that_can_operate) & set(free_operators))
                 nbr_operator_needed = operateur_needed[machine_used]
@@ -175,91 +194,123 @@ prod_line.df_operator[begin_date:] = operators
 
 
 
-
-
-
-
-selected_machines  = {}
-done = False
-while not done:
-    current_date = prod_line.time
-    machine_dispo, operator_dispo = prod_line.update_executable()
+nbr_tentative = 200
+tentatives_prod_line = np.empty((nbr_tentative),dtype = object)
+tentatives_selected_machines = np.empty((nbr_tentative),dtype = object)
+for tentative in range(nbr_tentative):
+    print("tentative : ", tentative)
     
-    exectuable_idx = []
-    for index, op in enumerate(prod_line.operations):
-        if op.executable:
-            print(op.operation_name, op.job_name)
-            exectuable_idx.append(index)
+    tentatives_prod_line[tentative] = deepcopy(prod_line)
+    prod_line_tentative = tentatives_prod_line[tentative]
+    selected_machines  = {}
+    done = False
+    while not done:
+        current_date = prod_line_tentative.time
+        machine_dispo, operator_dispo = prod_line_tentative.update_executable()
+        
+        exectuable_idx = []
+        for index, op in enumerate(prod_line_tentative.operations):
+            if op.executable:
+                exectuable_idx.append(index)
+                exectuable_idx.append(index)
+                exectuable_idx.append(index)
+        exectuable_idx.append("forward")
     
-    #si une opération est plannifiable
-    if len(exectuable_idx):
-        #on en prend une au hasard
-        choosen_idx = exectuable_idx[np.random.randint(len(exectuable_idx))]
-        to_plan = prod_line.operations[choosen_idx]
-        print(to_plan.operation_name, to_plan.job_name)
-        duration = to_plan.processing_time
-        operators_needed = to_plan.operator
-        processable_on = to_plan.processable_on
-        operator_that_can_operate = to_plan.operator_that_can_operate
+        choosen_idx = sample(exectuable_idx,1)[0]
         
-        
-        #compute the available ressources
-        for i in range(duration):
-            processable_on = list(set(processable_on) & set(machine_dispo[current_date + DateOffset(hours = 12*i)]))
-            operator_that_can_operate = list(set(operator_that_can_operate) & set(operator_dispo[current_date + DateOffset(hours = 12*i)]))
+        if choosen_idx == "forward":
+            echu = prod_line_tentative.forward()
+            for op in echu:
+                print("echu : ", op.operation_name)
             
-        #choose the ressources
-        machine_to_plan  = sample(processable_on,1)[0]
-        operators_to_plan = sample(operator_that_can_operate, operators_needed)
-        
-        #store the selected ressources
-        selected_machines[choosen_idx] = machine_to_plan
-        
-        
-        #met a jour les ressources disponibles
-        end_date = current_date + DateOffset(hours = 12 * (duration-1))
-        prod_line.df_machine.loc[current_date:end_date, machine_to_plan] = operation_machine[to_plan.operation_name, machine_to_plan]
-        
-        #merge mélangeur et extrudeur
-        if machine_to_plan == "m3":
-            prod_line.df_machine.loc[current_date:end_date, "m4"] = operation_machine[to_plan.operation_name, machine_to_plan]
-        if machine_to_plan == "m4":
-            prod_line.df_machine.loc[current_date:end_date, "m3"] = operation_machine[to_plan.operation_name, machine_to_plan]
-        
-        for op in operators_to_plan:
-            prod_line.df_operator.loc[current_date:end_date,op] = to_plan.operation_name
+        else:
+            to_plan = prod_line_tentative.operations[choosen_idx]
+            
+            duration = to_plan.processing_time
+            operators_needed = to_plan.operator
+            processable_on = to_plan.processable_on
+            operator_that_can_operate = to_plan.operator_that_can_operate
             
             
-        #start the operation
-        to_plan.status = 1# change the status to en cours
-        to_plan.op_begin = current_date
+            #compute the available ressources
+            for i in range(duration):
+                processable_on = list(set(processable_on) & set(machine_dispo[current_date + DateOffset(hours = 12*i)]))
+                operator_that_can_operate = list(set(operator_that_can_operate) & set(operator_dispo[current_date + DateOffset(hours = 12*i)]))
+                
+            #choose the ressources
+            machine_to_plan  = sample(processable_on,1)[0]
+            operators_to_plan = sample(operator_that_can_operate, operators_needed)
+            
+            #store the selected ressources
+            selected_machines[choosen_idx] = machine_to_plan
+            to_plan.processed_on = machine_to_plan
+            
+            
+            #met a jour les ressources disponibles
+            end_date = current_date + DateOffset(hours = 12 * (duration-1))
+            prod_line_tentative.df_machine.loc[current_date:end_date, machine_to_plan] = operation_machine[to_plan.operation_name, machine_to_plan]
+            
+            #merge mélangeur et extrudeur
+            if machine_to_plan == "m3":
+                prod_line_tentative.df_machine.loc[current_date:end_date, "m4"] = operation_machine[to_plan.operation_name, machine_to_plan]
+            if machine_to_plan == "m4":
+                prod_line_tentative.df_machine.loc[current_date:end_date, "m3"] = operation_machine[to_plan.operation_name, machine_to_plan]
+            
+            for op in operators_to_plan:
+                prod_line_tentative.df_operator.loc[current_date:end_date,op] = to_plan.operation_name
+                
+                
+            #start the operation
+            to_plan.status = 1# change the status to en cours
+            to_plan.op_begin = current_date
+            
+        if len(echu):
+            break
+            
+        done = prod_line_tentative.check_done()
         
-        
-    else:
-        print(prod_line.forward())
-        
-    done = prod_line.check_done()
+    tentatives_prod_line[tentative] = prod_line_tentative
+    tentatives_selected_machines[tentative] = selected_machines
     
+
+
+#find the best planning    
+no_echu_prod_line_idx = []
+min_lead_time = 200
+for i,test in enumerate(tentatives_prod_line):
+    if test.nbr_echu == 0:
+        
+        lead_times = test.get_lead_time()
+       
+        no_echu_prod_line_idx.append(i)
+        if np.mean(lead_times) < min_lead_time:
+            prod_line = tentatives_prod_line[i]
+            selected_machines = tentatives_selected_machines[i]
+            min_lead_time = np.mean(lead_times)
+            print("with lead_time : ")
+            print("min : ", min(lead_times))
+            print("max : ", max (lead_times))
+            print("mean : ", np.mean(lead_times))
+        
+        
+
+
+
 #prepare to visualize
 batch_names = prod_line.batch_names
 
 
 
-
-
 planning_tot_final = pd.DataFrame(columns = ["Job", "Machine", "Operation", "Start", "Duration", "Finish", "op_machine"])
-for idx,(key, _) in enumerate(selected_machines.items()):
-    machine = selected_machines[key]
-    
-    operation = prod_line.operations[key]
+for idx,operation in enumerate(prod_line.operations):
     
     data = {"Job" : operation.job_name, 
-            "Machine" : machine, 
+            "Machine" : operation.processed_on, 
             "Operation" : operation.operation_name, 
             "Start" : operation.op_begin, 
             "Duration" : operation.op_end - operation.op_begin, 
             "Finish" : operation.op_end, 
-            "op_machine" : operation_machine[operation.operation_name, machine]
+            "op_machine" : operation_machine[operation.operation_name, operation.processed_on]
             }
     row = pd.DataFrame(data = data,columns = ["Job", "Machine", "Operation", "Start", "Duration", "Finish", "op_machine"], index = [idx])
 

@@ -131,7 +131,7 @@ def get_batch_to_plan(df, date):
                     try:
                         rows_fraction = rows.loc[rows["N° de dossier"].str.contains("75:25") == False]
                         if len(rows_fraction):
-                            batches_dict[batches + "_1"].append((operations_driver[column],rows_fraction.index.tolist()))
+                            batches_dict[batches + "_1"].append((operations_driver[column],rows_fraction.index.tolist(),column))
                             
                     except:
                         pass
@@ -139,12 +139,12 @@ def get_batch_to_plan(df, date):
                      try:
                          rows_fraction = rows.loc[rows["N° de dossier"].str.contains("75:25")]
                          if len(rows_fraction):
-                             batches_dict[batches + "_2"].append((operations_driver[column],rows_fraction.index.tolist()))
+                             batches_dict[batches + "_2"].append((operations_driver[column],rows_fraction.index.tolist(),column))
                      except:
                          pass
                 if formulation == 1 or formulation == 3:
                     if len(rows):
-                        batches_dict[batches].append((operations_driver[column],rows.index.tolist()))
+                        batches_dict[batches].append((operations_driver[column],rows.index.tolist(),column))
                         
             except:
                 pass
@@ -176,26 +176,31 @@ def get_batch_to_plan(df, date):
                 operation_done = False
                 date_op_begin = None
                 date_op_end = None
+                machine = None
                 for operation_planned in fraction1:
                     if required in operation_planned[0]:
                         operation_done = True
                         date_op_begin = operation_planned[1][0]
                         date_op_end = operation_planned[1][-1]
+                        machine = operation_planned[2]
                         
                 
-                operation_to_plan[batches].append((required,formulation,"fraction1",20000,date_perry,date_op_begin,date_op_end,operation_done))
+                operation_to_plan[batches].append((required,formulation,"fraction1",20000,date_perry,date_op_begin,date_op_end,operation_done,machine))
                 
             for required in formu6_2_scale20000:
                 operation_done = False
                 date_op_begin = None
                 date_op_end = None
+                machine = None
+                
                 for operation_planned in fraction2:
                     if required in operation_planned[0]:
                         operation_done = True
                         date_op_begin = operation_planned[1][0]
                         date_op_end = operation_planned[1][-1]
-                
-                operation_to_plan[batches].append((required,formulation,"fraction2",20000,date_perry,date_op_begin,date_op_end,operation_done))
+                        machine = operation_planned[2]
+                        
+                operation_to_plan[batches].append((required,formulation,"fraction2",20000,date_perry,date_op_begin,date_op_end,operation_done,machine))
                     
         if formulation == 3 and "6600" in scale:
             fraction = batches_dict[batches]
@@ -204,26 +209,30 @@ def get_batch_to_plan(df, date):
                     operation_done = False
                     date_op_begin = None
                     date_op_end = None
+                    machine = None
                     for operation_planned in fraction:
                         if required in operation_planned[0]:
                             operation_done = True
                             date_op_begin = operation_planned[1][0]
                             date_op_end = operation_planned[1][-1]
+                            machine = operation_planned[2]
                     
-                    operation_to_plan[batches].append((required,formulation,split,6600,date_perry,date_op_begin,date_op_end,operation_done))
+                    operation_to_plan[batches].append((required,formulation,split,6600,date_perry,date_op_begin,date_op_end,operation_done,machine))
                     
             if "fraction2" in split:
                 for required in formu3_2_scale6600:
                     operation_done = False
                     date_op_begin = None
                     date_op_end = None
+                    machine = None
                     for operation_planned in fraction:
                         if required in operation_planned[0]:
                             operation_done = True
                             date_op_begin = operation_planned[1][0]
                             date_op_end = operation_planned[1][-1]
+                            machine = operation_planned[2]
                     
-                    operation_to_plan[batches].append((required,formulation,split,6600,date_perry,date_op_begin,date_op_end,operation_done))
+                    operation_to_plan[batches].append((required,formulation,split,6600,date_perry,date_op_begin,date_op_end,operation_done,machine))
     
         if formulation == 3 and "20000" in scale:
             fraction = batches_dict[batches]
@@ -231,13 +240,15 @@ def get_batch_to_plan(df, date):
                 operation_done = False
                 date_op_begin = None
                 date_op_end = None
+                machine = None
                 for operation_planned in fraction:
                     if required in operation_planned[0]:
                         operation_done = True
                         date_op_begin = operation_planned[1][0]
                         date_op_end = operation_planned[1][-1]
+                        machine = operation_planned[2]
                 
-                operation_to_plan[batches].append((required,formulation,split,20000,date_perry,date_op_begin,date_op_end,operation_done))
+                operation_to_plan[batches].append((required,formulation,split,20000,date_perry,date_op_begin,date_op_end,operation_done,machine))
                     
         if formulation == 1 and "6600" in scale:
             fraction = batches_dict[batches]
@@ -246,25 +257,29 @@ def get_batch_to_plan(df, date):
                     operation_done = False
                     date_op_begin = None
                     date_op_end = None
+                    machine = None
                     for operation_planned in fraction:
                         if required in operation_planned[0]:
                             operation_done = True
                             date_op_begin = operation_planned[1][0]
                             date_op_end = operation_planned[1][-1]
+                            machine = operation_planned[2]
                     
-                    operation_to_plan[batches].append((required,formulation,split,6600,date_perry,date_op_begin,date_op_end,operation_done))
+                    operation_to_plan[batches].append((required,formulation,split,6600,date_perry,date_op_begin,date_op_end,operation_done,machine))
             if "fraction2" in split:
                 for required in formu1_2_scale6600:
                     operation_done = False
                     date_op_begin = None
                     date_op_end = None
+                    machine = None
                     for operation_planned in fraction:
                         if required in operation_planned[0]:
                             operation_done = True
                             date_op_begin = operation_planned[1][0]
                             date_op_end = operation_planned[1][-1]
+                            machine = operation_planned[2]
                     
-                    operation_to_plan[batches].append((required,formulation,split,6600,date_perry,date_op_begin,date_op_end,operation_done))
+                    operation_to_plan[batches].append((required,formulation,split,6600,date_perry,date_op_begin,date_op_end,operation_done,machine))
     
         if formulation == 1 and "20000" in scale:
             fraction = batches_dict[batches]
@@ -272,18 +287,20 @@ def get_batch_to_plan(df, date):
                 operation_done = False
                 date_op_begin = None
                 date_op_end = None
+                machine = None
                 for operation_planned in fraction:
                     if required in operation_planned[0]:
                         operation_done = True
                         date_op_begin = operation_planned[1][0]
                         date_op_end = operation_planned[1][-1]
+                        machine = operation_planned[2]
                 
-                operation_to_plan[batches].append((required,formulation,split,20000,date_perry,date_op_begin,date_op_end,operation_done))
+                operation_to_plan[batches].append((required,formulation,split,20000,date_perry,date_op_begin,date_op_end,operation_done,machine))
             
     for key, value in operation_to_plan.copy().items():
         batch_done = True
         for op in value:
-            if op[-1] == False:
+            if op[-2] == False:
                 batch_done = False
         if batch_done:
             del operation_to_plan[key]

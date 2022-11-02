@@ -161,7 +161,7 @@ def get_PIF():
                         [0,	1,	1,	0,	0,	0,	0,	0,	0,	1,	0,	0,	0,	0,	0,	0,	0, 0, 0, 0]], 
                         index = operation_list, columns=operator_list)
     
-    return df
+    return df, operator_list
 
 
 df = get_PIF()

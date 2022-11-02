@@ -39,7 +39,7 @@ def get_batch_description():
         
         "MEL" : {
 
-            "processable_on" : ["m3"],
+            "processable_on" : ["m3","m9"],
             "processing_time" : 1,
             "expiration_time" : 2,
             "operator" : 3,
@@ -131,7 +131,7 @@ def get_batch_description():
         
         "MEL" : {
             
-            "processable_on" : ["m3"],
+            "processable_on" : ["m3","m9"],
             "processing_time" : 1,
             "expiration_time" : 2,
             "operator" : 3,
@@ -218,7 +218,7 @@ def get_batch_description():
         },
         
         "MEL" : {
-            "processable_on" : ["m3"],
+            "processable_on" : ["m3","m9"],
             "processing_time" : 1,
             "expiration_time" : 2,
             "operator" : 3,
@@ -304,7 +304,7 @@ def get_batch_description():
         },
         
         "MEL" : {
-            "processable_on" : ["m3"],
+            "processable_on" : ["m3","m9"],
             "processing_time" : 1,
             "expiration_time" : 2,
             "operator" : 3,
@@ -408,7 +408,7 @@ def get_batch_description():
             "QC_delay" : 0
         },
         "MEL_1" : {
-            "processable_on" : ["m3"],
+            "processable_on" : ["m3","m9"],
             "processing_time" : 1,
             "expiration_time" : 2,
             "operator" : 3,
@@ -417,7 +417,7 @@ def get_batch_description():
         },
         "MEL_2" : {
 
-            "processable_on" : ["m3"],
+            "processable_on" : ["m3","m9"],
             "processing_time" : 1,
             "expiration_time" : 2,
             "operator" : 3,
@@ -550,7 +550,7 @@ def get_batch_description():
             "QC_delay" : 0
         },
         "MEL_1" : {
-            "processable_on" : ["m3"],
+            "processable_on" : ["m3","m9"],
             "processing_time" : 1,
             "expiration_time" : 2,
             "operator" : 3,
@@ -558,7 +558,7 @@ def get_batch_description():
             "QC_delay" : 0
         },
         "MEL_2" : {
-            "processable_on" : ["m3"],
+            "processable_on" : ["m3","m9"],
             "processing_time" : 1,
             "expiration_time" : 2,
             "operator" : 3,
@@ -658,7 +658,8 @@ def get_batch_description():
         "combinaison_b",
         "millieu_b1" , 
         "perry_b2",
-        "Capsulage"
+        "Capsulage",
+        "melangeur_b1"
         
     ]
 

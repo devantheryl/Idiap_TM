@@ -32,12 +32,28 @@ class Production_line():
         """
         variables to keep trace of the data
         """
+        operation_machine = {
+            "Broyage polymère B1" : "m0",
+            "Broyage polymère B2" : "m1",
+            "Tamisage polymère B2": "m2",
+            "Mélanges B2" : "m3",
+            "Mélanges B1 " : "m9",
+            "Extrusion B2" :  "m4",
+            "Broyage bâtonnets B1 " : "m0",
+            "Broyage bâtonnets B2 " : "m1",
+            "Tamisage Microgranules B2" :"m2",
+            "Milieu de suspension  " : "m6",
+            "Remplissage Poudre + liquide B2" : "m7",
+            "Combin. des fractions de microgranules" : "m5",
+            "Capsulage" : "m8"
+            }
         self.historic_operator = []
         self.historic_time = []
-        self.number_echu = 0
+        self.nbr_echu = 0
         
         self.job_launched = False
         
+        self.begin_time = current_date
         self.time = current_date
         
         #READ the excel file and get all ressources for the whole year
@@ -52,7 +68,7 @@ class Production_line():
         self.df_machine, self.df_operator = utils.extract_machine_operator_state(self.df_restricted)
         
         #PIF of all operators
-        self.operator_stats_df = op_stats.get_PIF()
+        self.operator_stats_df, self.operator_list = op_stats.get_PIF()
         
         #the operators that can operate the operations to produce
         self.operator_that_can_operate = btp.get_operators_for_operations(self.vertices, self.operator_stats_df)
@@ -81,6 +97,10 @@ class Production_line():
             op_begin = op[1][5]
             op_end = op[1][6]
             done = op[1][7]
+            try:
+                processed_on = operation_machine[op[1][8]]
+            except:
+                processed_on = None
             if done:
                 done = -1 #mean that the operation status is done
             else:
@@ -88,9 +108,17 @@ class Production_line():
                 
             if formulation == 6 and operation_name in ["BR", "TP", "MEL", "EX", "BB", "TM"]:
                 operation_name = operation_name + "_" + op[1][2][-1] #to get the fraction 1 or 2 
-            operation = Operation(job_name,operation_name,formulation,scale, op_begin, op_end,self.operator_that_can_operate[i], executable = False, status = done)
+            operation = Operation(job_name,operation_name,formulation,scale, op_begin, op_end,self.operator_that_can_operate[i], processed_on,executable = False, status = done)
             self.operations.append(operation)
             self.jobs[job_name].operations.append(operation)
+            
+        #create lookup table to speed up the computation
+        self.dependence_index_lookup = []
+        self.used_by_index_lookup = []
+        for index, operation in enumerate(self.operations):  
+            self.dependence_index_lookup.append(np.argwhere(self.adjacency [:,index] == 1))
+            self.used_by_index_lookup.append(np.argwhere(self.adjacency[index,:] == 1))
+        
             
         self.machines_dispo = None
         self.operators_dispo = None
@@ -109,22 +137,24 @@ class Production_line():
         echu = []
         self.time += DateOffset(hours = 12)
         for index, operation in enumerate(self.operations):
+            
+            dependence_index = self.dependence_index_lookup[index]
+            for idx in dependence_index:
+                dependence = self.operations[idx[0]]
+            
+                if operation.status == 0 and dependence.status == -1: #si l'opération n'a pas encore commencé et que la dépendance est terminée
+                    expiration_time = dependence.decrease_get_expiration_time(self.time)
+                    if expiration_time == -1: #si l'opération est échue
+                        echu.append(dependence)
+                if operation.status == -1:
+                    if dependence.status != -1:
+                        if operation.op_begin < self.time:
+                            echu.append(dependence)
+            
+            #forward the opération
             operation.forward(self.time)
-            dependence_index = np.argwhere(self.adjacency[:,index] == 1)
             
-            dependences = []
-            
-            if len(dependence_index):
-                for idx in dependence_index:
-                    dependences.append(self.operations[idx[0]])
-            #l'opération est en terminée
-            if operation.status == -1:
-                for dependence in dependences:
-                    if dependence.status == 0: #si l'opération n'a pas encore commencé sachant que l'opération précédente est terminée
-                        expiration_time = dependence.decrease_get_expiration_time(self.time)
-                        if expiration_time == -1: #si l'opération est échue
-                            echu.append(operation)
-        
+        self.nbr_echu += len(echu)
         return echu
             
     
@@ -137,8 +167,11 @@ class Production_line():
         
         
         for index, operation in enumerate(self.operations):
-            dependence_index = np.argwhere(self.adjacency [:,index] == 1)
+            dependence_index = self.dependence_index_lookup[index]
+            used_by_index = self.used_by_index_lookup[index]
             executable = True
+            
+            #check si la dépendance est finie
             if len(dependence_index):
                 for idx in dependence_index:
                     dependence = self.operations[idx[0]]
@@ -147,6 +180,8 @@ class Production_line():
                     if dependence.status == -1: #si la dépendance est terminée
                         if dependence.op_end > self.time: #si la dépendence n'est pas encore terminée dans notre timestamps
                             executable = False
+            
+            
                         
             if operation.status == -1 or operation.status == 1:#si l'opération est terminée ou en cours, elle n'est plus executable
                 executable = False
@@ -160,6 +195,17 @@ class Production_line():
             #on continue a checker si executable uniquement sur les opérations 
             #encore en course
             if executable:
+                
+                #check qu'il y ait pas trop d'écart entre l'opération en cours et la suivante 
+                #si la suivante est deja terminée (aka deja plannifiée)
+                if len(used_by_index):
+                    for idx in used_by_index:
+                        used_by = self.operations[idx[0]]
+                        
+                        if used_by.status == -1:
+                            if self.time < (used_by.op_begin - DateOffset(hours = 12 * operation.expiration_time)):
+                                executable = False
+                                
                 processing_time = operation.processing_time
                 processable_on = operation.processable_on
                 operator_needed = operation.operator
@@ -208,27 +254,33 @@ class Production_line():
         vacances_conge2022 = ["2022-04-18","2022-05-26","2022-05-27", "2022-06-06","2022-06-16", "2022-08-01", "2022-08-15",
                           "2022-11-01", "2022-12-08", "2022-12-26","2022-12-27", "2022-12-28", "2022-12-29", "2022-12-30"]
         
-        operators = self.df_operator[time:]
-
-        operators_dispo = {}
-        for index, op in operators.iterrows():
+        operators = self.df_operator[time:time+DateOffset(hours = 12*3)]
+        
+        operators_dispo = {}      
+        for row in operators.itertuples():
+            index = row[0]
+            op = np.array(list(row[1:]))
             if index.weekday() < 5 and index.strftime("%Y-%m-%d") not in vacances_conge2022:
-                operators_dispo[index] = op.where(op == "0").dropna().index.tolist()
+                operators_dispo[index] = np.take(self.operator_list, np.nonzero(op=="0")[0]).tolist()
             else:
                 operators_dispo[index] = []
+            pass
                 
         return operators_dispo
         
     def get_available_machines(self, time):
        
-        machines = self.df_machine[time:]
+        machines = self.df_machine[time:time+DateOffset(hours = 12*3)]
         
         machines_dispo = {}
-        for index, machine in machines.iterrows():
+        for row in machines.itertuples():
+            index = row[0]
+            op = np.array(list(row[1:]))
             if index.weekday() < 5:
-                machines_dispo[index] = machine.where(machine == "0").dropna().index.tolist()
+                machines_dispo[index] = np.take(machines.columns, np.nonzero(op=="0")[0]).tolist()
             else:
                 machines_dispo[index] = []
+            pass
                 
         return machines_dispo
 
@@ -260,6 +312,25 @@ class Production_line():
         plan_df['Duration']= plan_df['Duration']
             
         return plan_df
+    
+    def get_lead_time(self):
+        
+        lead_times = []
+        for i,job in self.jobs.items():
+            begin = job.operations[0].op_begin
+            end = job.operations[-1].op_end
+            for op in job.operations:
+                if begin > op.op_begin:
+                    begin = op.op_begin
+                if end < op.op_end:
+                    end = op.op_end
+            lead_time = end-begin
+            
+            lead_times.append(lead_time.days*2 + lead_time.seconds/3600/12)
+                
+                
+                    
+        return lead_times
     
             
   
