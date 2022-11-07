@@ -177,6 +177,8 @@ def get_batch_to_plan(df, date):
                 date_op_begin = None
                 date_op_end = None
                 machine = None
+                operation_appended = False
+                
                 for operation_planned in fraction1:
                     if required in operation_planned[0]:
                         operation_done = True
@@ -184,14 +186,35 @@ def get_batch_to_plan(df, date):
                         date_op_end = operation_planned[1][-1]
                         machine = operation_planned[2]
                         
-                
-                operation_to_plan[batches].append((required,formulation,"fraction1",20000,date_perry,date_op_begin,date_op_end,operation_done,machine))
+                        if len(operation_planned[1]) == 4:
+                            date_op_begin = operation_planned[1][0]
+                            date_op_end = operation_planned[1][1]
+                            operation_to_plan[batches].append((required,formulation,"fraction1",20000,date_perry,date_op_begin,date_op_end,operation_done,machine))
+                            date_op_begin = operation_planned[1][2]
+                            date_op_end = operation_planned[1][3]
+                            operation_to_plan[batches].append((required,formulation,"fraction1",20000,date_perry,date_op_begin,date_op_end,operation_done,machine))
+                            operation_appended = True
+                        if len(operation_planned[1]) == 3:
+                            date_op_begin = operation_planned[1][0]
+                            date_op_end = operation_planned[1][0]
+                            operation_to_plan[batches].append((required,formulation,"fraction1",20000,date_perry,date_op_begin,date_op_end,operation_done,machine))
+                            date_op_begin = operation_planned[1][1]
+                            date_op_end = operation_planned[1][1]
+                            operation_to_plan[batches].append((required,formulation,"fraction1",20000,date_perry,date_op_begin,date_op_end,operation_done,machine))
+                            date_op_begin = operation_planned[1][2]
+                            date_op_end = operation_planned[1][2]
+                            operation_to_plan[batches].append((required,formulation,"fraction1",20000,date_perry,date_op_begin,date_op_end,operation_done,machine))
+                            operation_appended = True
+                        
+                if not operation_appended:
+                    operation_to_plan[batches].append((required,formulation,"fraction1",20000,date_perry,date_op_begin,date_op_end,operation_done,machine))
                 
             for required in formu6_2_scale20000:
                 operation_done = False
                 date_op_begin = None
                 date_op_end = None
                 machine = None
+                operation_appended = False
                 
                 for operation_planned in fraction2:
                     if required in operation_planned[0]:
@@ -200,7 +223,28 @@ def get_batch_to_plan(df, date):
                         date_op_end = operation_planned[1][-1]
                         machine = operation_planned[2]
                         
-                operation_to_plan[batches].append((required,formulation,"fraction2",20000,date_perry,date_op_begin,date_op_end,operation_done,machine))
+                        if len(operation_planned[1]) == 4:
+                            date_op_begin = operation_planned[1][0]
+                            date_op_end = operation_planned[1][1]
+                            operation_to_plan[batches].append((required,formulation,"fraction2",20000,date_perry,date_op_begin,date_op_end,operation_done,machine))
+                            date_op_begin = operation_planned[1][2]
+                            date_op_end = operation_planned[1][3]
+                            operation_to_plan[batches].append((required,formulation,"fraction2",20000,date_perry,date_op_begin,date_op_end,operation_done,machine))
+                            operation_appended = True
+                        if len(operation_planned[1]) == 3:
+                            date_op_begin = operation_planned[1][0]
+                            date_op_end = operation_planned[1][0]
+                            operation_to_plan[batches].append((required,formulation,"fraction2",20000,date_perry,date_op_begin,date_op_end,operation_done,machine))
+                            date_op_begin = operation_planned[1][1]
+                            date_op_end = operation_planned[1][1]
+                            operation_to_plan[batches].append((required,formulation,"fraction2",20000,date_perry,date_op_begin,date_op_end,operation_done,machine))
+                            date_op_begin = operation_planned[1][2]
+                            date_op_end = operation_planned[1][2]
+                            operation_to_plan[batches].append((required,formulation,"fraction2",20000,date_perry,date_op_begin,date_op_end,operation_done,machine))
+                            operation_appended = True
+                        
+                if not operation_appended:
+                    operation_to_plan[batches].append((required,formulation,"fraction2",20000,date_perry,date_op_begin,date_op_end,operation_done,machine))
                     
         if formulation == 3 and "6600" in scale:
             fraction = batches_dict[batches]
@@ -210,6 +254,7 @@ def get_batch_to_plan(df, date):
                     date_op_begin = None
                     date_op_end = None
                     machine = None
+                    
                     for operation_planned in fraction:
                         if required in operation_planned[0]:
                             operation_done = True
@@ -225,13 +270,14 @@ def get_batch_to_plan(df, date):
                     date_op_begin = None
                     date_op_end = None
                     machine = None
+                    
                     for operation_planned in fraction:
                         if required in operation_planned[0]:
                             operation_done = True
                             date_op_begin = operation_planned[1][0]
                             date_op_end = operation_planned[1][-1]
                             machine = operation_planned[2]
-                    
+                        
                     operation_to_plan[batches].append((required,formulation,split,6600,date_perry,date_op_begin,date_op_end,operation_done,machine))
     
         if formulation == 3 and "20000" in scale:
@@ -241,14 +287,37 @@ def get_batch_to_plan(df, date):
                 date_op_begin = None
                 date_op_end = None
                 machine = None
+                operation_appended = False
+                
                 for operation_planned in fraction:
                     if required in operation_planned[0]:
                         operation_done = True
                         date_op_begin = operation_planned[1][0]
                         date_op_end = operation_planned[1][-1]
                         machine = operation_planned[2]
+                        
+                        if len(operation_planned[1]) == 4:
+                            date_op_begin = operation_planned[1][0]
+                            date_op_end = operation_planned[1][1]
+                            operation_to_plan[batches].append((required,formulation,split,20000,date_perry,date_op_begin,date_op_end,operation_done,machine))
+                            date_op_begin = operation_planned[1][2]
+                            date_op_end = operation_planned[1][3]
+                            operation_to_plan[batches].append((required,formulation,split,20000,date_perry,date_op_begin,date_op_end,operation_done,machine))
+                            operation_appended = True
+                        if len(operation_planned[1]) == 3:
+                            date_op_begin = operation_planned[1][0]
+                            date_op_end = operation_planned[1][0]
+                            operation_to_plan[batches].append((required,formulation,split,20000,date_perry,date_op_begin,date_op_end,operation_done,machine))
+                            date_op_begin = operation_planned[1][1]
+                            date_op_end = operation_planned[1][1]
+                            operation_to_plan[batches].append((required,formulation,split,20000,date_perry,date_op_begin,date_op_end,operation_done,machine))
+                            date_op_begin = operation_planned[1][2]
+                            date_op_end = operation_planned[1][2]
+                            operation_to_plan[batches].append((required,formulation,split,20000,date_perry,date_op_begin,date_op_end,operation_done,machine))
+                            operation_appended = True
                 
-                operation_to_plan[batches].append((required,formulation,split,20000,date_perry,date_op_begin,date_op_end,operation_done,machine))
+                if not operation_appended:
+                    operation_to_plan[batches].append((required,formulation,split,20000,date_perry,date_op_begin,date_op_end,operation_done,machine))
                     
         if formulation == 1 and "6600" in scale:
             fraction = batches_dict[batches]
@@ -288,14 +357,37 @@ def get_batch_to_plan(df, date):
                 date_op_begin = None
                 date_op_end = None
                 machine = None
+                operation_appended = False
+                
                 for operation_planned in fraction:
                     if required in operation_planned[0]:
                         operation_done = True
                         date_op_begin = operation_planned[1][0]
                         date_op_end = operation_planned[1][-1]
                         machine = operation_planned[2]
+                        
+                        if len(operation_planned[1]) == 4:
+                            date_op_begin = operation_planned[1][0]
+                            date_op_end = operation_planned[1][1]
+                            operation_to_plan[batches].append((required,formulation,split,20000,date_perry,date_op_begin,date_op_end,operation_done,machine))
+                            date_op_begin = operation_planned[1][2]
+                            date_op_end = operation_planned[1][3]
+                            operation_to_plan[batches].append((required,formulation,split,20000,date_perry,date_op_begin,date_op_end,operation_done,machine))
+                            operation_appended = True
+                        if len(operation_planned[1]) == 3:
+                            date_op_begin = operation_planned[1][0]
+                            date_op_end = operation_planned[1][0]
+                            operation_to_plan[batches].append((required,formulation,split,20000,date_perry,date_op_begin,date_op_end,operation_done,machine))
+                            date_op_begin = operation_planned[1][1]
+                            date_op_end = operation_planned[1][1]
+                            operation_to_plan[batches].append((required,formulation,split,20000,date_perry,date_op_begin,date_op_end,operation_done,machine))
+                            date_op_begin = operation_planned[1][2]
+                            date_op_end = operation_planned[1][2]
+                            operation_to_plan[batches].append((required,formulation,split,20000,date_perry,date_op_begin,date_op_end,operation_done,machine))
+                            operation_appended = True
                 
-                operation_to_plan[batches].append((required,formulation,split,20000,date_perry,date_op_begin,date_op_end,operation_done,machine))
+                if not operation_appended:
+                    operation_to_plan[batches].append((required,formulation,split,20000,date_perry,date_op_begin,date_op_end,operation_done,machine))
             
     for key, value in operation_to_plan.copy().items():
         batch_done = True
@@ -304,9 +396,7 @@ def get_batch_to_plan(df, date):
                 batch_done = False
         if batch_done:
             del operation_to_plan[key]
-                
-    
-    
+  
     
     return operation_to_plan
                 

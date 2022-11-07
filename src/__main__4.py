@@ -194,16 +194,18 @@ prod_line.df_operator[begin_date:] = operators
 
 
 
-nbr_tentative = 200
-tentatives_prod_line = np.empty((nbr_tentative),dtype = object)
-tentatives_selected_machines = np.empty((nbr_tentative),dtype = object)
+nbr_tentative = 2000
+tentatives_prod_line = []
+ocupation_operator_mean = []
 for tentative in range(nbr_tentative):
     print("tentative : ", tentative)
     
-    tentatives_prod_line[tentative] = deepcopy(prod_line)
-    prod_line_tentative = tentatives_prod_line[tentative]
+    prod_line_tentative= deepcopy(prod_line)
+    
     selected_machines  = {}
     done = False
+    ocupation_operators = []
+    
     while not done:
         current_date = prod_line_tentative.time
         machine_dispo, operator_dispo = prod_line_tentative.update_executable()
@@ -214,11 +216,14 @@ for tentative in range(nbr_tentative):
                 exectuable_idx.append(index)
                 exectuable_idx.append(index)
                 exectuable_idx.append(index)
-        exectuable_idx.append("forward")
+        
+        if len(exectuable_idx) == 0:
+            exectuable_idx.append("forward")
     
         choosen_idx = sample(exectuable_idx,1)[0]
         
         if choosen_idx == "forward":
+            ocupation_operators.append((20-len(operator_dispo[current_date]))/20)
             echu = prod_line_tentative.forward()
             for op in echu:
                 print("echu : ", op.operation_name)
@@ -242,7 +247,7 @@ for tentative in range(nbr_tentative):
             operators_to_plan = sample(operator_that_can_operate, operators_needed)
             
             #store the selected ressources
-            selected_machines[choosen_idx] = machine_to_plan
+
             to_plan.processed_on = machine_to_plan
             
             
@@ -268,9 +273,11 @@ for tentative in range(nbr_tentative):
             break
             
         done = prod_line_tentative.check_done()
-        
-    tentatives_prod_line[tentative] = prod_line_tentative
-    tentatives_selected_machines[tentative] = selected_machines
+    
+    if not len(echu):
+        ocupation_operator_mean.append(ocupation_operators)
+        tentatives_prod_line.append(prod_line_tentative)
+
     
 
 
@@ -280,17 +287,18 @@ min_lead_time = 200
 for i,test in enumerate(tentatives_prod_line):
     if test.nbr_echu == 0:
         
+        print("occupations operators : " ,ocupation_operator_mean[i])
         lead_times = test.get_lead_time()
        
         no_echu_prod_line_idx.append(i)
         if np.mean(lead_times) < min_lead_time:
             prod_line = tentatives_prod_line[i]
-            selected_machines = tentatives_selected_machines[i]
             min_lead_time = np.mean(lead_times)
             print("with lead_time : ")
             print("min : ", min(lead_times))
             print("max : ", max (lead_times))
             print("mean : ", np.mean(lead_times))
+            
         
         
 
