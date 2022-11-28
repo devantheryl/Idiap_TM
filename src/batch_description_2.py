@@ -102,7 +102,23 @@ def get_batch_description():
             "operator" : 2,
             "begin_day" : True, 
             "QC_delay" : 0
-        }
+        },
+        "IV":{
+            "processable_on" : ["m10"],
+            "processing_time" : 1,
+            "expiration_time" : 60,
+            "operator" : 1,
+            "begin_day" : False, 
+            "QC_delay" : 0
+            },
+        "ENVOI":{
+            "processable_on" : [],
+            "processing_time" : 1,
+            "expiration_time" : 60,
+            "operator" : 0,
+            "begin_day" : False, 
+            "QC_delay" : 0
+            }
         
         
     },
@@ -188,11 +204,27 @@ def get_batch_description():
         "CAPS": {
             "processable_on" : ["m8"],
             "processing_time" : 1,
-            "expiration_time" : 60,
+            "expiration_time" : 120,
             "operator" : 2,
             "begin_day" : True, 
             "QC_delay" : 0
-        }
+        },
+        "IV":{
+            "processable_on" : ["m10"],
+            "processing_time" : 1,
+            "expiration_time" : 120,
+            "operator" : 1,
+            "begin_day" : False, 
+            "QC_delay" : 0
+            },
+        "ENVOI":{
+            "processable_on" : [],
+            "processing_time" : 1,
+            "expiration_time" : 120,
+            "operator" : 0,
+            "begin_day" : False, 
+            "QC_delay" : 0
+            }
         
         
     },
@@ -273,12 +305,28 @@ def get_batch_description():
         },
         "CAPS": {
             "processable_on" : ["m8"],
-            "processing_time" : 2,
-            "expiration_time" : 60,
+            "processing_time" : 1,
+            "expiration_time" : 120,
             "operator" : 2,
             "begin_day" : True, 
             "QC_delay" : 0
-        }
+        },
+        "IV":{
+            "processable_on" : ["m10"],
+            "processing_time" : 1,
+            "expiration_time" : 120,
+            "operator" : 1,
+            "begin_day" : False, 
+            "QC_delay" : 0
+            },
+        "ENVOI":{
+            "processable_on" : [],
+            "processing_time" : 1,
+            "expiration_time" : 120,
+            "operator" : 0,
+            "begin_day" : False, 
+            "QC_delay" : 0
+            }
         
         
     },
@@ -359,11 +407,27 @@ def get_batch_description():
         "CAPS": {
             "processable_on" : ["m8"],
             "processing_time" : 1,
-            "expiration_time" : 60,
+            "expiration_time" : 120,
             "operator" : 2,
             "begin_day" : True, 
             "QC_delay" : 0
-        }
+        },
+        "IV":{
+            "processable_on" : ["m10"],
+            "processing_time" : 1,
+            "expiration_time" : 120,
+            "operator" : 1,
+            "begin_day" : False, 
+            "QC_delay" : 0
+            },
+        "ENVOI":{
+            "processable_on" : [],
+            "processing_time" : 1,
+            "expiration_time" : 120,
+            "operator" : 0,
+            "begin_day" : False, 
+            "QC_delay" : 0
+            }
         
         
     },
@@ -502,13 +566,28 @@ def get_batch_description():
         },
         "CAPS": {
             "processable_on" : ["m8"],
-            "processing_time" : 2,
-            "expiration_time" : 60,
+            "processing_time" : 1,
+            "expiration_time" : 120,
             "operator" : 2,
             "begin_day" : True, 
             "QC_delay" : 0
-        }
-        
+        },
+        "IV":{
+            "processable_on" : ["m10"],
+            "processing_time" : 1,
+            "expiration_time" : 120,
+            "operator" : 1,
+            "begin_day" : False, 
+            "QC_delay" : 0
+            },
+        "ENVOI":{
+            "processable_on" : [],
+            "processing_time" : 1,
+            "expiration_time" : 120,
+            "operator" : 0,
+            "begin_day" : False, 
+            "QC_delay" : 0
+            }
         
     },
     "6_6600" : {
@@ -640,11 +719,27 @@ def get_batch_description():
         "CAPS": {
             "processable_on" : ["m8"],
             "processing_time" : 1,
-            "expiration_time" : 60,
+            "expiration_time" : 120,
             "operator" : 2,
             "begin_day" : True, 
             "QC_delay" : 0
-        }
+        },
+        "IV":{
+            "processable_on" : ["m10"],
+            "processing_time" : 1,
+            "expiration_time" : 120,
+            "operator" : 1,
+            "begin_day" : False, 
+            "QC_delay" : 0
+            },
+        "ENVOI":{
+            "processable_on" : [],
+            "processing_time" : 1,
+            "expiration_time" : 120,
+            "operator" : 0,
+            "begin_day" : False, 
+            "QC_delay" : 0
+            }
         
         
     },
@@ -659,7 +754,8 @@ def get_batch_description():
         "millieu_b1" , 
         "perry_b2",
         "Capsulage",
-        "melangeur_b1"
+        "melangeur_b1",
+        "inspection_visuelle"
         
     ]
 

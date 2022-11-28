@@ -10,8 +10,8 @@ from pandas.tseries.offsets import DateOffset
 
 
 
-from src.TF_env3 import TF_environment
-from tensorforce import Environment, Agent
+#from src.TF_env3 import TF_environment
+#from tensorforce import Environment, Agent
 
 import src.utils as utils
 
@@ -35,8 +35,11 @@ from copy import deepcopy
 from time import time
 
 #load the current_date and create the prod_line object
-begin_date = pd.to_datetime("2022-10-13", format = "%Y-%m-%d")
-prod_line = Production_line(begin_date)
+begin_date = pd.to_datetime("2022-11-15", format = "%Y-%m-%d")
+excel_file = "data/Planning Production 2022_15.11.22.xlsm"
+
+
+prod_line = Production_line(begin_date,excel_file)
 
 
 prod_line.operators_dispo = prod_line.get_available_operators(prod_line.time)
@@ -93,7 +96,9 @@ operation_machine = {
     
     ("PERRY","m7") : "Remplissage Poudre + liquide B2",
     
-    ("CAPS", "m8") : "Capsulage"
+    ("CAPS", None) : "Capsulage", 
+    ("CAPS", "m8") : "Capsulage", 
+    ("IV", "m10") : "Inspection visuelle "
     }
 operation_raccourci = {
     "Broyage polymère B1" : "BR",
@@ -108,7 +113,8 @@ operation_raccourci = {
     "Combin. des fractions de microgranules" : "CF",
     "Sortie Lyo" : "LYO",
     "Capsulage" : "CAPS",
-    "Remplissage Poudre + liquide B2" : "LYO"
+    "Remplissage Poudre + liquide B2" : "LYO",
+    "Inspection visuelle " : "IV"
     
     }
 
@@ -126,6 +132,7 @@ operateur_needed = {
     "Remplissage Poudre + liquide B2" : 8, 
     "Sortie Lyo" : 2,
     "Capsulage" : 2,
+    "Inspection visuelle " :1
     }
 
 #attribue les opérateurs aux opérations qui n'en ont pas encore 
@@ -137,9 +144,6 @@ date_problem = []
 for index in machine.index:
     machines_used = machine.loc[index]
     machines_used = machines_used[machines_used!="0"].to_list()
-    
-    
-    
     
     
     best_ratio = 0
@@ -194,7 +198,7 @@ prod_line.df_operator[begin_date:] = operators
 
 
 
-nbr_tentative = 2000
+nbr_tentative = 500
 tentatives_prod_line = []
 ocupation_operator_mean = []
 for tentative in range(nbr_tentative):
@@ -210,23 +214,49 @@ for tentative in range(nbr_tentative):
         current_date = prod_line_tentative.time
         machine_dispo, operator_dispo = prod_line_tentative.update_executable()
         
-        exectuable_idx = []
+        executable_idx = []
+        executable_operation = []
+        smallest_exp_time = 100
+        smallest_idx = None
         for index, op in enumerate(prod_line_tentative.operations):
             if op.executable:
-                exectuable_idx.append(index)
-                exectuable_idx.append(index)
-                exectuable_idx.append(index)
+                executable_idx.append(index)
+                executable_operation.append(op)
+                
+                used_by_index = prod_line_tentative.dependence_index_lookup[index]
+                if len(used_by_index) == 0:
+                    if op.expiration_time < smallest_exp_time:
+                        smallest_exp_time = op.expiration_time 
+                        smallest_idx = index
+                for used_by_idx in used_by_index:
+                    used_by_op = prod_line_tentative.operations[used_by_idx[0]]
+                    if used_by_op.expiration_time < smallest_exp_time:
+                        smallest_exp_time = used_by_op.expiration_time 
+                        smallest_idx = index
         
-        if len(exectuable_idx) == 0:
-            exectuable_idx.append("forward")
+        if len(executable_idx) == 0:
+            executable_idx.append("forward")
+            choosen_idx = "forward"
+        else:
+            if smallest_exp_time > 6:
+                choosen_idx = sample(executable_idx,1)[0]
+            else:
+                choosen_idx = smallest_idx
+            #print(prod_line_tentative.operations[choosen_idx].operation_name)
     
-        choosen_idx = sample(exectuable_idx,1)[0]
+        #random sample of an operation
+        
+        
+        
+        #choose the operaiton with the smallest exp_time
+        
+        
+        
         
         if choosen_idx == "forward":
             ocupation_operators.append((20-len(operator_dispo[current_date]))/20)
             echu = prod_line_tentative.forward()
-            for op in echu:
-                print("echu : ", op.operation_name)
+            
             
         else:
             to_plan = prod_line_tentative.operations[choosen_idx]
@@ -253,7 +283,8 @@ for tentative in range(nbr_tentative):
             
             #met a jour les ressources disponibles
             end_date = current_date + DateOffset(hours = 12 * (duration-1))
-            prod_line_tentative.df_machine.loc[current_date:end_date, machine_to_plan] = operation_machine[to_plan.operation_name, machine_to_plan]
+            if to_plan.operation_name != "IV":
+                prod_line_tentative.df_machine.loc[current_date:end_date, machine_to_plan] = operation_machine[to_plan.operation_name, machine_to_plan]
             
             #merge mélangeur et extrudeur
             if machine_to_plan == "m3":
@@ -268,6 +299,10 @@ for tentative in range(nbr_tentative):
             #start the operation
             to_plan.status = 1# change the status to en cours
             to_plan.op_begin = current_date
+            
+            #handle de IV
+            if to_plan.operation_name == "IV":
+                prod_line_tentative.current_batch_on_IV = to_plan.job_name
             
         if len(echu):
             break
@@ -287,7 +322,6 @@ min_lead_time = 200
 for i,test in enumerate(tentatives_prod_line):
     if test.nbr_echu == 0:
         
-        print("occupations operators : " ,ocupation_operator_mean[i])
         lead_times = test.get_lead_time()
        
         no_echu_prod_line_idx.append(i)
@@ -311,18 +345,18 @@ batch_names = prod_line.batch_names
 
 planning_tot_final = pd.DataFrame(columns = ["Job", "Machine", "Operation", "Start", "Duration", "Finish", "op_machine"])
 for idx,operation in enumerate(prod_line.operations):
+    if operation.operation_name not in ["CAPS", "ENVOI"]:
+        data = {"Job" : operation.job_name, 
+                "Machine" : operation.processed_on, 
+                "Operation" : operation.operation_name, 
+                "Start" : operation.op_begin, 
+                "Duration" : operation.op_end - operation.op_begin, 
+                "Finish" : operation.op_end, 
+                "op_machine" : operation_machine[operation.operation_name, operation.processed_on]
+                }
+        row = pd.DataFrame(data = data,columns = ["Job", "Machine", "Operation", "Start", "Duration", "Finish", "op_machine"], index = [idx])
     
-    data = {"Job" : operation.job_name, 
-            "Machine" : operation.processed_on, 
-            "Operation" : operation.operation_name, 
-            "Start" : operation.op_begin, 
-            "Duration" : operation.op_end - operation.op_begin, 
-            "Finish" : operation.op_end, 
-            "op_machine" : operation_machine[operation.operation_name, operation.processed_on]
-            }
-    row = pd.DataFrame(data = data,columns = ["Job", "Machine", "Operation", "Start", "Duration", "Finish", "op_machine"], index = [idx])
-
-    planning_tot_final = pd.concat([planning_tot_final,row])
+        planning_tot_final = pd.concat([planning_tot_final,row])
     
     
 
@@ -335,7 +369,7 @@ machine = prod_line.df_machine[begin_date:]
 
 
     
-utils.visualize("data/Planning_Production 2022_13.10.2022.xlsm", batch_names, planning_tot_final, operators, None)
+utils.visualize(excel_file, batch_names, planning_tot_final, operators, None)
 
 
         

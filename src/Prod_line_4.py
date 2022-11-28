@@ -26,7 +26,7 @@ os.chdir(dname)
 
 class Production_line():
     
-    def __init__(self, current_date):
+    def __init__(self, current_date, excel_file):
         
         
         """
@@ -47,6 +47,8 @@ class Production_line():
             "Combin. des fractions de microgranules" : "m5",
             "Capsulage" : "m8"
             }
+        
+        self.excel_file = excel_file
         self.historic_operator = []
         self.historic_time = []
         self.nbr_echu = 0
@@ -57,11 +59,13 @@ class Production_line():
         self.time = current_date
         
         #READ the excel file and get all ressources for the whole year
-        self.df, self.df_restricted = utils.unmerge_excel("data/Planning_Production 2022_13.10.2022.xlsm")
+        self.df, self.df_restricted = utils.unmerge_excel(self.excel_file)
 
-        self.operation_to_plan = btp.get_batch_to_plan(self.df, current_date) 
+        self.operation_to_plan = btp.get_batch_to_plan(self.df,self.df_restricted, current_date) 
         
-        self.vertices, self.adjacency = btp.get_operations_graph(self.operation_to_plan)
+        self.IV_to_plan = btp.get_IV_occupations(self.df,self.df_restricted, current_date)
+        
+        self.vertices, self.adjacency = btp.get_operations_graph(self.operation_to_plan, {})
 
         
         #get the disponibility of ressources
@@ -120,6 +124,7 @@ class Production_line():
             self.used_by_index_lookup.append(np.argwhere(self.adjacency[index,:] == 1))
         
             
+        self.current_batch_on_IV = None
         self.machines_dispo = None
         self.operators_dispo = None
         
@@ -135,27 +140,53 @@ class Production_line():
     """
     def forward(self):
         echu = []
+        too_late = []
         self.time += DateOffset(hours = 12)
         for index, operation in enumerate(self.operations):
             
             dependence_index = self.dependence_index_lookup[index]
+            used_by_index = self.used_by_index_lookup[index]
+
+
+            #check if the already planned operation is not executed before the one on which it depends
             for idx in dependence_index:
                 dependence = self.operations[idx[0]]
+                if operation.status == -1 and dependence.status != -1:
+                    if operation.op_begin < self.time:
+                        too_late.append(dependence)
             
-                if operation.status == 0 and dependence.status == -1: #si l'opération n'a pas encore commencé et que la dépendance est terminée
-                    expiration_time = dependence.decrease_get_expiration_time(self.time)
-                    if expiration_time == -1: #si l'opération est échue
-                        echu.append(dependence)
-                if operation.status == -1:
-                    if dependence.status != -1:
-                        if operation.op_begin < self.time:
-                            echu.append(dependence)
+                            
+            #check if the following operation are finished or planned to decrease the expiration time of the current one
+            used_by_done = True
+            for idx in used_by_index:
+                used_by = self.operations[idx[0]]
+                if used_by.status ==0 :
+                    used_by_done = False
+                    
+            #si les opérations suivantes ne sont pas toutes terminée et que celle en cours est terminée
+            if not used_by_done and operation.status == -1:
+                expiration_time = operation.decrease_get_expiration_time(self.time)
+                if expiration_time == -1: #si l'opération est échue
+                    echu.append(operation)
             
             #forward the opération
             operation.forward(self.time)
             
         self.nbr_echu += len(echu)
-        return echu
+        
+        #check if the IV si already taken
+        current_batch_on_iv = self.df_restricted.loc[self.time]["Inspection visuelle "]
+        if  current_batch_on_iv == "0":
+            self.current_batch_on_IV = None
+        else:
+            self.current_batch_on_IV = current_batch_on_iv
+        
+        if len(too_late):
+            print(too_late[0].operation_name, " too late")
+        if len(echu):
+            print(echu[0].operation_name, " echu")
+            
+        return echu + too_late
             
     
     
@@ -167,9 +198,15 @@ class Production_line():
         
         
         for index, operation in enumerate(self.operations):
+            
+            
+            
             dependence_index = self.dependence_index_lookup[index]
             used_by_index = self.used_by_index_lookup[index]
             executable = True
+            
+            if operation.operation_name == "MEL" and self.time.weekday() > 4:
+                executable = False
             
             #check si la dépendance est finie
             if len(dependence_index):
@@ -238,7 +275,11 @@ class Production_line():
                     
                 if len(qualified_operator) < operator_needed:
                     executable = False
-                     
+                    
+                    
+                #special_part for IV
+                if not (self.current_batch_on_IV == None or self.current_batch_on_IV == operation.job_name):
+                     executable = False
             
             operation.executable = executable
             self.idx_operations_executable[index] = executable
@@ -281,6 +322,8 @@ class Production_line():
             else:
                 machines_dispo[index] = []
             pass
+    
+            machines_dispo[index].append("m10")
                 
         return machines_dispo
 

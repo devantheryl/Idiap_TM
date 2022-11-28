@@ -47,9 +47,9 @@ operations_driver = {
     }
 
 
-def get_batch_to_plan(df, date):
+def get_batch_to_plan(df, df_restricted,date):
 
-    ressources = df.loc[date:]
+    ressources = df.loc[date-DateOffset(days = 30):]
     
     """
     find all the batches that have the Perry planned from current_date
@@ -389,6 +389,8 @@ def get_batch_to_plan(df, date):
                 if not operation_appended:
                     operation_to_plan[batches].append((required,formulation,split,20000,date_perry,date_op_begin,date_op_end,operation_done,machine))
             
+          
+    
     for key, value in operation_to_plan.copy().items():
         batch_done = True
         for op in value:
@@ -405,7 +407,7 @@ def get_batch_to_plan(df, date):
 
 
 
-def get_operations_graph(operation_to_plan):
+def get_operations_graph(operation_to_plan,IV_to_plan):
     """
     create a list of vertices representing all operation
     """
@@ -415,6 +417,11 @@ def get_operations_graph(operation_to_plan):
     for key, value in operation_to_plan.items():
         for op in value:
             vertices.append((key,op))
+            
+    for key, value in IV_to_plan.items():
+        for op in value:
+            vertices.append((key,op))
+    
     nbr_operations = len(vertices)
             
     """
@@ -463,7 +470,14 @@ def get_operations_graph(operation_to_plan):
                         
                     if op_ref[0] == "PERRY" and op_prob[0] == "CAPS":
                         adjacency[i,j] = 1
+                        
+                    if op_ref[0] == "CAPS" and op_prob[0] == "IV":
+                        adjacency[i,j] = 1
             
+                    if op_ref[0] == "IV" and op_prob[0] == "ENVOI":
+                        adjacency[i,j] = 1
+                        
+                        
             #inter batch connexion
             if batch_ref[:-2] == batch_prob[:-2]:
                 
@@ -474,6 +488,95 @@ def get_operations_graph(operation_to_plan):
 
 
 
+def get_IV_occupations(df,df_restricted, current_date):
+    
+    
+    IV_to_plan = {}
+    
+    envoi_irr = df_restricted.loc[current_date:]["Envoi en irradiation"]
+    all_batches = np.unique(envoi_irr.to_numpy())
+    all_batches = np.delete(all_batches, np.where(all_batches == "0"))
+    
+    perry = df_restricted.loc[:]["Remplissage Poudre + liquide B2"]
+    caps = df_restricted.loc[:]["Capsulage"]
+    
+    scale = df.loc[:,"Remplissage Poudre + liquide B2"].loc[:,"Echelle"]
+    
+    perry_date = {}
+    envoi_irr_date = {}
+    batch_scale = {}
+    for batch_name in all_batches:
+        #find the last perry date
+        idx = perry[perry.str.contains(batch_name)].index
+        perry_date[batch_name] = idx[-1]
+        
+        #find the scale
+        if "6600" in scale.at[idx[-1]]:
+            batch_scale[batch_name] = 6600
+        else:
+            batch_scale[batch_name] = 20000
+        
+        #find the envoi_irr date
+        idx = envoi_irr[envoi_irr.str.contains(batch_name)].index
+        envoi_irr_date[batch_name] = idx[0]
+        
+    
+    
+    #find the number of operator used for Iv per batch
+    nbr_operator_for_IV = {}
+    for batch_name  in all_batches:
+        IV_idx1 = df_restricted.index[df_restricted["Inspection visuelle "].str.contains(batch_name)]
+        IV_idx2 = df_restricted.index[df_restricted["Inspection visuelle"].str.contains(batch_name)]
+        
+        IV_idx = list(set(IV_idx1) | set(IV_idx2))
+        
+        nbr_operator_for_IV[batch_name] = {}
+        for idx in IV_idx:
+            nbr_operator_for_IV[batch_name][idx] = len(df_restricted.loc[idx].where(df_restricted.loc[idx].str.contains("IV")).dropna())
+            
+    
+    #get the batch that need IV
+    nbr_IV_to_plan = {}
+    for batch_name, value in nbr_operator_for_IV.copy().items():
+        sum_operator = 0
+        for _,nbr_operator in value.items():
+            sum_operator += nbr_operator
+            
+        #il n'y a pas assez d'IV
+        if batch_scale[batch_name] == 20000 and sum_operator < 20:
+            nbr_IV_to_plan[batch_name] = 24-sum_operator
+        if batch_scale[batch_name] == 6600 and sum_operator < 6:
+            nbr_IV_to_plan[batch_name] = 8-sum_operator
+            
+    
+    for batch_name, operator_needed in nbr_IV_to_plan.items():
+        IV_to_plan[batch_name] = []
+        
+        formulation = batch_name.split(".")[0][-1]
+        if formulation == "1":
+            formulation = 3
+        if formulation == "2":
+            formulation = 6
+        if formulation == "3":
+            formulation = 1
+            
+        #we need to find the caps
+        caps_date = caps[caps.str.contains(batch_name)].index
+        IV_to_plan[batch_name].append(("CAPS",formulation, None, batch_scale[batch_name],None,caps_date[0],caps_date[-1], True))
+        
+        #we need to find the envoi irr
+        IV_to_plan[batch_name].append(("ENVOI",formulation, None, batch_scale[batch_name],None,envoi_irr_date[batch_name],envoi_irr_date[batch_name], True))
+    
+        #we add as much IV operation as needed operators
+        for i in range(operator_needed):
+            IV_to_plan[batch_name].append(("IV",formulation, None, batch_scale[batch_name],None,None,None, False))
+                
+            
+        
+    
+            
+    return IV_to_plan
+
 
 def get_operators_for_operations(vertices, operator_stats_df):
     """
@@ -482,8 +585,10 @@ def get_operators_for_operations(vertices, operator_stats_df):
     operator_that_can_operate = {}
     for index,op in enumerate(vertices):
         op = op[1][0]
-        
-        operator_that_can_operate[index] = operator_stats_df.loc[op][operator_stats_df.loc[op] == 1].index.tolist()
+        if op !="ENVOI":
+            operator_that_can_operate[index] = operator_stats_df.loc[op][operator_stats_df.loc[op] == 1].index.tolist()
+        else:
+            operator_that_can_operate[index] = []
         
     return operator_that_can_operate
 

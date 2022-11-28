@@ -33,7 +33,8 @@ def visualize(excel_file, batch_names, planning_tot_final, selected_operators, p
                  "Milieu de suspension  " : 98,
                  "Combin. des fractions de microgranules" : 88,
                  "Remplissage Poudre + liquide B2" : 104,
-                 "Capsulage" : 121
+                 "Capsulage" : 121,
+                 "Inspection visuelle " :129 
                  }
         
     operator_excel_rows = {
@@ -73,7 +74,8 @@ def visualize(excel_file, batch_names, planning_tot_final, selected_operators, p
         "Milieu de suspension  " : "MILIEU",
         "Combin. des fractions de microgranules" : "CF",
         "Remplissage Poudre + liquide B2" : "LYO",
-        "Capsulage" : "CAPS"
+        "Capsulage" : "CAPS",
+        "Inspection visuelle " : "IV"
     }
 
 
